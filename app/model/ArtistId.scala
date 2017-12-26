@@ -1,0 +1,18 @@
+package model
+
+import play.api.libs.json.{JsNumber, Writes}
+import play.api.mvc.PathBindable
+import slick.lifted.MappedTo
+
+final case class ArtistId(value: Int) extends MappedTo[Int]
+
+object ArtistId {
+  implicit val jsonWrites = new Writes[ArtistId] {
+    def writes(artistId: ArtistId) = JsNumber(artistId.value)
+  }
+
+  implicit val pathBindable: PathBindable[ArtistId] = {
+    PathBindable.bindableInt.transform(ArtistId.apply, _.value)
+  }
+}
+

@@ -1,0 +1,12 @@
+# Routes
+# This file defines all application routes (Higher priority routes first)
+# ~~~~
+
+GET     /song/:id                        controllers.SongController.get(id: model.SongId)
+GET     /artist/:id                      controllers.ArtistController.get(id: model.ArtistId)
+GET     /album/:id                       controllers.AlbumController.get(id: model.AlbumId)
+GET     /core-data                       controllers.CoreDataController.get()
+
+POST    /contact                         controllers.ContactController.post()
+
+GET     /comment-data                    controllers.CommentController.allData()
