@@ -49,6 +49,7 @@ final case class CoreSong(
   albumId: AlbumId,
   title: String,
   languageId: String,
+  leadVocals: String,
   positions: Map[String, Int],
   exitCurrent: Boolean
 )
@@ -61,6 +62,7 @@ object CoreSong {
       albumId = song.albumId,
       title = song.title,
       languageId = song.languageId,
+      leadVocals = song.leadVocals,
       positions = song.positions,
       exitCurrent = song.exitCurrent
     )
@@ -75,6 +77,7 @@ final case class CoreData(
   songs: Seq[CoreSong],
   countries: Seq[Country],
   languages: Seq[Language],
+  vocalsGenders: Seq[VocalsGender],
   years: Seq[Int]
 )
 

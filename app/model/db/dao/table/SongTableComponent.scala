@@ -18,6 +18,7 @@ private[table] trait SongTableComponent extends TableComponent {
     val title = column[String]("titel")
     val lyrics = column[String]("lyrics")
     val languageId = column[String]("taal_afkorting")
+    val leadVocals = column[String]("lead_vocals")
     val notes = column[String]("opmerkingen")
     val urlWikiEn = column[String]("url_wikien")
     val urlWikiNl = column[String]("url_wikinl")
@@ -53,37 +54,38 @@ private[table] trait SongTableComponent extends TableComponent {
     val j14 = column[Int]("j14")
     val j15 = column[Int]("j15")
     val j16 = column[Int]("j16")
+    val j17 = column[Int]("j17")
     val exitCurrent = column[Boolean]("exit_huidige")
 
-    type RowType = SongId :: ArtistId :: AlbumId :: String :: String :: String :: String :: String :: String :: Boolean :: DateTime ::
+    type RowType = SongId :: ArtistId :: AlbumId :: String :: String :: String :: String :: String :: String :: String :: Boolean :: DateTime ::
       Int :: Int :: Int :: Int :: Int ::
       Int :: Int :: Int :: Int :: Int ::
       Int :: Int :: Int :: Int :: Int ::
       Int :: Int :: Int :: Int :: Int ::
       Int :: Int :: Int :: Int :: Int ::
-      Int :: Int :: Int :: Int ::
+      Int :: Int :: Int :: Int :: Int ::
       Boolean :: HNil
 
     def * = (
-      id :: artistId :: albumId :: title :: lyrics :: languageId :: notes :: urlWikiEn :: urlWikiNl :: edit :: lastUpdate ::
+      id :: artistId :: albumId :: title :: lyrics :: languageId :: leadVocals :: notes :: urlWikiEn :: urlWikiNl :: edit :: lastUpdate ::
         j87 :: j88 :: j90 :: j91 :: j92 ::
         j93 :: j94 :: j95 :: j96 :: j97 ::
         j98 :: j99 :: j00 :: j01 :: j02 ::
         j03 :: j04 :: j05 :: j06 :: j07 ::
         j08 :: j09 :: j10 :: j11 :: j12 ::
-        j13 :: j14 :: j15 :: j16 ::
+        j13 :: j14 :: j15 :: j16 :: j17 ::
         exitCurrent :: HNil
       ) <> (createSong, extractFromSong)
 
     def createSong(row: RowType): Song = {
       row match {
-        case id :: artistId :: albumId :: title :: lyrics :: languageId :: notes :: urlWikiEn :: urlWikiNl :: edit :: lastUpdate ::
+        case id :: artistId :: albumId :: title :: lyrics :: languageId :: leadVocals :: notes :: urlWikiEn :: urlWikiNl :: edit :: lastUpdate ::
           j87 :: j88 :: j90 :: j91 :: j92 ::
           j93 :: j94 :: j95 :: j96 :: j97 ::
           j98 :: j99 :: j00 :: j01 :: j02 ::
           j03 :: j04 :: j05 :: j06 :: j07 ::
           j08 :: j09 :: j10 :: j11 :: j12 ::
-          j13 :: j14 :: j15 :: j16 ::
+          j13 :: j14 :: j15 :: j16 :: j17 ::
           exitCurrent :: HNil =>
 
           val positions = Map(
@@ -115,23 +117,24 @@ private[table] trait SongTableComponent extends TableComponent {
             "13" -> j13,
             "14" -> j14,
             "15" -> j15,
-            "16" -> j16
+            "16" -> j16,
+            "17" -> j17
           )
-          Song(id, artistId, albumId, title, positions, exitCurrent, lyrics, languageId, notes, urlWikiEn, urlWikiNl, edit, lastUpdate)
+          Song(id, artistId, albumId, title, positions, exitCurrent, lyrics, languageId, leadVocals, notes, urlWikiEn, urlWikiNl, edit, lastUpdate)
       }
     }
 
     def extractFromSong(song: Song): Option[RowType] = {
       song match {
-        case Song(id, artistId, albumId, title, positions, exitCurrent, lyrics, languageId, notes, urlWikiEn, urlWikiNl, edit, lastUpdate) =>
+        case Song(id, artistId, albumId, title, positions, exitCurrent, lyrics, languageId, leadVocals, notes, urlWikiEn, urlWikiNl, edit, lastUpdate) =>
           Some(
-            id :: artistId :: albumId :: title :: lyrics :: languageId :: notes :: urlWikiEn :: urlWikiNl :: edit :: lastUpdate ::
+            id :: artistId :: albumId :: title :: lyrics :: languageId :: leadVocals :: notes :: urlWikiEn :: urlWikiNl :: edit :: lastUpdate ::
               positions("87") :: positions("88") :: positions("90") :: positions("91") :: positions("92") ::
               positions("93") :: positions("94") :: positions("95") :: positions("96") :: positions("97") ::
               positions("98") :: positions("99") :: positions("00") :: positions("01") :: positions("02") ::
               positions("03") :: positions("04") :: positions("05") :: positions("06") :: positions("07") ::
               positions("08") :: positions("09") :: positions("10") :: positions("11") :: positions("12") ::
-              positions("13") :: positions("14") :: positions("15") :: positions("16") ::
+              positions("13") :: positions("14") :: positions("15") :: positions("16") :: positions("17") ::
               exitCurrent :: HNil
           )
       }

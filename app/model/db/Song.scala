@@ -12,6 +12,7 @@ final case class Song(
   exitCurrent: Boolean,
   lyrics: String,
   languageId: String,
+  leadVocals: String,
   notes: String,
   urlWikiEn: String,
   urlWikiNl: String,

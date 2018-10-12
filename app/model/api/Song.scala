@@ -10,6 +10,7 @@ final case class Song(
   title: String,
   lyrics: String,
   languageId: String,
+  leadVocals: String,
   notes: String,
   urlWikiEn: String,
   urlWikiNl: String
@@ -24,6 +25,7 @@ object Song {
       title = dbSong.title,
       lyrics = dbSong.lyrics,
       languageId = dbSong.languageId,
+      leadVocals = dbSong.leadVocals,
       notes = dbSong.notes,
       urlWikiEn = dbSong.urlWikiEn,
       urlWikiNl = dbSong.urlWikiNl

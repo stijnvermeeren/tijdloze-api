@@ -24,6 +24,7 @@ class CoreDataController @Inject()(albumDAO: AlbumDAO, artistDAO: ArtistDAO, son
         songs = songs.map(CoreSong.fromDb),
         countries = Country.all,
         languages = Language.all,
+        vocalsGenders = VocalsGender.all,
         years = Year.all
       )))
     }
