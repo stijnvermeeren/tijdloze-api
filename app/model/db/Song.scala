@@ -8,7 +8,6 @@ final case class Song(
   artistId: ArtistId,
   albumId: AlbumId,
   title: String,
-  positions: Map[String, Int],
   exitCurrent: Boolean,
   lyrics: String,
   languageId: String,

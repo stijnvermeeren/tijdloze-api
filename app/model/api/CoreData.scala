@@ -55,7 +55,7 @@ final case class CoreSong(
 )
 
 object CoreSong {
-  def fromDb(song: db.Song): CoreSong = {
+  def fromDb(song: db.Song, entries: Seq[db.ListEntry]): CoreSong = {
     CoreSong(
       id = song.id,
       artistId = song.artistId,
@@ -63,7 +63,7 @@ object CoreSong {
       title = song.title,
       languageId = song.languageId,
       leadVocals = song.leadVocals,
-      positions = song.positions,
+      positions = entries.map(entry => entry.year.toString.takeRight(2) -> entry.position).toMap,
       exitCurrent = song.exitCurrent
     )
   }
