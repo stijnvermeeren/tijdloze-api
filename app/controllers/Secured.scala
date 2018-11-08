@@ -12,7 +12,7 @@ import java.security.cert.CertificateFactory
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
-class AuthenticatedRequest[A](val userId: Option[String], request: Request[A]) extends WrappedRequest[A](request)
+class AuthenticatedRequest[A](val userId: String, request: Request[A]) extends WrappedRequest[A](request)
 
 class AuthenticatedAction @Inject()(parser: BodyParsers.Default, config: Config)(implicit ec: ExecutionContext)
   extends ActionBuilderImpl(parser)
@@ -20,7 +20,7 @@ class AuthenticatedAction @Inject()(parser: BodyParsers.Default, config: Config)
   with ActionRefiner[Request, AuthenticatedRequest] {
 
   def refine[A](request: Request[A]): Future[Either[Result, AuthenticatedRequest[A]]] = {
-    request.headers.get("Authorization") match {
+    val jwtResult = request.headers.get("Authorization") match {
       case Some(header) =>
         val fileReader = new FileInputStream("/Users/vermeeren/Downloads/stijnvermeeren.pem")
         val fact = CertificateFactory.getInstance("X.509")
@@ -33,15 +33,29 @@ class AuthenticatedAction @Inject()(parser: BodyParsers.Default, config: Config)
         )
         decodedJwt match {
           case Success(jwt) =>
-            println(jwt)
-            Future.successful(Right(new AuthenticatedRequest(jwt.subject, request)))
+            Right(jwt)
           case Failure(e) =>
             println(s"Invalid access token: ${e.getMessage}")
-            Future.successful(Left(Unauthorized))
+            Left(Unauthorized)
         }
       case _ =>
         println(s"No Authorization header provided.")
-        Future.successful(Left(Unauthorized))
+        Left(Unauthorized)
     }
+
+    val userIdResult = jwtResult flatMap { jwt =>
+      jwt.subject match {
+        case Some(userId) =>
+          Right(userId)
+        case None =>
+          println(s"Access token does not contain a user id.")
+          Left(Unauthorized)
+      }
+    }
+
+    val authenticatedRequest = userIdResult map { userId =>
+      new AuthenticatedRequest(userId, request)
+    }
+    Future.successful(authenticatedRequest)
   }
 }

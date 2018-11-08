@@ -25,18 +25,35 @@ class UserDAO @Inject()(allTables: AllTables) {
     db run {
       UserTable
         .filter(_.id === id)
-        .map(user => (user.firstName, user.lastName, user.email))
-        .update(userSave.firstName, userSave.lastName, userSave.email)
+        .map(user => (
+          user.name,
+          user.firstName,
+          user.lastName,
+          user.nickname,
+          user.email,
+          user.emailVerified
+        ))
+        .update(
+          userSave.name,
+          userSave.firstName,
+          userSave.lastName,
+          userSave.nickname,
+          userSave.email,
+          userSave.emailVerified.getOrElse(false)
+        )
     } flatMap { result =>
-      if (result > 1) {
+      if (result == 1) {
         Future.successful(())
       } else {
         db run {
           UserTable += User(
             id = id,
+            name = userSave.name,
             firstName = userSave.firstName,
             lastName = userSave.lastName,
-            email = userSave.email
+            nickname = userSave.nickname,
+            email = userSave.email,
+            emailVerified = userSave.emailVerified.getOrElse(false)
           )
         } map (_ => ())
       }
