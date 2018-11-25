@@ -3,7 +3,7 @@ package util
 import com.typesafe.config.Config
 import javax.inject.Inject
 import play.api.libs.json.JsArray
-import play.api.libs.ws.{WSAuthScheme, WSClient}
+import play.api.libs.ws.{WSAuthScheme, WSClient, WSRequest, WSResponse}
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -24,17 +24,21 @@ class SpotifyAPI @Inject() (ws: WSClient, config: Config) {
   }
 
   def findSongId(token: String, artist: String, album: String, title: String): Future[Option[String]] = {
-    val request = ws
-      .url("https://api.spotify.com/v1/search")
-      .addHttpHeaders("Authorization" -> s"Bearer $token")
-      .addQueryStringParameters(
-        "q" -> s"$artist $title $album",
-        "type" -> "track",
-        "market" -> "BE",
-        "limit" -> "1"
-      )
+    def request() = {
+      val request = ws
+        .url("https://api.spotify.com/v1/search")
+        .addHttpHeaders("Authorization" -> s"Bearer $token")
+        .addQueryStringParameters(
+          "q" -> s"$artist $title $album",
+          "type" -> "track",
+          "market" -> "BE",
+          "limit" -> "1"
+        )
 
-    request.get() map { response =>
+      request.get()
+    }
+
+    def handleResponse(response: WSResponse) = {
       val items = (response.json \ "tracks" \ "items").as[JsArray]
       items.value.headOption flatMap { value =>
         val artists = (value \ "artists").as[JsArray]
@@ -47,8 +51,8 @@ class SpotifyAPI @Inject() (ws: WSClient, config: Config) {
         val found = s"$spotifyArtist - $spotifyTitle ($spotifyAlbum)"
         println()
         if (query != found) {
-          println(s"Query: ")
-          println(s"Found: ")
+          println(s"Query: $query")
+          println(s"Found: $found")
         }
 
         if (artist == spotifyArtist) {
@@ -57,6 +61,24 @@ class SpotifyAPI @Inject() (ws: WSClient, config: Config) {
           None
         }
 
+      }
+    }
+
+    requestHandler(request, handleResponse)
+  }
+
+  def requestHandler[T <: WSResponse, S](request: () => Future[T], process: T => S): Future[S] = {
+    request() flatMap { response =>
+      if (response.status == 429) {
+        // pause for 1 second more than requested, just to be on the safe side
+        val retryAfter = Integer.parseInt(response.header("Retry-After").get) + 1
+        println(s"Spotify API rate limit reached, waiting for $retryAfter seconds.")
+        // TODO: don't block the thread
+        Thread.sleep(1000 * retryAfter)
+
+        request() map process
+      } else {
+        Future.successful(process(response))
       }
     }
   }
