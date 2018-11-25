@@ -13,7 +13,8 @@ final case class Song(
   leadVocals: String,
   notes: String,
   urlWikiEn: String,
-  urlWikiNl: String
+  urlWikiNl: String,
+  spotifyId: Option[String],
 )
 
 object Song {
@@ -28,7 +29,8 @@ object Song {
       leadVocals = dbSong.leadVocals,
       notes = dbSong.notes,
       urlWikiEn = dbSong.urlWikiEn,
-      urlWikiNl = dbSong.urlWikiNl
+      urlWikiNl = dbSong.urlWikiNl,
+      spotifyId = dbSong.spotifyId
     )
   }
 

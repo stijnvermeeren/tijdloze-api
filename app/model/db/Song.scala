@@ -15,6 +15,7 @@ final case class Song(
   notes: String,
   urlWikiEn: String,
   urlWikiNl: String,
+  spotifyId: Option[String],
   edit: Boolean,
   lastUpdate: DateTime
 )

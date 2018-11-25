@@ -25,4 +25,10 @@ class SongDAO @Inject()(allTables: AllTables) {
       SongTable.result
     }
   }
+
+  def setSpotifyId(songId: SongId, spotifyId: Option[String]): Future[Int] = {
+    db run {
+      SongTable.filter(_.id === songId).map(_.spotifyId).update(spotifyId)
+    }
+  }
 }

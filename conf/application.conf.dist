@@ -366,3 +366,6 @@ play.filters.cors {
 
 play.filters.enabled += "play.filters.cors.CORSFilter"
 play.filters.disabled += "play.filters.csrf.CSRFFilter"
+
+tijdloze.spotify.clientId = ""
+tijdloze.spotify.clientSecret = ""
