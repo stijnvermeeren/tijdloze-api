@@ -9,7 +9,7 @@ GET     /core-data                       controllers.CoreDataController.get()
 
 POST    /contact                         controllers.ContactController.post()
 
-GET     /comment-data                    controllers.CommentController.allData()
+GET     /comments/:id                    controllers.CommentController.listPage(id: Int)
 
 POST    /user                            controllers.UserController.post()
 

@@ -19,4 +19,11 @@ class CommentDAO @Inject()(allTables: AllTables) {
       CommentTable.sortBy(_.id.asc).result
     }
   }
+
+  def listPage(page: Int): Future[Seq[Comment]] = {
+    val pageSize = 20
+    db run {
+      CommentTable.sortBy(_.id.desc).drop(pageSize * (page - 1)).take(pageSize).result
+    }
+  }
 }
