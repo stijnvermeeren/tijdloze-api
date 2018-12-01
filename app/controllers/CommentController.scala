@@ -12,10 +12,10 @@ import scala.concurrent.ExecutionContext.Implicits.global
 class CommentController @Inject()(commentDAO: CommentDAO) extends InjectedController {
   def listPage(page: Int) = Action.async { implicit rs =>
     for {
-      comments <- commentDAO.listPage(page)
+      commentsWithUser <- commentDAO.listPage(page)
     } yield {
       Ok(Json.toJson(
-        comments map Comment.fromDb
+        commentsWithUser map (Comment.fromDb _).tupled
       ))
     }
   }

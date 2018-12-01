@@ -59,4 +59,13 @@ class UserDAO @Inject()(allTables: AllTables) {
       }
     }
   }
+
+  def setDisplayName(id: String, displayName: String): Future[Unit] = {
+    db run {
+      UserTable
+        .filter(_.id === id)
+        .map(_.displayName)
+        .update(Some(displayName))
+    } map (_ => ())
+  }
 }

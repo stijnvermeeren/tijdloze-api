@@ -4,6 +4,7 @@ import org.joda.time.DateTime
 
 final case class User(
   id: String,
+  displayName: Option[String] = None,
   name: Option[String] = None,
   firstName: Option[String] = None,
   lastName: Option[String] = None,

@@ -8,6 +8,7 @@ import JsonWrites.dateTimeWriter
 final case class Comment(
   id: CommentId,
   name: String,
+  userId: Option[String],
   message: String,
   created: DateTime
 )
@@ -15,10 +16,11 @@ final case class Comment(
 object Comment {
   implicit val jsonWrites = Json.writes[Comment]
 
-  def fromDb(dbComment: db.Comment): Comment = {
+  def fromDb(dbComment: db.Comment, user: Option[db.User]): Comment = {
     Comment(
       id = dbComment.id,
-      name = dbComment.name,
+      name = user.flatMap(_.displayName) orElse dbComment.name getOrElse "",
+      userId = user.map(_.id),
       message = dbComment.message,
       created = dbComment.timeStamp
     )

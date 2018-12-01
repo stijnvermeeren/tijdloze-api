@@ -13,6 +13,7 @@ private[dao] class AllTables @Inject()(protected val dbConfigProvider: DatabaseC
   with CommentTableComponent
   with UserTableComponent
   with ListEntryTableComponent
+  with LogUserDisplayNameTableComponent
 {
   val dbConfig = dbConfigProvider.get[JdbcProfile]
 }

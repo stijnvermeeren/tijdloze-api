@@ -11,6 +11,8 @@ POST    /contact                         controllers.ContactController.post()
 
 GET     /comments/:id                    controllers.CommentController.listPage(id: Int)
 
+GET     /user                            controllers.UserController.get()
 POST    /user                            controllers.UserController.post()
+POST    /user/display-name               controllers.UserController.setDisplayName()
 
 GET     /spotify                         controllers.SpotifyController.load()

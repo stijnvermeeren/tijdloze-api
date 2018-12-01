@@ -9,8 +9,9 @@ import org.joda.time.DateTime
 private[table] trait UserTableComponent extends TableComponent {
   import dbConfig.profile.api._
 
-  class UserTable(tag: Tag) extends Table[User](tag, "user2") {
+  class UserTable(tag: Tag) extends Table[User](tag, "user") {
     val id = column[String]("id", O.PrimaryKey)
+    val displayName = column[Option[String]]("display_name")
     val name = column[Option[String]]("name")
     val firstName = column[Option[String]]("first_name")
     val lastName = column[Option[String]]("last_name")
@@ -21,7 +22,7 @@ private[table] trait UserTableComponent extends TableComponent {
     val lastSeen = column[DateTime]("last_seen")
     val isAdmin = column[Boolean]("is_admin")
 
-    def * = (id, name, firstName, lastName, nickname, email, emailVerified, created, lastSeen, isAdmin) <>
+    def * = (id, displayName, name, firstName, lastName, nickname, email, emailVerified, created, lastSeen, isAdmin) <>
       ((User.apply _).tupled, User.unapply)
   }
 

@@ -20,10 +20,12 @@ class CommentDAO @Inject()(allTables: AllTables) {
     }
   }
 
-  def listPage(page: Int): Future[Seq[Comment]] = {
+  def listPage(page: Int): Future[Seq[(Comment, Option[User])]] = {
     val pageSize = 20
     db run {
-      CommentTable.sortBy(_.id.desc).drop(pageSize * (page - 1)).take(pageSize).result
+      val commentQuery = CommentTable.sortBy(_.id.desc).drop(pageSize * (page - 1)).take(pageSize)
+      val joinedQuery = commentQuery joinLeft UserTable on (_.userId === _.id)
+      joinedQuery.result
     }
   }
 }
