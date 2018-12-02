@@ -14,12 +14,12 @@ import scala.concurrent.ExecutionContext.Implicits.global
 @Singleton
 class SongController @Inject()(cached: Cached, songDAO: SongDAO) extends InjectedController {
   def get(songId: SongId) = {
-    cached(s"song/${songId.value}") {
+    // cached(s"song/${songId.value}") {
       Action.async { implicit rs =>
         for {
           song <- songDAO.get(songId)
         } yield Ok(Json.toJson(Song.fromDb(song)))
       }
-    }
+    // }
   }
 }
