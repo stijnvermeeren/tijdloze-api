@@ -13,10 +13,9 @@ private[table] trait CommentTableComponent extends TableComponent {
     val name = column[Option[String]]("naam")
     val userId = column[Option[String]]("user_id")
     val message = column[String]("bericht")
-    val ip = column[String]("ip")
     val timestamp = column[DateTime]("tijdstip")
 
-    def * = (id, name, userId, message, ip, timestamp) <>
+    def * = (id, name, userId, message, timestamp) <>
       ((Comment.apply _).tupled, Comment.unapply)
   }
 

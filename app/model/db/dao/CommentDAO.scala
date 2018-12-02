@@ -7,6 +7,7 @@ import javax.inject.{Inject, Singleton}
 import model.db.dao.table.AllTables
 
 import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton
 class CommentDAO @Inject()(allTables: AllTables) {
@@ -14,9 +15,15 @@ class CommentDAO @Inject()(allTables: AllTables) {
   private val db = dbConfig.db
   import dbConfig.profile.api._
 
-  def getAll(): Future[Seq[Comment]] = {
+  def save(userId: String, message: String): Future[Unit] = {
     db run {
-      CommentTable.sortBy(_.id.asc).result
+      CommentTable += Comment(userId = Some(userId), message = message)
+    } map (_ => ())
+  }
+
+  def count(): Future[Int] = {
+    db run {
+      CommentTable.length.result
     }
   }
 

@@ -49,8 +49,13 @@ class UserController @Inject()(authenticatedAction: AuthenticatedAction, userDAO
         val displayName = displayNameForm.displayName
         if (displayName.nonEmpty) {
           userDAO.setDisplayName(request.userId, displayNameForm.displayName) flatMap { _ =>
-            logUserDisplayNameDAO.save(request.userId, displayNameForm.displayName) map { _ =>
-              Ok("")
+            logUserDisplayNameDAO.save(request.userId, displayNameForm.displayName) flatMap { _ =>
+              userDAO.get(request.userId) map {
+                case Some(dbUser) =>
+                  Ok(Json.toJson(UserInfo.fromDb(dbUser)))
+                case None =>
+                  InternalServerError("Error while saving user info to the database.")
+              }
             }
           }
         } else {
