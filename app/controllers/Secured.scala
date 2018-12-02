@@ -22,7 +22,7 @@ class AuthenticatedAction @Inject()(parser: BodyParsers.Default, config: Config)
   def refine[A](request: Request[A]): Future[Either[Result, AuthenticatedRequest[A]]] = {
     val jwtResult = request.headers.get("Authorization") match {
       case Some(header) =>
-        val fileReader = new FileInputStream("/home/stijn/Downloads/stijnvermeeren.pem")
+        val fileReader = new FileInputStream(config.getString("tijdloze.auth0.publickey.path"))
         val fact = CertificateFactory.getInstance("X.509")
         val pubKey = fact.generateCertificate(fileReader).getPublicKey
 
