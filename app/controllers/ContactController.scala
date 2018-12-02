@@ -1,24 +1,23 @@
 package controllers
 
+import com.typesafe.config.Config
 import util.Mailer
-
 import javax.inject._
-
 import model.api.ContactForm
 import play.api.libs.json.{JsError, JsSuccess, JsValue, Json}
 import play.api.libs.ws._
 import play.api.mvc._
 
 @Singleton
-class ContactController @Inject() (ws: WSClient) extends InjectedController {
+class ContactController @Inject() (ws: WSClient, config: Config) extends InjectedController {
   def post() = {
     Action(parse.json) { request: Request[JsValue] =>
       Json.fromJson[ContactForm](request.body) match {
         case JsSuccess(form, _) =>
           Mailer.send(
-            fromEmail = form.email getOrElse "anoniem@stijnshome.be",
+            fromEmail = form.email getOrElse "anonymous@example.com",
             fromName = form.name,
-            to = "stijn@stijnvermeeren.be",
+            to = config.getString("tijdloze.contact.recipient"),
             subject = "De Tijdloze Website: contact",
             message = form.message
           )
