@@ -8,7 +8,7 @@ import play.api.mvc._
 import scala.concurrent.{ExecutionContext, Future}
 
 class LoggingFilter @Inject() (implicit val mat: Materializer, ec: ExecutionContext) extends Filter {
-  val logger = Logger(this.getClass)
+  val logger = Logger("xx")
 
   def apply(nextFilter: RequestHeader => Future[Result])
     (requestHeader: RequestHeader): Future[Result] = {

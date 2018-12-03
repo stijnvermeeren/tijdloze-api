@@ -17,4 +17,4 @@ GET     /user                            controllers.UserController.get()
 POST    /user                            controllers.UserController.post()
 POST    /user/display-name               controllers.UserController.setDisplayName()
 
-GET     /spotify                         controllers.SpotifyController.load()
+GET     /cache/invalidate                controllers.CacheController.invalidate()
