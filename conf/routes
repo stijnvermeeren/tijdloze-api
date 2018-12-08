@@ -13,6 +13,9 @@ POST    /comment                         controllers.CommentController.post()
 GET     /comments/count                  controllers.CommentController.count()
 GET     /comments/:id                    controllers.CommentController.listPage(id: Int)
 
+POST    /list-entry/:year/:position      controllers.ListEntryController.post(year: Int, position: Int)
+DELETE  /list-entry/:year/:position      controllers.ListEntryController.delete(year: Int, position: Int)
+
 GET     /user                            controllers.UserController.get()
 POST    /user                            controllers.UserController.post()
 POST    /user/display-name               controllers.UserController.setDisplayName()
