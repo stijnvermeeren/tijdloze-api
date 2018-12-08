@@ -2,6 +2,7 @@ package util
 
 import com.typesafe.config.Config
 import javax.inject.Inject
+import model.api.SpotifyHit
 import play.api.libs.json.JsArray
 import play.api.libs.ws.{WSAuthScheme, WSClient, WSRequest, WSResponse}
 
@@ -21,6 +22,40 @@ class SpotifyAPI @Inject() (ws: WSClient, config: Config) {
     request.post(Map("grant_type" -> "client_credentials")) map { response =>
       (response.json \ "access_token").as[String]
     }
+  }
+
+  def findNewSong(token: String, query: String): Future[Seq[SpotifyHit]] = {
+    def request() = {
+      val request = ws
+        .url("https://api.spotify.com/v1/search")
+        .addHttpHeaders("Authorization" -> s"Bearer $token")
+        .addQueryStringParameters(
+          "q" -> query,
+          "type" -> "track",
+          "market" -> "BE",
+          "limit" -> "5"
+        )
+
+      request.get()
+    }
+
+    def handleResponse(response: WSResponse) = {
+      val items = (response.json \ "tracks" \ "items").as[JsArray]
+      items.value map { value =>
+        val artists = (value \ "artists").as[JsArray]
+
+        SpotifyHit(
+          spotifyId = (value \ "id").as[String],
+          title = (value \ "name").as[String],
+          artist = (artists.value.head \ "name").as[String],
+          album = (value \ "album" \ "name").as[String],
+          year = Integer.parseInt((value \ "album" \ "release_date").as[String].take(4))
+        )
+
+      }
+    }
+
+    requestHandler(request, handleResponse)
   }
 
   def findSongId(token: String, artist: String, album: String, title: String): Future[Option[String]] = {
