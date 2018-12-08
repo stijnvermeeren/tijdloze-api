@@ -30,7 +30,7 @@ class UserController @Inject()(authenticate: Authenticate, userDAO: UserDAO, log
     )
   }
 
-  def get() = (Action andThen authenticate).async(parse.json) { implicit request =>
+  def get() = (Action andThen authenticate).async { implicit request =>
     userDAO.get(request.userId) map {
       case Some(dbUser) =>
         Ok(Json.toJson(UserInfo.fromDb(dbUser)))

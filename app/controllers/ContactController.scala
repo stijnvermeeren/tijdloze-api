@@ -19,8 +19,6 @@ class ContactController @Inject() (optionallyAuthenticate: OptionallyAuthenticat
             case None => s" --- Message from unverified user."
           }
 
-          println(footer)
-
           Mailer.send(
             fromEmail = form.email getOrElse "anonymous@example.com",
             fromName = form.name,
