@@ -5,6 +5,8 @@ package dao
 import javax.inject.{Inject, Singleton}
 import model.api.UserSave
 import model.db.dao.table.AllTables
+import org.joda.time.DateTime
+import com.github.tototoshi.slick.MySQLJodaSupport._
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -31,7 +33,8 @@ class UserDAO @Inject()(allTables: AllTables) {
           user.lastName,
           user.nickname,
           user.email,
-          user.emailVerified
+          user.emailVerified,
+          user.lastSeen
         ))
         .update(
           userSave.name,
@@ -39,7 +42,8 @@ class UserDAO @Inject()(allTables: AllTables) {
           userSave.lastName,
           userSave.nickname,
           userSave.email,
-          userSave.emailVerified.getOrElse(false)
+          userSave.emailVerified.getOrElse(false),
+          DateTime.now()
         )
     } flatMap { result =>
       if (result == 1) {
