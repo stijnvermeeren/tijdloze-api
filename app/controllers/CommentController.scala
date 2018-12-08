@@ -10,8 +10,8 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 @Singleton
-class CommentController @Inject()(authenticatedAction: AuthenticatedAction, commentDAO: CommentDAO) extends InjectedController {
-  def post() = authenticatedAction.async(parse.json) { implicit request =>
+class CommentController @Inject()(authenticate: Authenticate, commentDAO: CommentDAO) extends InjectedController {
+  def post() = (Action andThen authenticate).async(parse.json) { implicit request =>
     val data = request.body.validate[CommentSave]
     data.fold(
       errors => {

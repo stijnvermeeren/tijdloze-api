@@ -12,14 +12,12 @@ import java.security.cert.CertificateFactory
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
-class AuthenticatedRequest[A](val userId: String, request: Request[A]) extends WrappedRequest[A](request)
+class OptionallyAuthenticatedRequest[A](val userId: Option[String], request: Request[A]) extends WrappedRequest[A](request)
 
-class AuthenticatedAction @Inject()(parser: BodyParsers.Default, config: Config)(implicit ec: ExecutionContext)
-  extends ActionBuilderImpl(parser)
-  with ActionBuilder[AuthenticatedRequest, AnyContent]
-  with ActionRefiner[Request, AuthenticatedRequest] {
+class OptionallyAuthenticate @Inject()(config: Config)(implicit val executionContext: ExecutionContext)
+  extends ActionRefiner[Request, OptionallyAuthenticatedRequest] {
 
-  def refine[A](request: Request[A]): Future[Either[Result, AuthenticatedRequest[A]]] = {
+  def refine[A](request: Request[A]): Future[Either[Result, OptionallyAuthenticatedRequest[A]]] = {
     val jwtResult = request.headers.get("Authorization") match {
       case Some(header) =>
         val fileReader = new FileInputStream(config.getString("tijdloze.auth0.publickey.path"))
@@ -33,29 +31,37 @@ class AuthenticatedAction @Inject()(parser: BodyParsers.Default, config: Config)
         )
         decodedJwt match {
           case Success(jwt) =>
-            Right(jwt)
+            Some(jwt)
           case Failure(e) =>
             println(s"Invalid access token: ${e.getMessage}")
-            Left(Unauthorized)
+            None
         }
       case _ =>
-        println(s"No Authorization header provided.")
-        Left(Unauthorized)
+        None
     }
 
-    val userIdResult = jwtResult flatMap { jwt =>
-      jwt.subject match {
-        case Some(userId) =>
-          Right(userId)
-        case None =>
-          println(s"Access token does not contain a user id.")
-          Left(Unauthorized)
+    val userIdResult = jwtResult.flatMap(_.subject)
+    val optionallyAuthenticatedRequest = new OptionallyAuthenticatedRequest(userIdResult, request)
+    Future.successful(Right(optionallyAuthenticatedRequest))
+  }
+}
+
+class AuthenticatedRequest[A](val userId: String, request: Request[A]) extends WrappedRequest[A](request)
+
+class Authenticate @Inject() (optionallyAuthenticate: OptionallyAuthenticate)(implicit val executionContext: ExecutionContext)
+  extends ActionRefiner[Request, AuthenticatedRequest] {
+
+  def refine[A](request: Request[A]): Future[Either[Result, AuthenticatedRequest[A]]] = {
+    optionallyAuthenticate.refine(request) map { result =>
+      result flatMap { optionallyAuthenticatedRequest =>
+        optionallyAuthenticatedRequest.userId match {
+          case Some(userId) =>
+            Right(new AuthenticatedRequest(userId, request))
+          case None =>
+            println("No valid access token.")
+            Left(Unauthorized)
+        }
       }
     }
-
-    val authenticatedRequest = userIdResult map { userId =>
-      new AuthenticatedRequest(userId, request)
-    }
-    Future.successful(authenticatedRequest)
   }
 }

@@ -1,7 +1,6 @@
 package controllers
 
 import javax.inject._
-import model.Year
 import model.api._
 import model.db.dao.{AlbumDAO, ArtistDAO, ListEntryDAO, SongDAO}
 import play.api.cache.Cached
@@ -30,7 +29,7 @@ class CoreDataController @Inject()(albumDAO: AlbumDAO, artistDAO: ArtistDAO, son
           countries = Country.all,
           languages = Language.all,
           vocalsGenders = VocalsGender.all,
-          years = Year.all
+          years = entries.map(_.year).distinct.sorted
         )))
       }
     }

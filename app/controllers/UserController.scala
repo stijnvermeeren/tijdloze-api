@@ -10,8 +10,8 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 @Singleton
-class UserController @Inject()(authenticatedAction: AuthenticatedAction, userDAO: UserDAO, logUserDisplayNameDAO: LogUserDisplayNameDAO) extends InjectedController {
-  def post() = authenticatedAction.async(parse.json) { implicit request =>
+class UserController @Inject()(authenticate: Authenticate, userDAO: UserDAO, logUserDisplayNameDAO: LogUserDisplayNameDAO) extends InjectedController {
+  def post() = (Action andThen authenticate).async(parse.json) { implicit request =>
     val data = request.body.validate[UserSave]
     data.fold(
       errors => {
@@ -30,7 +30,7 @@ class UserController @Inject()(authenticatedAction: AuthenticatedAction, userDAO
     )
   }
 
-  def get() = authenticatedAction.async { implicit request =>
+  def get() = (Action andThen authenticate).async(parse.json) { implicit request =>
     userDAO.get(request.userId) map {
       case Some(dbUser) =>
         Ok(Json.toJson(UserInfo.fromDb(dbUser)))
@@ -39,7 +39,7 @@ class UserController @Inject()(authenticatedAction: AuthenticatedAction, userDAO
     }
   }
 
-  def setDisplayName() = authenticatedAction.async(parse.json) { implicit request =>
+  def setDisplayName() = (Action andThen authenticate).async(parse.json)  { implicit request =>
     val data = request.body.validate[SetDisplayName]
     data.fold(
       errors => {
