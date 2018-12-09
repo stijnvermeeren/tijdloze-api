@@ -26,7 +26,7 @@ class ArtistDAO @Inject()(allTables: AllTables) {
     }
   }
 
-  def create(data: ArtistSave): Future[Artist] = {
+  def create(data: ArtistSave): Future[ArtistId] = {
     import data._
     val newArtist = Artist(
       firstName = firstName,
@@ -40,7 +40,7 @@ class ArtistDAO @Inject()(allTables: AllTables) {
     )
 
     db run {
-      (ArtistTable returning ArtistTable) += newArtist
+      (ArtistTable returning ArtistTable.map(_.id)) += newArtist
     }
   }
 

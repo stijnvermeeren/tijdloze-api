@@ -36,12 +36,13 @@ class AlbumController @Inject()(
         errors => {
           Future.successful(BadRequest(JsError.toJson(errors)))
         },
-        songSave => {
+        albumSave => {
           for {
-            newSong <- albumDAO.create(songSave)
+            newAlbumId <- albumDAO.create(albumSave)
+            newAlbum <- albumDAO.get(newAlbumId)
           } yield {
             cache.remove("coreData")
-            Ok(Json.toJson(Album.fromDb(newSong)))
+            Ok(Json.toJson(Album.fromDb(newAlbum)))
           }
         }
       )
@@ -55,14 +56,14 @@ class AlbumController @Inject()(
         errors => {
           Future.successful(BadRequest(JsError.toJson(errors)))
         },
-        songSave => {
+        albumSave => {
           for {
-            _ <- albumDAO.update(albumId, songSave)
-            song <- albumDAO.get(albumId)
+            _ <- albumDAO.update(albumId, albumSave)
+            album <- albumDAO.get(albumId)
           } yield {
             cache.remove("coreData")
             cache.remove(s"album/${albumId.value}")
-            Ok(Json.toJson(Album.fromDb(song)))
+            Ok(Json.toJson(Album.fromDb(album)))
           }
         }
       )

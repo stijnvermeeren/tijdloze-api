@@ -34,7 +34,7 @@ class SongDAO @Inject()(allTables: AllTables) {
     }
   }
 
-  def create(data: SongSave): Future[Song] = {
+  def create(data: SongSave): Future[SongId] = {
     import data._
     val newSong = Song(
       artistId = artistId,
@@ -50,7 +50,7 @@ class SongDAO @Inject()(allTables: AllTables) {
     )
 
     db run {
-      (SongTable returning SongTable) += newSong
+      (SongTable returning SongTable.map(_.id)) += newSong
     }
   }
 

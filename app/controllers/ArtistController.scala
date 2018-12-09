@@ -35,12 +35,13 @@ class ArtistController @Inject()(
         errors => {
           Future.successful(BadRequest(JsError.toJson(errors)))
         },
-        songSave => {
+        artistSave => {
           for {
-            newSong <- artistDAO.create(songSave)
+            newArtistId <- artistDAO.create(artistSave)
+            newArtist <- artistDAO.get(newArtistId)
           } yield {
             cache.remove("coreData")
-            Ok(Json.toJson(Artist.fromDb(newSong)))
+            Ok(Json.toJson(Artist.fromDb(newArtist)))
           }
         }
       )
@@ -54,14 +55,14 @@ class ArtistController @Inject()(
         errors => {
           Future.successful(BadRequest(JsError.toJson(errors)))
         },
-        songSave => {
+        artistSave => {
           for {
-            _ <- artistDAO.update(artistId, songSave)
-            song <- artistDAO.get(artistId)
+            _ <- artistDAO.update(artistId, artistSave)
+            artist <- artistDAO.get(artistId)
           } yield {
             cache.remove("coreData")
             cache.remove(s"artist/${artistId.value}")
-            Ok(Json.toJson(Artist.fromDb(song)))
+            Ok(Json.toJson(Artist.fromDb(artist)))
           }
         }
       )

@@ -38,7 +38,8 @@ class SongController @Inject()(
         },
         songSave => {
           for {
-            newSong <- songDAO.create(songSave)
+            newSongId <- songDAO.create(songSave)
+            newSong <- songDAO.get(newSongId)
           } yield {
             cache.remove("coreData")
             Ok(Json.toJson(Song.fromDb(newSong)))

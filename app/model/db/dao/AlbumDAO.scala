@@ -26,7 +26,7 @@ class AlbumDAO @Inject()(allTables: AllTables) {
     }
   }
 
-  def create(data: AlbumSave): Future[Album] = {
+  def create(data: AlbumSave): Future[AlbumId] = {
     import data._
     val newAlbum = Album(
       artistId = artistId,
@@ -38,7 +38,7 @@ class AlbumDAO @Inject()(allTables: AllTables) {
     )
 
     db run {
-      (AlbumTable returning AlbumTable) += newAlbum
+      (AlbumTable returning AlbumTable.map(_.id)) += newAlbum
     }
   }
 
