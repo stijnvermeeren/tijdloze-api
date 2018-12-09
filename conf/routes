@@ -25,6 +25,10 @@ GET     /comments/:id                    controllers.CommentController.listPage(
 POST    /list-entry/:year/:position      controllers.ListEntryController.post(year: Int, position: Int)
 DELETE  /list-entry/:year/:position      controllers.ListEntryController.delete(year: Int, position: Int)
 
+POST    /list-exit/:id                   controllers.ListExitController.post(id: model.SongId)
+DELETE  /list-exit/:id                   controllers.ListExitController.delete(id: model.SongId)
+DELETE  /list-exit                       controllers.ListExitController.deleteAll()
+
 GET     /user                            controllers.UserController.get()
 POST    /user                            controllers.UserController.post()
 POST    /user/display-name               controllers.UserController.setDisplayName()

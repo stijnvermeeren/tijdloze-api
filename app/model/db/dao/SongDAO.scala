@@ -88,4 +88,22 @@ class SongDAO @Inject()(allTables: AllTables) {
         ))
     }
   }
+
+  def markExit(songId: SongId): Future[Int] = {
+    db run {
+      SongTable.filter(_.id === songId).map(_.exitCurrent).update(true)
+    }
+  }
+
+  def unmarkExit(songId: SongId): Future[Int] = {
+    db run {
+      SongTable.filter(_.id === songId).map(_.exitCurrent).update(false)
+    }
+  }
+
+  def unmarkAllExit(): Future[Int] = {
+    db run {
+      SongTable.map(_.exitCurrent).update(false)
+    }
+  }
 }

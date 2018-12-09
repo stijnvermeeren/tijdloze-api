@@ -10,11 +10,3 @@ final case class ListEntrySave(
 object ListEntrySave {
   implicit val jsonReads = Json.reads[ListEntrySave]
 }
-
-
-
-
-
-
-
-
