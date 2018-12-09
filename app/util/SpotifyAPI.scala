@@ -24,7 +24,7 @@ class SpotifyAPI @Inject() (ws: WSClient, config: Config) {
     }
   }
 
-  def findNewSong(token: String, query: String): Future[Seq[SpotifyHit]] = {
+  def findNewSong(token: String, query: String, limit: Int): Future[Seq[SpotifyHit]] = {
     def request() = {
       val request = ws
         .url("https://api.spotify.com/v1/search")
@@ -33,7 +33,7 @@ class SpotifyAPI @Inject() (ws: WSClient, config: Config) {
           "q" -> query,
           "type" -> "track",
           "market" -> "BE",
-          "limit" -> "5"
+          "limit" -> s"$limit"
         )
 
       request.get()

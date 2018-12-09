@@ -22,8 +22,10 @@ class SpotifyController @Inject()(
     (Action andThen authenticateAdmin).async { implicit request =>
       request.getQueryString("query") match {
         case Some(query) =>
+          val limit = Integer.parseInt(request.getQueryString("limit").getOrElse("5"))
+
           spotifyAPI.getToken() flatMap { token =>
-            spotifyAPI.findNewSong(token, query) map { result =>
+            spotifyAPI.findNewSong(token, query, limit) map { result =>
               Ok(Json.toJson(result))
             }
           }
