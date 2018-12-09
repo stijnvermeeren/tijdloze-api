@@ -11,9 +11,13 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 @Singleton
-class ListEntryController @Inject()(cache: AsyncCacheApi, authenticate: Authenticate, listEntryDAO: ListEntryDAO) extends InjectedController {
+class ListEntryController @Inject()(
+  cache: AsyncCacheApi,
+  authenticateAdmin: AuthenticateAdmin,
+  listEntryDAO: ListEntryDAO
+) extends InjectedController {
   def post(year: Int, position: Int) = {
-    (Action andThen authenticate).async(parse.json) { implicit request =>
+    (Action andThen authenticateAdmin).async(parse.json) { implicit request =>
       val data = request.body.validate[ListEntrySave]
       data.fold(
         errors => {
@@ -30,7 +34,7 @@ class ListEntryController @Inject()(cache: AsyncCacheApi, authenticate: Authenti
   }
 
   def delete(year: Int, position: Int) = {
-    (Action andThen authenticate).async { implicit request =>
+    (Action andThen authenticateAdmin).async { implicit request =>
       listEntryDAO.delete(year = year, position = position) map { _ =>
         cache.remove("coreData")
         Ok("")

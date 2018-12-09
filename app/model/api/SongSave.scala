@@ -1,6 +1,6 @@
 package model.api
 
-import model.{AlbumId, ArtistId, SongId}
+import model.{AlbumId, ArtistId}
 import play.api.libs.json.Json
 
 final case class SongSave(

@@ -7,8 +7,12 @@ PUT     /song/:id                        controllers.SongController.put(id: mode
 POST    /song                            controllers.SongController.post()
 
 GET     /artist/:id                      controllers.ArtistController.get(id: model.ArtistId)
+PUT     /artist/:id                      controllers.ArtistController.put(id: model.ArtistId)
+POST    /artist                          controllers.ArtistController.post()
 
 GET     /album/:id                       controllers.AlbumController.get(id: model.AlbumId)
+PUT     /album/:id                       controllers.AlbumController.put(id: model.AlbumId)
+POST    /album                           controllers.AlbumController.post()
 
 GET     /core-data                       controllers.CoreDataController.get()
 

@@ -5,9 +5,9 @@ import play.api.cache.AsyncCacheApi
 import play.api.mvc._
 
 @Singleton
-class CacheController @Inject()(cache: AsyncCacheApi) extends InjectedController {
+class CacheController @Inject()(authenticateAdmin: AuthenticateAdmin, cache: AsyncCacheApi) extends InjectedController {
   def invalidate() = {
-    Action { implicit rs =>
+    (Action andThen authenticateAdmin) { implicit rs =>
       cache.removeAll()
       Ok("")
     }

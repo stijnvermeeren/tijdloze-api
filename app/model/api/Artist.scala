@@ -12,7 +12,7 @@ final case class Artist(
   urlOfficial: String,
   urlWikiEn: String,
   urlWikiNl: String,
-  urlAllmusic: String
+  urlAllMusic: String
 )
 
 object Artist {
@@ -26,7 +26,7 @@ object Artist {
       urlOfficial = dbArtist.urlOfficial,
       urlWikiEn = dbArtist.urlWikiEn,
       urlWikiNl = dbArtist.urlWikiNl,
-      urlAllmusic = dbArtist.urlAllmusic
+      urlAllMusic = dbArtist.urlAllMusic
     )
   }
 

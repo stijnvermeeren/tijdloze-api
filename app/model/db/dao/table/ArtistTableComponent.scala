@@ -15,10 +15,10 @@ private[table] trait ArtistTableComponent extends TableComponent {
     val urlOfficial = column[String]("url_official")
     val urlWikiEn = column[String]("url_wikien")
     val urlWikiNl = column[String]("url_wikinl")
-    val urlAllmusic = column[String]("url_allmusic")
+    val urlAllMusic = column[String]("url_allmusic")
     val edit = column[Boolean]("edit")
 
-    def * = (id, firstName, name, countryId, notes, urlOfficial, urlWikiEn, urlWikiNl, urlAllmusic, edit) <>
+    def * = (id, firstName, name, countryId, notes, urlOfficial, urlWikiEn, urlWikiNl, urlAllMusic, edit) <>
       ((Artist.apply _).tupled, Artist.unapply)
   }
 

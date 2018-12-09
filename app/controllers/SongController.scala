@@ -2,7 +2,7 @@ package controllers
 
 import javax.inject._
 import model.SongId
-import model.api.{ListEntrySave, Song, SongSave}
+import model.api.{Song, SongSave}
 import model.db.dao.SongDAO
 import play.api.cache.{AsyncCacheApi, Cached}
 import play.api.libs.json.{JsError, Json}
@@ -13,7 +13,7 @@ import scala.concurrent.Future
 
 @Singleton
 class SongController @Inject()(
-  authenticate: Authenticate,
+  authenticateAdmin: AuthenticateAdmin,
   cache: AsyncCacheApi,
   cached: Cached,
   songDAO: SongDAO
@@ -30,7 +30,7 @@ class SongController @Inject()(
   }
 
   def post() = {
-    (Action andThen authenticate).async(parse.json) { implicit request =>
+    (Action andThen authenticateAdmin).async(parse.json) { implicit request =>
       val data = request.body.validate[SongSave]
       data.fold(
         errors => {
@@ -49,7 +49,7 @@ class SongController @Inject()(
   }
 
   def put(songId: SongId) = {
-    (Action andThen authenticate).async(parse.json) { implicit request =>
+    (Action andThen authenticateAdmin).async(parse.json) { implicit request =>
       val data = request.body.validate[SongSave]
       data.fold(
         errors => {

@@ -9,6 +9,9 @@ import play.api.mvc.Results._
 import play.api.mvc._
 import java.security.cert.CertificateFactory
 
+import model.db.User
+import model.db.dao.UserDAO
+
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
@@ -62,6 +65,28 @@ class Authenticate @Inject() (optionallyAuthenticate: OptionallyAuthenticate)(im
             Left(Unauthorized)
         }
       }
+    }
+  }
+}
+
+
+class UserRequest[A](val user: User, request: Request[A]) extends WrappedRequest[A](request)
+
+class AuthenticateAdmin @Inject() (authenticate: Authenticate, userDAO: UserDAO)(implicit val executionContext: ExecutionContext)
+  extends ActionRefiner[Request, UserRequest] {
+
+  def refine[A](request: Request[A]): Future[Either[Result, UserRequest[A]]] = {
+    authenticate.refine(request) flatMap {
+      case Right(authenticatedRequest) =>
+        userDAO.get(authenticatedRequest.userId) map {
+          case Some(user) if user.isAdmin =>
+            Right(new UserRequest(user, request))
+          case _ =>
+            println("Insufficient access rights.")
+            Left(Unauthorized)
+        }
+      case Left(error) =>
+        Future.successful(Left(error))
     }
   }
 }

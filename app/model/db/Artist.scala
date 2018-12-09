@@ -2,7 +2,7 @@ package model
 package db
 
 final case class Artist(
-  id: ArtistId,
+  id: ArtistId = ArtistId(0),
   firstName: String,
   name: String,
   countryId: String,
@@ -10,6 +10,6 @@ final case class Artist(
   urlOfficial: String,
   urlWikiEn: String,
   urlWikiNl: String,
-  urlAllmusic: String,
-  edit: Boolean
+  urlAllMusic: String,
+  edit: Boolean = false
 )

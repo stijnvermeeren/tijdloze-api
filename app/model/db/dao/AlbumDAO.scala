@@ -3,7 +3,7 @@ package db
 package dao
 
 import javax.inject.{Inject, Singleton}
-
+import model.api.AlbumSave
 import model.db.dao.table.AllTables
 
 import scala.concurrent.Future
@@ -23,6 +23,48 @@ class AlbumDAO @Inject()(allTables: AllTables) {
   def getAll(): Future[Seq[Album]] = {
     db run {
       AlbumTable.result
+    }
+  }
+
+  def create(data: AlbumSave): Future[Album] = {
+    import data._
+    val newAlbum = Album(
+      artistId = artistId,
+      title = title,
+      releaseYear = releaseYear,
+      urlWikiEn = urlWikiEn.getOrElse(""),
+      urlWikiNl = urlWikiNl.getOrElse(""),
+      urlAllMusic = urlAllMusic.getOrElse("")
+    )
+
+    db run {
+      (AlbumTable returning AlbumTable) += newAlbum
+    }
+  }
+
+  def update(albumId: AlbumId, data: AlbumSave): Future[Int] = {
+    import data._
+
+    db run {
+      AlbumTable
+        .filter(_.id === albumId)
+        .map(x => (
+          x.artistId,
+          x.title,
+          x.releaseYear,
+          x.urlWikiEn,
+          x.urlWikiNl,
+          x.urlAllMusic
+        )
+        )
+        .update((
+          artistId,
+          title,
+          releaseYear,
+          urlWikiEn.getOrElse(""),
+          urlWikiNl.getOrElse(""),
+          urlAllMusic.getOrElse("")
+        ))
     }
   }
 }

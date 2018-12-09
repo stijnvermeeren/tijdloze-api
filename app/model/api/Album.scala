@@ -10,7 +10,7 @@ final case class Album(
   releaseYear: Int,
   urlWikiEn: String,
   urlWikiNl: String,
-  urlAllmusic: String
+  urlAllMusic: String
 )
 
 object Album {
@@ -22,7 +22,7 @@ object Album {
       releaseYear = dbAlbum.releaseYear,
       urlWikiEn = dbAlbum.urlWikiEn,
       urlWikiNl = dbAlbum.urlWikiNl,
-      urlAllmusic = dbAlbum.urlAllmusic
+      urlAllMusic = dbAlbum.urlAllMusic
     )
   }
 

@@ -11,7 +11,7 @@ import scala.concurrent.Future
 
 @Singleton
 class SpotifyController @Inject()(
-  authenticate: Authenticate,
+  authenticateAdmin: AuthenticateAdmin,
   spotifyAPI: SpotifyAPI,
   songDAO: SongDAO,
   artistDAO: ArtistDAO,
@@ -19,7 +19,7 @@ class SpotifyController @Inject()(
 ) extends InjectedController {
 
   def find() = {
-    (Action andThen authenticate).async { implicit request =>
+    (Action andThen authenticateAdmin).async { implicit request =>
       request.getQueryString("query") match {
         case Some(query) =>
           spotifyAPI.getToken() flatMap { token =>
@@ -34,7 +34,7 @@ class SpotifyController @Inject()(
   }
 
   def load() = {
-    (Action andThen authenticate).async { implicit request =>
+    (Action andThen authenticateAdmin).async { implicit request =>
       spotifyAPI.getToken() flatMap { token =>
         songDAO.getAll() flatMap { allSongs =>
           artistDAO.getAll() flatMap { allArtists =>
