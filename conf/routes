@@ -3,8 +3,13 @@
 # ~~~~
 
 GET     /song/:id                        controllers.SongController.get(id: model.SongId)
+PUT     /song/:id                        controllers.SongController.put(id: model.SongId)
+POST    /song                            controllers.SongController.post()
+
 GET     /artist/:id                      controllers.ArtistController.get(id: model.ArtistId)
+
 GET     /album/:id                       controllers.AlbumController.get(id: model.AlbumId)
+
 GET     /core-data                       controllers.CoreDataController.get()
 
 POST    /contact                         controllers.ContactController.post()

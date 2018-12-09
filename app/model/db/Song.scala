@@ -4,11 +4,11 @@ package db
 import org.joda.time.DateTime
 
 final case class Song(
-  id: SongId,
+  id: SongId = SongId(0),
   artistId: ArtistId,
   albumId: AlbumId,
   title: String,
-  exitCurrent: Boolean,
+  exitCurrent: Boolean = false,
   lyrics: String,
   languageId: String,
   leadVocals: String,
@@ -16,6 +16,6 @@ final case class Song(
   urlWikiEn: String,
   urlWikiNl: String,
   spotifyId: Option[String],
-  edit: Boolean,
-  lastUpdate: DateTime
+  edit: Boolean = false,
+  lastUpdate: DateTime = DateTime.now()
 )
