@@ -38,3 +38,5 @@ POST    /user/display-name               controllers.UserController.setDisplayNa
 GET     /cache/invalidate                controllers.CacheController.invalidate()
 
 GET     /spotify/find                    controllers.SpotifyController.find()
+
+POST    /poll                            controllers.PollController.createPoll()
