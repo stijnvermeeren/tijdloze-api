@@ -73,4 +73,19 @@ class ArtistDAO @Inject()(allTables: AllTables) {
         ))
     }
   }
+
+  def newArtists(year: Int): Future[Seq[Artist]] = {
+    def isNew(artistId: Rep[ArtistId]): Rep[Boolean] = {
+      val entryYears = for {
+        song <- SongTable.filter(_.artistId === artistId)
+        entryYear <- ListEntryTable.filter(_.songId === song.id).map(_.year)
+      } yield entryYear
+
+      (entryYears.min === year).ifNull(false)
+    }
+
+    db run {
+      ArtistTable.filter(artist => isNew(artist.id)).result
+    }
+  }
 }

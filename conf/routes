@@ -16,6 +16,8 @@ POST    /album                           controllers.AlbumController.post()
 
 GET     /core-data                       controllers.CoreDataController.get()
 
+GET     /current-list                    controllers.CurrentListController.get()
+
 POST    /contact                         controllers.ContactController.post()
 
 POST    /comment                         controllers.CommentController.post()

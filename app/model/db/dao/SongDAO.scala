@@ -106,4 +106,15 @@ class SongDAO @Inject()(allTables: AllTables) {
       SongTable.map(_.exitCurrent).update(false)
     }
   }
+
+  def newSongs(year: Int): Future[Seq[Song]] = {
+    def isNew(songId: Rep[SongId]): Rep[Boolean] = {
+      val entryYears = ListEntryTable.filter(_.songId === songId).map(_.year)
+      (entryYears.min === year).ifNull(false)
+    }
+
+    db run {
+      SongTable.filter(song => isNew(song.id)).result
+    }
+  }
 }

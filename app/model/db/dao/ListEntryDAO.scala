@@ -14,12 +14,6 @@ class ListEntryDAO @Inject()(allTables: AllTables) {
   private val db = dbConfig.db
   import dbConfig.profile.api._
 
-  def getBySong(songId: SongId): Future[Seq[ListEntry]] = {
-    db run {
-      ListEntryTable.filter(_.songId === songId).result
-    }
-  }
-
   def getAll(): Future[Seq[ListEntry]] = {
     db run {
       ListEntryTable.result
@@ -50,6 +44,18 @@ class ListEntryDAO @Inject()(allTables: AllTables) {
         .filter(_.year === year)
         .filter(_.position === position)
         .delete
+    }
+  }
+
+  def currentYear(): Future[Int] = {
+    db run {
+      ListEntryTable.map(_.year).max.result
+    } map (_.get)
+  }
+
+  def getByYear(year: Int): Future[Seq[ListEntry]] = {
+    db run {
+      ListEntryTable.filter(_.year === year).result
     }
   }
 }
