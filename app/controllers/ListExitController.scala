@@ -7,7 +7,6 @@ import play.api.cache.AsyncCacheApi
 import play.api.mvc._
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
 
 @Singleton
 class ListExitController @Inject()(
@@ -20,6 +19,7 @@ class ListExitController @Inject()(
     (Action andThen authenticateAdmin).async { request =>
       songDAO.markExit(songId) map { _ =>
         cache.remove("coreData")
+        cache.remove("currentList")
         Ok("")
       }
     }
@@ -29,6 +29,7 @@ class ListExitController @Inject()(
     (Action andThen authenticateAdmin).async { request =>
       songDAO.unmarkExit(songId) map { _ =>
         cache.remove("coreData")
+        cache.remove("currentList")
         Ok("")
       }
     }
@@ -38,6 +39,7 @@ class ListExitController @Inject()(
     (Action andThen authenticateAdmin).async { request =>
       songDAO.unmarkAllExit() map { _ =>
         cache.remove("coreData")
+        cache.remove("currentList")
         Ok("")
       }
     }

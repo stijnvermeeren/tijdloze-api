@@ -7,9 +7,10 @@ import play.api.libs.json.Json
 final case class CurrentList(
   year: Int,
   entries: Seq[CurrentListEntry],
-  newSongs: Seq[Song],
-  newAlbums: Seq[Album],
-  newArtists: Seq[Artist]
+  exits: Seq[SongId],
+  newSongs: Seq[CoreSong],
+  newAlbums: Seq[CoreAlbum],
+  newArtists: Seq[CoreArtist]
 )
 
 object CurrentList {

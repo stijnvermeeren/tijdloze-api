@@ -117,4 +117,10 @@ class SongDAO @Inject()(allTables: AllTables) {
       SongTable.filter(song => isNew(song.id)).result
     }
   }
+
+  def exits(): Future[Seq[SongId]] = {
+    db run {
+      SongTable.filter(_.exitCurrent).map(_.id).result
+    }
+  }
 }
