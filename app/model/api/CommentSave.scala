@@ -9,9 +9,3 @@ final case class CommentSave(
 object CommentSave {
   implicit val jsonReads = Json.reads[CommentSave]
 }
-
-
-
-
-
-
