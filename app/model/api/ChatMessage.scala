@@ -9,7 +9,7 @@ final case class ChatMessage(
   id: ChatMessageId = ChatMessageId(0),
   userId: String,
   message: String,
-  timeStamp: DateTime = DateTime.now()
+  created: DateTime = DateTime.now()
 )
 
 object ChatMessage {
@@ -20,7 +20,7 @@ object ChatMessage {
       id = dbChatMessage.id,
       userId = dbChatMessage.userId,
       message = dbChatMessage.message,
-      timeStamp = dbChatMessage.timeStamp
+      created = dbChatMessage.created
     )
   }
 }

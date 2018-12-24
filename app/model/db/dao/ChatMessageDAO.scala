@@ -14,10 +14,13 @@ class ChatMessageDAO @Inject()(allTables: AllTables) {
   private val db = dbConfig.db
   import dbConfig.profile.api._
 
-  def save(userId: String, message: String): Future[Unit] = {
+  def save(userId: String, message: String): Future[ChatMessage] = {
+    val newMessage = ChatMessage(userId = userId, message = message)
     db run {
-      ChatMessageTable += ChatMessage(userId = userId, message = message)
-    } map (_ => ())
+      (ChatMessageTable returning ChatMessageTable.map(_.id)) += newMessage
+    } map { messageId =>
+      newMessage.copy(id = messageId)
+    }
   }
 
   def list(): Future[Seq[(Comment, User)]] = {

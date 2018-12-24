@@ -12,9 +12,9 @@ private[table] trait ChatMessageTableComponent extends TableComponent {
     val id = column[ChatMessageId]("id", O.AutoInc, O.PrimaryKey)
     val userId = column[String]("user_id")
     val message = column[String]("message")
-    val timestamp = column[DateTime]("tijdstip")
+    val created = column[DateTime]("created")
 
-    def * = (id, userId, message, timestamp) <>
+    def * = (id, userId, message, created) <>
       ((ChatMessage.apply _).tupled, ChatMessage.unapply)
   }
 

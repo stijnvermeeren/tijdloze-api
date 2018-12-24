@@ -7,5 +7,5 @@ final case class ChatMessage(
   id: ChatMessageId = ChatMessageId(0),
   userId: String,
   message: String,
-  timeStamp: DateTime = DateTime.now()
+  created: DateTime = DateTime.now()
 )

@@ -1,6 +1,7 @@
 package util
 
 import javax.inject.{Inject, Singleton}
+import model.ChatMessageId
 import model.db.ChatMessage
 import model.db.dao.{ChatMessageDAO, ChatOnlineDAO}
 import play.api.Logger
@@ -19,7 +20,7 @@ class Chat @Inject() (chatMessageDAO: ChatMessageDAO, chatOnlineDAO: ChatOnlineD
 
     chatMessageDAO.save(userId, message) map { chatMessage =>
       synchronized {
-        chatMessage :: messages
+        messages = chatMessage :: messages
       }
     }
   }
@@ -27,7 +28,7 @@ class Chat @Inject() (chatMessageDAO: ChatMessageDAO, chatOnlineDAO: ChatOnlineD
   def get(userId: String, sinceId: Int): List[ChatMessage] = {
     saveOnlineStatus(userId)
 
-    messages.takeWhile(_.id != sinceId).reverse
+    messages.takeWhile(_.id != ChatMessageId(sinceId)).reverse
   }
 
   def saveOnlineStatus(userId: String): Unit = {
