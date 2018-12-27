@@ -10,7 +10,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 @Singleton
-class Chat @Inject() (chatMessageDAO: ChatMessageDAO, chatOnlineDAO: ChatOnlineDAO) {
+class Chat @Inject() (chatMessageDAO: ChatMessageDAO, chatOnlineDAO: ChatOnlineDAO, displayNames: DisplayNames) {
   val logger = Logger(getClass)
 
   var messages: List[ChatMessage] = List.empty
@@ -25,10 +25,14 @@ class Chat @Inject() (chatMessageDAO: ChatMessageDAO, chatOnlineDAO: ChatOnlineD
     }
   }
 
-  def get(userId: String, sinceId: Int): List[ChatMessage] = {
+  def get(userId: String, sinceId: Int): Future[List[(ChatMessage, String)]] = {
     saveOnlineStatus(userId)
 
-    messages.takeWhile(_.id != ChatMessageId(sinceId)).reverse
+    displayNames.get() map { displayNames =>
+      messages.takeWhile(_.id != ChatMessageId(sinceId)).reverse map { message =>
+        (message, displayNames.getOrElse(message.userId, ""))
+      }
+    }
   }
 
   def saveOnlineStatus(userId: String): Unit = {

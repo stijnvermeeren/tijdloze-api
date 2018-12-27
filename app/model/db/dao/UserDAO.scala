@@ -72,4 +72,15 @@ class UserDAO @Inject()(allTables: AllTables) {
         .update(Some(displayName))
     } map (_ => ())
   }
+
+  def getDisplayNames(): Future[Map[String, String]] = {
+    val result = db run {
+      UserTable
+        .filter(_.displayName.nonEmpty)
+        .map(user => (user.id, user.displayName.get))
+        .result
+    }
+
+    result map (_.toMap)
+  }
 }

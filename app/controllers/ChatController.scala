@@ -38,10 +38,14 @@ class ChatController @Inject()(
     }
   }
 
-  def get() = (Action andThen authenticate) { request =>
-    val sinceId = request.getQueryString("since") map Integer.parseInt getOrElse 0
-    Ok(Json.toJson(
-      chat.get(request.userId, sinceId).map(ChatMessage.fromDb)
-    ))
+  def get() = {
+    (Action andThen authenticate).async { request =>
+      val sinceId = request.getQueryString("since") map Integer.parseInt getOrElse 0
+      chat.get(request.userId, sinceId) map { messages =>
+        Ok(Json.toJson(
+          messages.map((ChatMessage.fromDb _).tupled)
+        ))
+      }
+    }
   }
 }
