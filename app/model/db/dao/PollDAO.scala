@@ -47,10 +47,7 @@ class PollDAO @Inject()(allTables: AllTables) {
 
   def createPoll(data: PollCreate): Future[PollId] = {
     val newPoll = Poll(
-      question = data.question,
-      year = data.year,
-      isActive = data.isActive,
-      isDeleted = data.isDeleted
+      question = data.question
     )
 
     db run {
