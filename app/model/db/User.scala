@@ -13,5 +13,6 @@ final case class User(
   emailVerified: Boolean = false,
   created: DateTime = DateTime.now(),
   lastSeen: DateTime = DateTime.now(),
-  isAdmin: Boolean = false
+  isAdmin: Boolean = false,
+  isBlocked: Boolean = false
 )

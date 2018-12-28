@@ -21,8 +21,9 @@ private[table] trait UserTableComponent extends TableComponent {
     val created = column[DateTime]("created")
     val lastSeen = column[DateTime]("last_seen")
     val isAdmin = column[Boolean]("is_admin")
+    val isBlocked = column[Boolean]("is_blocked")
 
-    def * = (id, displayName, name, firstName, lastName, nickname, email, emailVerified, created, lastSeen, isAdmin) <>
+    def * = (id, displayName, name, firstName, lastName, nickname, email, emailVerified, created, lastSeen, isAdmin, isBlocked) <>
       ((User.apply _).tupled, User.unapply)
   }
 

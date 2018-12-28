@@ -11,14 +11,16 @@ import java.security.cert.CertificateFactory
 
 import model.db.User
 import model.db.dao.UserDAO
+import play.api.Logger
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
-class OptionallyAuthenticatedRequest[A](val userId: Option[String], request: Request[A]) extends WrappedRequest[A](request)
+class OptionallyAuthenticatedRequest[A](val user: Option[User], val userId: Option[String], request: Request[A]) extends WrappedRequest[A](request)
 
-class OptionallyAuthenticate @Inject()(config: Config)(implicit val executionContext: ExecutionContext)
+class OptionallyAuthenticate @Inject()(config: Config, userDAO: UserDAO)(implicit val executionContext: ExecutionContext)
   extends ActionRefiner[Request, OptionallyAuthenticatedRequest] {
+  val logger = Logger(getClass)
 
   def refine[A](request: Request[A]): Future[Either[Result, OptionallyAuthenticatedRequest[A]]] = {
     val jwtResult = request.headers.get("Authorization") match {
@@ -36,32 +38,45 @@ class OptionallyAuthenticate @Inject()(config: Config)(implicit val executionCon
           case Success(jwt) =>
             Some(jwt)
           case Failure(e) =>
-            println(s"Invalid access token: ${e.getMessage}")
+            logger.warn(s"Invalid access token: ${e.getMessage}")
             None
         }
       case _ =>
         None
     }
 
-    val userIdResult = jwtResult.flatMap(_.subject)
-    val optionallyAuthenticatedRequest = new OptionallyAuthenticatedRequest(userIdResult, request)
-    Future.successful(Right(optionallyAuthenticatedRequest))
+    val userResultFuture = jwtResult.flatMap(_.subject) match {
+      case Some(userId) =>
+        userDAO.get(userId) map (user => (user, Some(userId)))
+      case None =>
+        Future.successful((None, None))
+    }
+    userResultFuture map { case (user, userId) =>
+      Right(new OptionallyAuthenticatedRequest(user, userId, request))
+    }
   }
 }
 
-class AuthenticatedRequest[A](val userId: String, request: Request[A]) extends WrappedRequest[A](request)
+class AuthenticatedRequest[A](val user: User, request: Request[A]) extends WrappedRequest[A](request)
 
-class Authenticate @Inject() (optionallyAuthenticate: OptionallyAuthenticate)(implicit val executionContext: ExecutionContext)
+class Authenticate @Inject() (
+  optionallyAuthenticate: OptionallyAuthenticate
+)(implicit val executionContext: ExecutionContext)
   extends ActionRefiner[Request, AuthenticatedRequest] {
+
+  val logger = Logger(getClass)
 
   def refine[A](request: Request[A]): Future[Either[Result, AuthenticatedRequest[A]]] = {
     optionallyAuthenticate.refine(request) map { result =>
       result flatMap { optionallyAuthenticatedRequest =>
-        optionallyAuthenticatedRequest.userId match {
-          case Some(userId) =>
-            Right(new AuthenticatedRequest(userId, request))
+        optionallyAuthenticatedRequest.user match {
+          case Some(user) if user.isBlocked =>
+            logger.warn(s"Attempted request by blocked user with id ${user.id}.")
+            Left(Unauthorized)
+          case Some(user) if !user.isBlocked =>
+            Right(new AuthenticatedRequest(user, request))
           case None =>
-            println("No valid access token.")
+            logger.warn("Request lacked authorization.")
             Left(Unauthorized)
         }
       }
@@ -69,24 +84,22 @@ class Authenticate @Inject() (optionallyAuthenticate: OptionallyAuthenticate)(im
   }
 }
 
+class AuthenticateAdmin @Inject() (authenticate: Authenticate)(implicit val executionContext: ExecutionContext)
+  extends ActionRefiner[Request, AuthenticatedRequest] {
 
-class UserRequest[A](val user: User, request: Request[A]) extends WrappedRequest[A](request)
+  val logger = Logger(getClass)
 
-class AuthenticateAdmin @Inject() (authenticate: Authenticate, userDAO: UserDAO)(implicit val executionContext: ExecutionContext)
-  extends ActionRefiner[Request, UserRequest] {
-
-  def refine[A](request: Request[A]): Future[Either[Result, UserRequest[A]]] = {
-    authenticate.refine(request) flatMap {
+  def refine[A](request: Request[A]): Future[Either[Result, AuthenticatedRequest[A]]] = {
+    authenticate.refine(request) map {
       case Right(authenticatedRequest) =>
-        userDAO.get(authenticatedRequest.userId) map {
-          case Some(user) if user.isAdmin =>
-            Right(new UserRequest(user, request))
-          case _ =>
-            println("Insufficient access rights.")
-            Left(Unauthorized)
+        if (authenticatedRequest.user.isAdmin) {
+          Right(authenticatedRequest)
+        } else {
+          logger.warn(s"Attempted admin request by unprivileged user with id ${authenticatedRequest.user.id}.")
+          Left(Unauthorized)
         }
       case Left(error) =>
-        Future.successful(Left(error))
+        Left(error)
     }
   }
 }

@@ -38,6 +38,9 @@ DELETE  /list-exit                       controllers.ListExitController.deleteAl
 GET     /user                            controllers.UserController.get()
 POST    /user                            controllers.UserController.post()
 POST    /user/display-name               controllers.UserController.setDisplayName()
+GET     /user/list                       controllers.UserController.list()
+POST    /user/:id/block                  controllers.UserController.block(id: String)
+DELETE  /user/:id/block                  controllers.UserController.unblock(id: String)
 
 GET     /cache/invalidate                controllers.CacheController.invalidate()
 

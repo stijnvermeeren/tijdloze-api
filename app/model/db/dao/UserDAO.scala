@@ -73,6 +73,15 @@ class UserDAO @Inject()(allTables: AllTables) {
     } map (_ => ())
   }
 
+  def setBlocked(id: String, isBlocked: Boolean): Future[Unit] = {
+    db run {
+      UserTable
+        .filter(_.id === id)
+        .map(_.isBlocked)
+        .update(isBlocked)
+    } map (_ => ())
+  }
+
   def getDisplayNames(): Future[Map[String, String]] = {
     val result = db run {
       UserTable
@@ -82,5 +91,11 @@ class UserDAO @Inject()(allTables: AllTables) {
     }
 
     result map (_.toMap)
+  }
+
+  def listAll(): Future[Seq[User]] = {
+    db run {
+      UserTable.sortBy(_.displayName).result
+    }
   }
 }

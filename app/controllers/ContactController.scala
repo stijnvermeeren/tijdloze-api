@@ -14,7 +14,7 @@ class ContactController @Inject() (optionallyAuthenticate: OptionallyAuthenticat
     (Action andThen optionallyAuthenticate)(parse.json) { request =>
       Json.fromJson[ContactForm](request.body) match {
         case JsSuccess(form, _) =>
-          val footer = request.userId match {
+          val footer = request.user.map(_.id) match {
             case Some(userId) => s" --- Message from verified user with id $userId."
             case None => s" --- Message from unverified user."
           }

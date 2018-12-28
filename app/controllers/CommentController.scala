@@ -18,7 +18,7 @@ class CommentController @Inject()(authenticate: Authenticate, commentDAO: Commen
         Future.successful(BadRequest(JsError.toJson(errors)))
       },
       commentSave => {
-        commentDAO.save(request.userId, commentSave.message) map { _ =>
+        commentDAO.save(request.user.id, commentSave.message) map { _ =>
           Ok("")
         }
       }

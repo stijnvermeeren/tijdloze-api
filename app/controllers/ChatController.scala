@@ -23,7 +23,7 @@ class ChatController @Inject()(
         Future.successful(BadRequest(JsError.toJson(errors)))
       },
       chatSave => {
-        chat.post(request.userId, chatSave.message) map { _ =>
+        chat.post(request.user.id, chatSave.message) map { _ =>
           Ok("")
         }
       }
@@ -41,7 +41,7 @@ class ChatController @Inject()(
   def get() = {
     (Action andThen authenticate).async { request =>
       val sinceId = request.getQueryString("since") map Integer.parseInt getOrElse 0
-      chat.get(request.userId, sinceId) map { messages =>
+      chat.get(request.user.id, sinceId) map { messages =>
         Ok(Json.toJson(
           messages.map((ChatMessage.fromDb _).tupled)
         ))
