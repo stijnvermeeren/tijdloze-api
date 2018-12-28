@@ -1,6 +1,7 @@
 package controllers
 
 import javax.inject._
+import model.{PollAnswerId, PollId}
 import model.api.{Poll, PollCreate}
 import model.db.dao.PollDAO
 import play.api.libs.json.{JsError, Json}
@@ -34,6 +35,26 @@ class PollController @Inject()(
           }
         }
       )
+    }
+  }
+
+  def vote(pollId: PollId, answerId: PollAnswerId) = {
+    (Action andThen authenticate).async { request =>
+      pollDAO.vote(request.user.id, pollId, answerId) map { _ =>
+        Ok("")
+      }
+    }
+  }
+
+  def list() = {
+    Action.async { request =>
+      pollDAO.list() map { polls =>
+        val data = polls map {
+          case (dbPoll, dbAnswers) =>
+            Poll.fromDb(dbPoll, dbAnswers)
+        }
+        Ok(Json.toJson(data))
+      }
     }
   }
 }

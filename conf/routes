@@ -47,3 +47,5 @@ GET     /cache/invalidate                controllers.CacheController.invalidate(
 GET     /spotify/find                    controllers.SpotifyController.find()
 
 POST    /poll                            controllers.PollController.createPoll()
+GET     /poll/list                       controllers.PollController.list()
+POST    /poll/:pollId/:answerId          controllers.PollController.vote(pollId: model.PollId, answerId: model.PollAnswerId)

@@ -8,7 +8,7 @@ import com.github.tototoshi.slick.MySQLJodaSupport._
 private[table] trait PollVoteTableComponent extends TableComponent {
   import dbConfig.profile.api._
 
-  class PollVoteTable(tag: Tag) extends Table[PollVote](tag, "list_entry") {
+  class PollVoteTable(tag: Tag) extends Table[PollVote](tag, "poll_vote") {
     val id = column[PollVoteId]("id", O.AutoInc, O.PrimaryKey)
     val userId = column[Option[String]]("user_id")
     val pollId = column[PollId]("poll_id")

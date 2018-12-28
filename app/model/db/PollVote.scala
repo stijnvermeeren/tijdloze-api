@@ -8,5 +8,5 @@ final case class PollVote(
   userId: Option[String],
   pollId: PollId,
   answerId: PollAnswerId,
-  created: DateTime
+  created: DateTime = DateTime.now()
 )

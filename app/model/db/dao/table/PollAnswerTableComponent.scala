@@ -6,7 +6,7 @@ import model.db.PollAnswer
 private[table] trait PollAnswerTableComponent extends TableComponent {
   import dbConfig.profile.api._
 
-  class PollAnswerTable(tag: Tag) extends Table[PollAnswer](tag, "list_entry") {
+  class PollAnswerTable(tag: Tag) extends Table[PollAnswer](tag, "poll_answer") {
     val id = column[PollAnswerId]("id", O.AutoInc, O.PrimaryKey)
     val pollId = column[PollId]("poll_id")
     val answer = column[String]("answer")
