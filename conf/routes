@@ -48,6 +48,8 @@ GET     /spotify/find                    controllers.SpotifyController.find()
 
 POST    /poll                            controllers.PollController.createPoll()
 PUT     /poll/:pollId                    controllers.PollController.updatePoll(pollId: model.PollId)
+POST    /poll/:pollId/hide               controllers.PollController.hidePoll(pollId: model.PollId)
+DELETE  /poll/:pollId/hide               controllers.PollController.showPoll(pollId: model.PollId)
 PUT     /poll/:pollId/:pollAnswerId      controllers.PollController.updatePollAnswer(pollId: model.PollId, pollAnswerId: model.PollAnswerId)
 GET     /poll/list                       controllers.PollController.list()
 POST    /poll/:pollId/:pollAnswerId      controllers.PollController.vote(pollId: model.PollId, pollAnswerId: model.PollAnswerId)

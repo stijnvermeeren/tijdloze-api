@@ -26,7 +26,8 @@ final case class Poll(
   question: String,
   year: Int,
   answers: Seq[PollAnswer],
-  isActive: Boolean = true
+  isActive: Boolean = true,
+  isDeleted: Boolean = false
 )
 
 object Poll {
@@ -36,7 +37,8 @@ object Poll {
       question = dbPoll.question,
       year = dbPoll.year,
       answers = dbAnswers.map(PollAnswer.fromDb),
-      isActive = dbPoll.isActive
+      isActive = dbPoll.isActive,
+      isDeleted = dbPoll.isDeleted
     )
   }
 

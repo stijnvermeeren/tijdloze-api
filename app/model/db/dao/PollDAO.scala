@@ -110,4 +110,13 @@ class PollDAO @Inject()(allTables: AllTables) {
         .update(pollAnswerUpdate.answer)
     } map (_ => ())
   }
+
+  def setDeleted(pollId: PollId, isDeleted: Boolean): Future[Unit] = {
+    db run {
+      PollTable
+        .filter(_.id === pollId)
+        .map(_.isDeleted)
+        .update(isDeleted)
+    } map (_ => ())
+  }
 }

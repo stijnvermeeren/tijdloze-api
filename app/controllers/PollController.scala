@@ -80,6 +80,22 @@ class PollController @Inject()(
     }
   }
 
+  def hidePoll(pollId: PollId) = {
+    (Action andThen authenticateAdmin).async { request =>
+      pollDAO.setDeleted(pollId, isDeleted = true) map { _ =>
+        Ok("")
+      }
+    }
+  }
+
+  def showPoll(pollId: PollId) = {
+    (Action andThen authenticateAdmin).async { request =>
+      pollDAO.setDeleted(pollId, isDeleted = false) map { _ =>
+        Ok("")
+      }
+    }
+  }
+
   def vote(pollId: PollId, pollAnswerId: PollAnswerId) = {
     (Action andThen authenticate).async { request =>
       pollDAO.vote(request.user.id, pollId, pollAnswerId) map { _ =>
