@@ -2,7 +2,7 @@ package model.db.dao
 
 import javax.inject.{Inject, Singleton}
 import model.{PollAnswerId, PollId}
-import model.api.PollCreate
+import model.api.{PollAnswerUpdate, PollCreate, PollUpdate}
 import model.db.{Poll, PollAnswer, PollVote}
 import model.db.dao.table.AllTables
 
@@ -91,5 +91,23 @@ class PollDAO @Inject()(allTables: AllTables) {
         Future.successful(())
       }
     }
+  }
+
+  def updatePoll(pollId: PollId, pollUpdate: PollUpdate): Future[Unit] = {
+    db run {
+      PollTable
+        .filter(_.id === pollId)
+        .map(_.question)
+        .update(pollUpdate.question)
+    } map (_ => ())
+  }
+
+  def updatePollAnswer(pollAnswerId: PollAnswerId, pollAnswerUpdate: PollAnswerUpdate): Future[Unit] = {
+    db run {
+      PollAnswerTable
+        .filter(_.id === pollAnswerId)
+        .map(_.answer)
+        .update(pollAnswerUpdate.answer)
+    } map (_ => ())
   }
 }
