@@ -55,3 +55,6 @@ DELETE  /poll/:pollId/hide               controllers.PollController.showPoll(pol
 PUT     /poll/:pollId/:pollAnswerId      controllers.PollController.updatePollAnswer(pollId: model.PollId, pollAnswerId: model.PollAnswerId)
 GET     /poll/:pollId                    controllers.PollController.get(pollId: model.PollId)
 POST    /poll/:pollId/:pollAnswerId      controllers.PollController.vote(pollId: model.PollId, pollAnswerId: model.PollAnswerId)
+
+GET     /text/:key                       controllers.TextController.get(key: String)
+POST    /text/:key                       controllers.TextController.save(key: String)

@@ -19,6 +19,7 @@ private[dao] class AllTables @Inject()(protected val dbConfigProvider: DatabaseC
   with PollTableComponent
   with PollAnswerTableComponent
   with PollVoteTableComponent
+  with TextTableComponent
 {
   val dbConfig = dbConfigProvider.get[JdbcProfile]
 }
