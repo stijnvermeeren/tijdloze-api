@@ -5,7 +5,8 @@ import play.api.libs.json.Json
 
 final case class PublicUserInfo(
   id: String,
-  displayName: Option[String]
+  displayName: Option[String],
+  isAdmin: Boolean
 )
 
 object PublicUserInfo {
@@ -14,7 +15,8 @@ object PublicUserInfo {
   def fromDb(dbUser: db.User): PublicUserInfo = {
     PublicUserInfo(
       id = dbUser.id,
-      displayName = dbUser.displayName
+      displayName = dbUser.displayName,
+      isAdmin = dbUser.isAdmin
     )
   }
 }
