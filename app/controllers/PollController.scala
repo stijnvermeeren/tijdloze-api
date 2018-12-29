@@ -2,7 +2,7 @@ package controllers
 
 import javax.inject._
 import model.{PollAnswerId, PollId}
-import model.api.{Poll, PollAnswerUpdate, PollCreate, PollUpdate}
+import model.api._
 import model.db.dao.PollDAO
 import play.api.libs.json.{JsError, Json}
 import play.api.mvc._
@@ -100,6 +100,25 @@ class PollController @Inject()(
     (Action andThen authenticate).async { request =>
       pollDAO.vote(request.user.id, pollId, pollAnswerId) map { _ =>
         Ok("")
+      }
+    }
+  }
+
+  def myVotes() = {
+    (Action andThen authenticate).async { request =>
+      pollDAO.myVotes(request.user.id) map { votes =>
+        Ok(Json.toJson(PollVoteList(votes map PollVote.fromDb)))
+      }
+    }
+  }
+
+  def get(pollId: PollId) = {
+    Action.async { request =>
+      pollDAO.getPoll(pollId) map {
+        case Some((dbPoll, dbAnswers)) =>
+          Ok(Json.toJson(Poll.fromDb(dbPoll, dbAnswers)))
+        case None =>
+          InternalServerError(s"Poll with id ${pollId} not found.")
       }
     }
   }

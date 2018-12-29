@@ -75,7 +75,7 @@ class PollDAO @Inject()(allTables: AllTables) {
         .update(answerId)
     }
 
-    update flatMap { updatedRows =>
+    val insert = update flatMap { updatedRows =>
       if (updatedRows < 1) {
         db run {
           PollVoteTable += PollVote(
@@ -87,6 +87,27 @@ class PollDAO @Inject()(allTables: AllTables) {
       } else {
         Future.successful(())
       }
+    }
+
+    val count = insert flatMap { _ =>
+      db run {
+        PollVoteTable.filter(_.answerId === answerId).length.result
+      }
+    }
+
+    count flatMap { voteCount =>
+      db run {
+        PollAnswerTable
+          .filter(_.id === answerId)
+          .map(_.voteCount)
+          .update(voteCount)
+      }
+    } map (_ => ())
+  }
+
+  def myVotes(userId: String): Future[Seq[PollVote]] = {
+    db run {
+      PollVoteTable.filter(_.userId === userId).result
     }
   }
 

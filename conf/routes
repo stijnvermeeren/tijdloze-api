@@ -47,9 +47,11 @@ GET     /cache/invalidate                controllers.CacheController.invalidate(
 GET     /spotify/find                    controllers.SpotifyController.find()
 
 POST    /poll                            controllers.PollController.createPoll()
+GET     /poll/list                       controllers.PollController.list()
+GET     /poll/my-votes                   controllers.PollController.myVotes()
 PUT     /poll/:pollId                    controllers.PollController.updatePoll(pollId: model.PollId)
 POST    /poll/:pollId/hide               controllers.PollController.hidePoll(pollId: model.PollId)
 DELETE  /poll/:pollId/hide               controllers.PollController.showPoll(pollId: model.PollId)
 PUT     /poll/:pollId/:pollAnswerId      controllers.PollController.updatePollAnswer(pollId: model.PollId, pollAnswerId: model.PollAnswerId)
-GET     /poll/list                       controllers.PollController.list()
+GET     /poll/:pollId                    controllers.PollController.get(pollId: model.PollId)
 POST    /poll/:pollId/:pollAnswerId      controllers.PollController.vote(pollId: model.PollId, pollAnswerId: model.PollAnswerId)
