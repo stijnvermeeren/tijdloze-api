@@ -43,7 +43,7 @@ class TextController @Inject()(
           case Some(text) =>
             Ok(Json.toJson(Text.fromDb(text)))
           case None =>
-            NotFound(s"No text with key $key found.")
+            Ok(Json.toJson(Text(key = key, value = "")))
         }
       }
     }
