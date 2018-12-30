@@ -8,7 +8,8 @@ final case class UserInfo(
   displayName: Option[String],
   name: Option[String],
   email: Option[String],
-  isAdmin: Boolean
+  isAdmin: Boolean,
+  isBlocked: Boolean
 )
 
 object UserInfo {
@@ -18,7 +19,8 @@ object UserInfo {
       displayName = dbUser.displayName,
       name = dbUser.name,
       email = dbUser.email,
-      isAdmin = dbUser.isAdmin
+      isAdmin = dbUser.isAdmin,
+      isBlocked = dbUser.isBlocked
     )
   }
 

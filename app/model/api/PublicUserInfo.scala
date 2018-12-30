@@ -6,7 +6,8 @@ import play.api.libs.json.Json
 final case class PublicUserInfo(
   id: String,
   displayName: Option[String],
-  isAdmin: Boolean
+  isAdmin: Boolean,
+  isBlocked: Boolean
 )
 
 object PublicUserInfo {
@@ -16,7 +17,8 @@ object PublicUserInfo {
     PublicUserInfo(
       id = dbUser.id,
       displayName = dbUser.displayName,
-      isAdmin = dbUser.isAdmin
+      isAdmin = dbUser.isAdmin,
+      isBlocked = dbUser.isBlocked
     )
   }
 }
