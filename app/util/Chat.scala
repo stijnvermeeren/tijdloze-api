@@ -29,7 +29,12 @@ class Chat @Inject() (chatMessageDAO: ChatMessageDAO, chatOnlineDAO: ChatOnlineD
     saveOnlineStatus(userId)
 
     displayNames.get() map { displayNames =>
-      messages.takeWhile(_.id != ChatMessageId(sinceId)).reverse map { message =>
+      val responseMessages = if (sinceId > 0) {
+        messages.takeWhile(_.id != ChatMessageId(sinceId))
+      } else {
+        messages.take(20)
+      }
+      responseMessages.reverse map { message =>
         (message, displayNames.getOrElse(message.userId, ""))
       }
     }
