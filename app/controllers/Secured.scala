@@ -71,12 +71,12 @@ class Authenticate @Inject() (
       result flatMap { optionallyAuthenticatedRequest =>
         optionallyAuthenticatedRequest.user match {
           case Some(user) if user.isBlocked =>
-            logger.warn(s"Attempted request by blocked user with id ${user.id}.")
+            logger.warn(s"Attempted request to ${request.path} by blocked user with id ${user.id}.")
             Left(Unauthorized)
           case Some(user) if !user.isBlocked =>
             Right(new AuthenticatedRequest(user, request))
           case None =>
-            logger.warn("Request lacked authorization.")
+            logger.warn(s"Request to ${request.path} lacked authorization.")
             Left(Unauthorized)
         }
       }
@@ -95,7 +95,7 @@ class AuthenticateAdmin @Inject() (authenticate: Authenticate)(implicit val exec
         if (authenticatedRequest.user.isAdmin) {
           Right(authenticatedRequest)
         } else {
-          logger.warn(s"Attempted admin request by unprivileged user with id ${authenticatedRequest.user.id}.")
+          logger.warn(s"Attempted admin request to ${request.path} by unprivileged user with id ${authenticatedRequest.user.id}.")
           Left(Unauthorized)
         }
       case Left(error) =>

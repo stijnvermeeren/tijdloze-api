@@ -123,6 +123,17 @@ class PollController @Inject()(
     }
   }
 
+  def getLatest() = {
+    Action.async { request =>
+      pollDAO.getLatest() map {
+        case Some((dbPoll, dbAnswers)) =>
+          Ok(Json.toJson(Poll.fromDb(dbPoll, dbAnswers)))
+        case None =>
+          InternalServerError(s"No polls found.")
+      }
+    }
+  }
+
   def list() = {
     Action.async { request =>
       pollDAO.list() map { polls =>

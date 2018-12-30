@@ -30,6 +30,21 @@ class PollDAO @Inject()(allTables: AllTables) {
     }
   }
 
+  def getLatest(): Future[Option[(Poll, Seq[PollAnswer])]] = {
+    db run {
+      PollTable.sortBy(_.id.desc).result.headOption
+    } flatMap {
+      case Some(poll) =>
+        db run {
+          PollAnswerTable.filter(_.pollId === poll.id).result
+        } map { answers =>
+          Some(poll, answers)
+        }
+      case None =>
+        Future.successful(None)
+    }
+  }
+
   def list(): Future[Seq[(Poll, Seq[PollAnswer])]] = {
     for {
       polls <- db run {
