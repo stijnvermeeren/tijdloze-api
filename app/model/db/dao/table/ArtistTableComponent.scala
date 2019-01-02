@@ -6,19 +6,18 @@ package table
 private[table] trait ArtistTableComponent extends TableComponent {
   import dbConfig.profile.api._
 
-  class ArtistTable(tag: Tag) extends Table[Artist](tag, "artiest") {
+  class ArtistTable(tag: Tag) extends Table[Artist](tag, "artist") {
     val id = column[ArtistId]("id", O.AutoInc, O.PrimaryKey)
-    val firstName = column[String]("voornaam")
-    val name = column[String]("achternaam")
-    val countryId = column[String]("land_afkorting")
-    val notes = column[String]("opmerkingen")
-    val urlOfficial = column[String]("url_official")
-    val urlWikiEn = column[String]("url_wikien")
-    val urlWikiNl = column[String]("url_wikinl")
-    val urlAllMusic = column[String]("url_allmusic")
-    val edit = column[Boolean]("edit")
+    val namePrefix = column[Option[String]]("name_prefix")
+    val name = column[String]("name")
+    val countryId = column[String]("country_id")
+    val notes = column[Option[String]]("notes")
+    val urlOfficial = column[Option[String]]("url_official")
+    val urlWikiEn = column[Option[String]]("url_wikien")
+    val urlWikiNl = column[Option[String]]("url_wikinl")
+    val urlAllMusic = column[Option[String]]("url_allmusic")
 
-    def * = (id, firstName, name, countryId, notes, urlOfficial, urlWikiEn, urlWikiNl, urlAllMusic, edit) <>
+    def * = (id, namePrefix, name, countryId, notes, urlOfficial, urlWikiEn, urlWikiNl, urlAllMusic) <>
       ((Artist.apply _).tupled, Artist.unapply)
   }
 

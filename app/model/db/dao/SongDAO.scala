@@ -43,9 +43,9 @@ class SongDAO @Inject()(allTables: AllTables) {
       lyrics = lyrics.getOrElse(""),
       languageId = languageId,
       leadVocals = leadVocals,
-      notes = notes.getOrElse(""),
-      urlWikiEn = urlWikiEn.getOrElse(""),
-      urlWikiNl = urlWikiNl.getOrElse(""),
+      notes = notes.map(_.trim).filter(_.nonEmpty),
+      urlWikiEn = urlWikiEn.map(_.trim).filter(_.nonEmpty),
+      urlWikiNl = urlWikiNl.map(_.trim).filter(_.nonEmpty),
       spotifyId = spotifyId.map(_.trim).filter(_.nonEmpty)
     )
 
@@ -80,10 +80,10 @@ class SongDAO @Inject()(allTables: AllTables) {
           lyrics.getOrElse(""),
           languageId,
           leadVocals,
-          notes.getOrElse(""),
-          urlWikiEn.getOrElse(""),
-          urlWikiNl.getOrElse(""),
-          spotifyId.filter(_.nonEmpty),
+          notes.map(_.trim).filter(_.nonEmpty),
+          urlWikiEn.map(_.trim).filter(_.nonEmpty),
+          urlWikiNl.map(_.trim).filter(_.nonEmpty),
+          spotifyId.map(_.trim).filter(_.nonEmpty),
           DateTime.now()
         ))
     }

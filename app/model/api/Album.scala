@@ -8,9 +8,9 @@ final case class Album(
   artistId: ArtistId,
   title: String,
   releaseYear: Int,
-  urlWikiEn: String,
-  urlWikiNl: String,
-  urlAllMusic: String
+  urlWikiEn: Option[String],
+  urlWikiNl: Option[String],
+  urlAllMusic: Option[String]
 )
 
 object Album {

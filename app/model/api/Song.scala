@@ -11,9 +11,9 @@ final case class Song(
   lyrics: String,
   languageId: String,
   leadVocals: String,
-  notes: String,
-  urlWikiEn: String,
-  urlWikiNl: String,
+  notes: Option[String],
+  urlWikiEn: Option[String],
+  urlWikiNl: Option[String],
   spotifyId: Option[String],
 )
 

@@ -6,8 +6,7 @@ final case class Album(
   artistId: ArtistId,
   title: String,
   releaseYear: Int,
-  urlWikiEn: String,
-  urlWikiNl: String,
-  urlAllMusic: String,
-  edit: Boolean = false
+  urlWikiEn: Option[String],
+  urlWikiNl: Option[String],
+  urlAllMusic: Option[String]
 )

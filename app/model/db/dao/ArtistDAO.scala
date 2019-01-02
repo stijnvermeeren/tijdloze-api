@@ -29,14 +29,14 @@ class ArtistDAO @Inject()(allTables: AllTables) {
   def create(data: ArtistSave): Future[ArtistId] = {
     import data._
     val newArtist = Artist(
-      firstName = firstName,
+      namePrefix = namePrefix.map(_.trim).filter(_.nonEmpty),
       name = name,
       countryId = countryId,
-      notes = notes.getOrElse(""),
-      urlOfficial = urlOfficial.getOrElse(""),
-      urlWikiEn = urlWikiEn.getOrElse(""),
-      urlWikiNl = urlWikiNl.getOrElse(""),
-      urlAllMusic = urlAllMusic.getOrElse("")
+      notes = notes.map(_.trim).filter(_.nonEmpty),
+      urlOfficial = urlOfficial.map(_.trim).filter(_.nonEmpty),
+      urlWikiEn = urlWikiEn.map(_.trim).filter(_.nonEmpty),
+      urlWikiNl = urlWikiNl.map(_.trim).filter(_.nonEmpty),
+      urlAllMusic = urlAllMusic.map(_.trim).filter(_.nonEmpty)
     )
 
     db run {
@@ -51,7 +51,7 @@ class ArtistDAO @Inject()(allTables: AllTables) {
       ArtistTable
         .filter(_.id === artistId)
         .map(x => (
-          x.firstName,
+          x.namePrefix,
           x.name,
           x.countryId,
           x.notes,
@@ -62,14 +62,14 @@ class ArtistDAO @Inject()(allTables: AllTables) {
         )
         )
         .update((
-          firstName,
+          namePrefix.map(_.trim).filter(_.nonEmpty),
           name,
           countryId,
-          notes.getOrElse(""),
-          urlOfficial.getOrElse(""),
-          urlWikiEn.getOrElse(""),
-          urlWikiNl.getOrElse(""),
-          urlAllMusic.getOrElse("")
+          notes.map(_.trim).filter(_.nonEmpty),
+          urlOfficial.map(_.trim).filter(_.nonEmpty),
+          urlWikiEn.map(_.trim).filter(_.nonEmpty),
+          urlWikiNl.map(_.trim).filter(_.nonEmpty),
+          urlAllMusic.map(_.trim).filter(_.nonEmpty)
         ))
     }
   }

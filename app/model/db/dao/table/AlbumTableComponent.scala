@@ -8,15 +8,14 @@ private[table] trait AlbumTableComponent extends TableComponent {
 
   class AlbumTable(tag: Tag) extends Table[Album](tag, "album") {
     val id = column[AlbumId]("id", O.AutoInc, O.PrimaryKey)
-    val artistId = column[ArtistId]("artiest_id")
-    val title = column[String]("titel")
-    val releaseYear = column[Int]("jaartal")
-    val urlWikiEn = column[String]("url_wikien")
-    val urlWikiNl = column[String]("url_wikinl")
-    val urlAllMusic = column[String]("url_allmusic")
-    val edit = column[Boolean]("edit")
+    val artistId = column[ArtistId]("artist_id")
+    val title = column[String]("title")
+    val releaseYear = column[Int]("release_year")
+    val urlWikiEn = column[Option[String]]("url_wikien")
+    val urlWikiNl = column[Option[String]]("url_wikinl")
+    val urlAllMusic = column[Option[String]]("url_allmusic")
 
-    def * = (id, artistId, title, releaseYear, urlWikiEn, urlWikiNl, urlAllMusic, edit) <>
+    def * = (id, artistId, title, releaseYear, urlWikiEn, urlWikiNl, urlAllMusic) <>
       ((Album.apply _).tupled, Album.unapply)
   }
 

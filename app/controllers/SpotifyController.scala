@@ -48,7 +48,7 @@ class SpotifyController @Inject()(
                 result flatMap { _ =>
                   val title = song.title
                   val artist = artistsById(song.artistId)
-                  val artistName = s"${artist.firstName} ${artist.name}".trim
+                  val artistName = s"${artist.namePrefix} ${artist.name}".trim
                   val album = albumsById(song.albumId).title
                   // s"${coreSong.title} ${coreArtist.firstName} ${coreArtist.name}"
                   spotifyAPI.findSongId(token = token, artist = artistName, album = album, title = title) flatMap {

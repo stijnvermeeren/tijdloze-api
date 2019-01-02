@@ -3,13 +3,12 @@ package db
 
 final case class Artist(
   id: ArtistId = ArtistId(0),
-  firstName: String,
+  namePrefix: Option[String],
   name: String,
   countryId: String,
-  notes: String,
-  urlOfficial: String,
-  urlWikiEn: String,
-  urlWikiNl: String,
-  urlAllMusic: String,
-  edit: Boolean = false
+  notes: Option[String],
+  urlOfficial: Option[String],
+  urlWikiEn: Option[String],
+  urlWikiNl: Option[String],
+  urlAllMusic: Option[String]
 )

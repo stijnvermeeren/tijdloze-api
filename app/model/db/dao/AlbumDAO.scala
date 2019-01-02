@@ -32,9 +32,9 @@ class AlbumDAO @Inject()(allTables: AllTables) {
       artistId = artistId,
       title = title,
       releaseYear = releaseYear,
-      urlWikiEn = urlWikiEn.getOrElse(""),
-      urlWikiNl = urlWikiNl.getOrElse(""),
-      urlAllMusic = urlAllMusic.getOrElse("")
+      urlWikiEn = urlWikiEn.map(_.trim).filter(_.nonEmpty),
+      urlWikiNl = urlWikiNl.map(_.trim).filter(_.nonEmpty),
+      urlAllMusic = urlAllMusic.map(_.trim).filter(_.nonEmpty)
     )
 
     db run {
@@ -61,9 +61,9 @@ class AlbumDAO @Inject()(allTables: AllTables) {
           artistId,
           title,
           releaseYear,
-          urlWikiEn.getOrElse(""),
-          urlWikiNl.getOrElse(""),
-          urlAllMusic.getOrElse("")
+          urlWikiEn.map(_.trim).filter(_.nonEmpty),
+          urlWikiNl.map(_.trim).filter(_.nonEmpty),
+          urlAllMusic.map(_.trim).filter(_.nonEmpty)
         ))
     }
   }
