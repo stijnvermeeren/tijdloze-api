@@ -1,5 +1,5 @@
 #!/bin/bash
 
-mysql -B "$@" < flatten.sql > export.tsv
+mysql -B "$@" < flatten.sql > tijdloze.tsv
 
-mysqldump --single-transaction "$@" artist album song list_entry > export.sql
+mysqldump --single-transaction "$@" artist album song list_entry > tijdloze.sql
