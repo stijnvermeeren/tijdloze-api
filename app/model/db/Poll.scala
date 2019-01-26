@@ -5,7 +5,7 @@ import org.joda.time.DateTime
 
 final case class Poll(
   id: PollId = PollId(0),
-  year: Int = 2018,
+  year: Int,
   question: String,
   isActive: Boolean = true,
   isDeleted: Boolean = false,

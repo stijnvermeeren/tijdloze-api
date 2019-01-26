@@ -8,6 +8,7 @@ import play.api.mvc._
 import play.api.libs.json._
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 @Singleton
 class CoreDataController @Inject()(
@@ -16,6 +17,7 @@ class CoreDataController @Inject()(
   songDAO: SongDAO,
   listEntryDAO: ListEntryDAO,
   listExitDAO: ListExitDAO,
+  yearDAO: YearDAO,
   cached: Cached
 ) extends InjectedController {
 
@@ -26,8 +28,11 @@ class CoreDataController @Inject()(
         albums <- albumDAO.getAll()
         songs <- songDAO.getAll()
         entries <- listEntryDAO.getAll()
-        years = entries.map(_.year).distinct.sorted
-        exits <- listExitDAO.getByYear(years.max)
+        years <- yearDAO.getAll()
+        exits <- years.lastOption match {
+          case Some(maxYear) => listExitDAO.getByYear(maxYear)
+          case None => Future.successful(Seq.empty)
+        }
       } yield {
         val groupedEntries = entries.groupBy(_.songId)
 
