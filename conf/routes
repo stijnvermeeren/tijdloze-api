@@ -59,3 +59,5 @@ POST    /poll/:pollId/:pollAnswerId      controllers.PollController.vote(pollId:
 
 GET     /text/:key                       controllers.TextController.get(key: String)
 POST    /text/:key                       controllers.TextController.save(key: String)
+
+POST    /year/:year                      controllers.YearController.post(year: Int)
