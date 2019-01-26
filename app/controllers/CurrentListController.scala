@@ -2,7 +2,7 @@ package controllers
 
 import javax.inject._
 import model.api._
-import model.db.dao.{AlbumDAO, ArtistDAO, ListEntryDAO, SongDAO}
+import model.db.dao._
 import play.api.cache.Cached
 import play.api.libs.json._
 import play.api.mvc._
@@ -15,6 +15,7 @@ class CurrentListController @Inject()(
   artistDAO: ArtistDAO,
   songDAO: SongDAO,
   listEntryDAO: ListEntryDAO,
+  listExitDAO: ListExitDAO,
   cached: Cached
 ) extends InjectedController {
 
@@ -23,7 +24,7 @@ class CurrentListController @Inject()(
       for {
         year <- listEntryDAO.currentYear()
         entries <- listEntryDAO.getByYear(year)
-        exits <- songDAO.exits()
+        exits <- listExitDAO.getByYear(year)
         newSongs <- songDAO.newSongs(year)
         newAlbums <- albumDAO.newAlbums(year)
         newArtists <- artistDAO.newArtists(year)
@@ -31,7 +32,7 @@ class CurrentListController @Inject()(
         Ok(Json.toJson(CurrentList(
           year = year,
           entries = entries.map(CurrentListEntry.fromDb),
-          exits = exits,
+          exitSongIds = exits.map(_.songId),
           newSongs = newSongs.map(song => CoreSong.fromDb(song, entries.filter(_.songId == song.id))),
           newAlbums = newAlbums.map(CoreAlbum.fromDb),
           newArtists = newArtists.map(CoreArtist.fromDb),

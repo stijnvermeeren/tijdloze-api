@@ -22,9 +22,8 @@ private[table] trait SongTableComponent extends TableComponent {
     val urlWikiNl = column[Option[String]]("url_wikinl")
     val spotifyId = column[Option[String]]("spotify_id")
     val lastUpdate = column[DateTime]("last_update")
-    val exitCurrent = column[Boolean]("exit_current_list")
 
-    def * = (id, artistId, albumId, title, exitCurrent, lyrics, languageId, leadVocals, notes, urlWikiEn, urlWikiNl, spotifyId, lastUpdate) <>
+    def * = (id, artistId, albumId, title, lyrics, languageId, leadVocals, notes, urlWikiEn, urlWikiNl, spotifyId, lastUpdate) <>
       ((Song.apply _).tupled, Song.unapply)
   }
 

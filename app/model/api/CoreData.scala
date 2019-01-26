@@ -50,8 +50,7 @@ final case class CoreSong(
   title: String,
   languageId: String,
   leadVocals: String,
-  positions: Map[String, Int],
-  exitCurrent: Boolean
+  positions: Map[String, Int]
 )
 
 object CoreSong {
@@ -63,8 +62,7 @@ object CoreSong {
       title = song.title,
       languageId = song.languageId,
       leadVocals = song.leadVocals,
-      positions = entries.map(entry => entry.year.toString.takeRight(2) -> entry.position).toMap,
-      exitCurrent = song.exitCurrent
+      positions = entries.map(entry => entry.year.toString.takeRight(2) -> entry.position).toMap
     )
   }
 
@@ -78,7 +76,8 @@ final case class CoreData(
   countries: Seq[Country],
   languages: Seq[Language],
   vocalsGenders: Seq[VocalsGender],
-  years: Seq[Int]
+  years: Seq[Int],
+  exitSongIds: Seq[SongId]
 )
 
 object CoreData {

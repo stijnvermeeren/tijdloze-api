@@ -8,7 +8,6 @@ final case class Song(
   artistId: ArtistId,
   albumId: AlbumId,
   title: String,
-  exitCurrent: Boolean = false,
   lyrics: String,
   languageId: String,
   leadVocals: String,

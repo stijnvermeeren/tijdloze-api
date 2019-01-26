@@ -2,7 +2,7 @@ package controllers
 
 import javax.inject._
 import model.SongId
-import model.db.dao.SongDAO
+import model.db.dao.ListExitDAO
 import play.api.cache.AsyncCacheApi
 import play.api.mvc._
 
@@ -12,12 +12,12 @@ import scala.concurrent.ExecutionContext.Implicits.global
 class ListExitController @Inject()(
   cache: AsyncCacheApi,
   authenticateAdmin: AuthenticateAdmin,
-  songDAO: SongDAO
+  listExitDAO: ListExitDAO
 ) extends InjectedController {
 
-  def post(songId: SongId) = {
+  def post(year: Int, songId: SongId) = {
     (Action andThen authenticateAdmin).async { request =>
-      songDAO.markExit(songId) map { _ =>
+      listExitDAO.save(year, songId) map { _ =>
         cache.remove("coreData")
         cache.remove("currentList")
         Ok("")
@@ -25,9 +25,9 @@ class ListExitController @Inject()(
     }
   }
 
-  def delete(songId: SongId) = {
+  def delete(year: Int, songId: SongId) = {
     (Action andThen authenticateAdmin).async { request =>
-      songDAO.unmarkExit(songId) map { _ =>
+      listExitDAO.delete(year, songId) map { _ =>
         cache.remove("coreData")
         cache.remove("currentList")
         Ok("")
@@ -35,9 +35,9 @@ class ListExitController @Inject()(
     }
   }
 
-  def deleteAll() = {
+  def deleteAll(year: Int) = {
     (Action andThen authenticateAdmin).async { request =>
-      songDAO.unmarkAllExit() map { _ =>
+      listExitDAO.deleteAll(year) map { _ =>
         cache.remove("coreData")
         cache.remove("currentList")
         Ok("")

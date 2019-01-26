@@ -89,24 +89,6 @@ class SongDAO @Inject()(allTables: AllTables) {
     }
   }
 
-  def markExit(songId: SongId): Future[Int] = {
-    db run {
-      SongTable.filter(_.id === songId).map(_.exitCurrent).update(true)
-    }
-  }
-
-  def unmarkExit(songId: SongId): Future[Int] = {
-    db run {
-      SongTable.filter(_.id === songId).map(_.exitCurrent).update(false)
-    }
-  }
-
-  def unmarkAllExit(): Future[Int] = {
-    db run {
-      SongTable.map(_.exitCurrent).update(false)
-    }
-  }
-
   def newSongs(year: Int): Future[Seq[Song]] = {
     def isNew(songId: Rep[SongId]): Rep[Boolean] = {
       val entryYears = ListEntryTable.filter(_.songId === songId).map(_.year)
@@ -115,12 +97,6 @@ class SongDAO @Inject()(allTables: AllTables) {
 
     db run {
       SongTable.filter(song => isNew(song.id)).result
-    }
-  }
-
-  def exits(): Future[Seq[SongId]] = {
-    db run {
-      SongTable.filter(_.exitCurrent).map(_.id).result
     }
   }
 }
