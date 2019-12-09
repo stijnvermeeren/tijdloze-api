@@ -28,6 +28,8 @@ GET     /chat/message                    controllers.ChatController.get()
 POST    /chat/message                    controllers.ChatController.post()
 GET     /chat/online                     controllers.ChatController.online()
 
+GET     /chat/ws                         controllers.ChatController.ws()
+
 POST    /list-entry/:year/:position      controllers.ListEntryController.post(year: Int, position: Int)
 DELETE  /list-entry/:year/:position      controllers.ListEntryController.delete(year: Int, position: Int)
 

@@ -1,5 +1,7 @@
 package controllers
 
+import akka.stream.Materializer
+import akka.stream.scaladsl.{BroadcastHub, Flow, Keep, MergeHub, Source}
 import util.Chat
 import javax.inject._
 import model.api.{ChatMessage, ChatSave, PublicUserInfo}
@@ -15,7 +17,7 @@ class ChatController @Inject()(
   authenticate: Authenticate,
   chat: Chat,
   chatOnlineDAO: ChatOnlineDAO
-) extends InjectedController {
+)(implicit mat: Materializer) extends InjectedController {
   def post() = (Action andThen authenticate).async(parse.json) { request =>
     val data = request.body.validate[ChatSave]
     data.fold(
@@ -46,6 +48,44 @@ class ChatController @Inject()(
           messages.map((ChatMessage.fromDb _).tupled)
         ))
       }
+    }
+  }
+
+  // chat room many clients -> merge hub -> broadcasthub -> many clients
+  private val (chatSink, chatSource) = {
+    // Don't log MergeHub$ProducerFailed as error if the client disconnects.
+    // recoverWithRetries -1 is essentially "recoverWith"
+    val source = MergeHub.source[JsValue]
+      .log("source")
+      .recoverWithRetries(-1, { case _: Exception => Source.empty })
+      .mapAsync(2){ body =>
+        Json.fromJson[ChatSave](body).fold(
+          errors => {
+            Future.failed(throw new Exception("Invalid message"))
+          },
+          chatSave => {
+            // TODO use actual user id and display name
+            chat
+              .post("auth0|5be19a60d7dcac7295280654", chatSave.message)
+              .map(dbChatMessage => ChatMessage.fromDb(dbChatMessage, "DisplayName"))
+              .map(Json.toJson[ChatMessage])
+          }
+        )
+      }
+
+    val sink = BroadcastHub.sink[JsValue]
+    source.toMat(sink)(Keep.both).run()
+  }
+
+  private val chatFlow: Flow[JsValue, JsValue, _] = {
+    Flow[JsValue].via(Flow.fromSinkAndSource(chatSink, chatSource)).log("chatFlow")
+  }
+
+  // TODO secure with same origin check
+  // TODO authenticate
+  def ws(): WebSocket = {
+    WebSocket.accept[JsValue, JsValue] { request =>
+      chatFlow
     }
   }
 }

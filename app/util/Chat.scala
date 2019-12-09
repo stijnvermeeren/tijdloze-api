@@ -15,13 +15,14 @@ class Chat @Inject() (chatMessageDAO: ChatMessageDAO, chatOnlineDAO: ChatOnlineD
 
   var messages: List[ChatMessage] = List.empty
 
-  def post(userId: String, message: String): Future[Unit] = {
+  def post(userId: String, message: String): Future[ChatMessage] = {
     saveOnlineStatus(userId)
 
     chatMessageDAO.save(userId, message) map { chatMessage =>
       synchronized {
         messages = chatMessage :: messages
       }
+      chatMessage
     }
   }
 
