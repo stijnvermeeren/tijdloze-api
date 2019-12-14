@@ -11,6 +11,7 @@ import play.api.mvc._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import scala.concurrent.duration._
 
 @Singleton
 class ChatController @Inject()(
@@ -64,8 +65,25 @@ class ChatController @Inject()(
     source.toMat(sink)(Keep.both).run()
   }
 
+  // source for online list
+  Source
+    .tick(
+      5.seconds, // delay of first tick
+      5.seconds, // delay of subsequent ticks
+      "tick" // element emitted each tick
+    )
+    .mapAsync(1) { _ =>
+      chatOnlineDAO.list(maxAgeSeconds = 30) map { users =>
+        Json.toJson(
+          users map PublicUserInfo.fromDb
+        )
+      }
+    }
+    .to(chatSink)
+    .run()
+
   private def chatFlow(userId: String): Flow[JsValue, JsValue, _] = {
-    val sink = Flow[JsValue]
+    val userSink = Flow[JsValue]
       .mapAsync(2){ body =>
         Json.fromJson[ChatSave](body).fold(
           errors => {
@@ -82,8 +100,14 @@ class ChatController @Inject()(
       }
       .to(chatSink)
 
+    val userSource = chatSource.map { message =>
+      // TODO don't save online status too often
+      chat.saveOnlineStatus(userId)
+      message
+    }
+
     Flow[JsValue]
-      .via(Flow.fromSinkAndSource(sink, chatSource))
+      .via(Flow.fromSinkAndSource(userSink, userSource))
       .log("chatFlow")
   }
 
