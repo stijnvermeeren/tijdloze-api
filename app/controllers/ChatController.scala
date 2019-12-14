@@ -15,6 +15,7 @@ import scala.concurrent.Future
 @Singleton
 class ChatController @Inject()(
   authenticate: Authenticate,
+  optionallyAuthenticate: OptionallyAuthenticate,
   chat: Chat,
   chatOnlineDAO: ChatOnlineDAO
 )(implicit mat: Materializer) extends InjectedController {
@@ -58,6 +59,13 @@ class ChatController @Inject()(
     val source = MergeHub.source[JsValue]
       .log("source")
       .recoverWithRetries(-1, { case _: Exception => Source.empty })
+
+    val sink = BroadcastHub.sink[JsValue]
+    source.toMat(sink)(Keep.both).run()
+  }
+
+  private def chatFlow(userId: String): Flow[JsValue, JsValue, _] = {
+    val sink = Flow[JsValue]
       .mapAsync(2){ body =>
         Json.fromJson[ChatSave](body).fold(
           errors => {
@@ -66,26 +74,26 @@ class ChatController @Inject()(
           chatSave => {
             // TODO use actual user id and display name
             chat
-              .post("auth0|5be19a60d7dcac7295280654", chatSave.message)
+              .post(userId, chatSave.message)
               .map(dbChatMessage => ChatMessage.fromDb(dbChatMessage, "DisplayName"))
               .map(Json.toJson[ChatMessage])
           }
         )
       }
+      .to(chatSink)
 
-    val sink = BroadcastHub.sink[JsValue]
-    source.toMat(sink)(Keep.both).run()
-  }
-
-  private val chatFlow: Flow[JsValue, JsValue, _] = {
-    Flow[JsValue].via(Flow.fromSinkAndSource(chatSink, chatSource)).log("chatFlow")
+    Flow[JsValue]
+      .via(Flow.fromSinkAndSource(sink, chatSource))
+      .log("chatFlow")
   }
 
   // TODO secure with same origin check
   // TODO authenticate
   def ws(): WebSocket = {
-    WebSocket.accept[JsValue, JsValue] { request =>
-      chatFlow
+    WebSocket.acceptOrResult[JsValue, JsValue] { requestHeader =>
+      optionallyAuthenticate.auth(requestHeader) map {
+        _.map(user => chatFlow(user.id))
+      }
     }
   }
 }
