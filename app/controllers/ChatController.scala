@@ -1,7 +1,7 @@
 package controllers
 
 import akka.stream.Materializer
-import akka.stream.scaladsl.{BroadcastHub, Flow, Keep, MergeHub, Source}
+import akka.stream.scaladsl.{BroadcastHub, Flow, Keep, MergeHub, Sink, Source}
 import util.Chat
 import javax.inject._
 import model.api.{ChatMessage, ChatSave, PublicUserInfo}
@@ -68,9 +68,9 @@ class ChatController @Inject()(
   // source for online list
   Source
     .tick(
-      5.seconds, // delay of first tick
-      5.seconds, // delay of subsequent ticks
-      "tick" // element emitted each tick
+      initialDelay = 15.seconds,
+      interval = 15.seconds,
+      tick = ()
     )
     .mapAsync(1) { _ =>
       chatOnlineDAO.list(maxAgeSeconds = 30) map { users =>
@@ -100,23 +100,44 @@ class ChatController @Inject()(
       }
       .to(chatSink)
 
-    val userSource = chatSource.map { message =>
+    val userSource = chatSource.mapAsync(1) { message =>
       // TODO don't save online status too often
-      chat.saveOnlineStatus(userId)
-      message
+      chat.saveOnlineStatus(userId) map { _ =>
+        message
+      }
     }
 
-    Flow[JsValue]
-      .via(Flow.fromSinkAndSource(userSink, userSource))
+    // initialisation
+    val initSource = Source
+      .single(())
+      .mapAsync(1) { _ =>
+        println("init")
+        chatOnlineDAO.list(maxAgeSeconds = 30) map { users =>
+          Json.toJson(
+            users map PublicUserInfo.fromDb
+          )
+        }
+      }
+
+    val flow = Flow[JsValue]
+      .via(Flow.fromSinkAndSource(userSink, initSource.concat(userSource)))
       .log("chatFlow")
+
+    flow
   }
 
   // TODO secure with same origin check
   // TODO authenticate
   def ws(): WebSocket = {
     WebSocket.acceptOrResult[JsValue, JsValue] { requestHeader =>
-      optionallyAuthenticate.auth(requestHeader) map {
-        _.map(user => chatFlow(user.id))
+      optionallyAuthenticate.auth(requestHeader) flatMap {
+        case Right(user) =>
+          chat.saveOnlineStatus(user.id) map { _ =>
+            val flow = chatFlow(user.id)
+            Right(flow)
+          }
+        case Left(e) =>
+          Future.successful(Left(e))
       }
     }
   }

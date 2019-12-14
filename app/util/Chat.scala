@@ -41,9 +41,10 @@ class Chat @Inject() (chatMessageDAO: ChatMessageDAO, chatOnlineDAO: ChatOnlineD
     }
   }
 
-  def saveOnlineStatus(userId: String): Unit = {
-    chatOnlineDAO.save(userId).failed foreach { e =>
-      logger.error("Error while saving chat online status.", e)
+  def saveOnlineStatus(userId: String): Future[Unit] = {
+    chatOnlineDAO.save(userId) recover {
+      case e =>
+        logger.error("Error while saving chat online status.", e)
     }
   }
 }
