@@ -7,6 +7,7 @@ import model.db.dao.AlbumDAO
 import play.api.cache.{AsyncCacheApi, Cached}
 import play.api.libs.json.{JsError, Json}
 import play.api.mvc._
+import util.CurrentListUtil
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -16,7 +17,8 @@ class AlbumController @Inject()(
   authenticateAdmin: AuthenticateAdmin,
   cache: AsyncCacheApi,
   cached: Cached,
-  albumDAO: AlbumDAO
+  albumDAO: AlbumDAO,
+  currentList: CurrentListUtil
 ) extends InjectedController {
 
   def get(albumId: AlbumId) = {
@@ -42,7 +44,7 @@ class AlbumController @Inject()(
             newAlbum <- albumDAO.get(newAlbumId)
           } yield {
             cache.remove("coreData")
-            cache.remove("currentList")
+            currentList.refresh()
             Ok(Json.toJson(Album.fromDb(newAlbum)))
           }
         }
@@ -63,7 +65,7 @@ class AlbumController @Inject()(
             album <- albumDAO.get(albumId)
           } yield {
             cache.remove("coreData")
-            cache.remove("currentList")
+            currentList.refresh()
             cache.remove(s"album/${albumId.value}")
             Ok(Json.toJson(Album.fromDb(album)))
           }

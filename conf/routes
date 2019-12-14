@@ -16,17 +16,13 @@ POST    /album                           controllers.AlbumController.post()
 
 GET     /core-data                       controllers.CoreDataController.get()
 
-GET     /current-list                    controllers.CurrentListController.get()
+GET     /current-list/ws                 controllers.CurrentListController.ws()
 
 POST    /contact                         controllers.ContactController.post()
 
 POST    /comment                         controllers.CommentController.post()
 GET     /comments/count                  controllers.CommentController.count()
 GET     /comments/:id                    controllers.CommentController.listPage(id: Int)
-
-GET     /chat/message                    controllers.ChatController.get()
-POST    /chat/message                    controllers.ChatController.post()
-GET     /chat/online                     controllers.ChatController.online()
 
 GET     /chat/ws                         controllers.ChatController.ws()
 

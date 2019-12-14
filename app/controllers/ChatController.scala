@@ -20,38 +20,6 @@ class ChatController @Inject()(
   chat: Chat,
   chatOnlineDAO: ChatOnlineDAO
 )(implicit mat: Materializer) extends InjectedController {
-  def post() = (Action andThen authenticate).async(parse.json) { request =>
-    val data = request.body.validate[ChatSave]
-    data.fold(
-      errors => {
-        Future.successful(BadRequest(JsError.toJson(errors)))
-      },
-      chatSave => {
-        chat.post(request.user.id, chatSave.message) map { _ =>
-          Ok("")
-        }
-      }
-    )
-  }
-
-  def online() = (Action andThen authenticate).async { request =>
-    chatOnlineDAO.list(maxAgeSeconds = 30) map { users =>
-      Ok(Json.toJson(
-        users map PublicUserInfo.fromDb
-      ))
-    }
-  }
-
-  def get() = {
-    (Action andThen authenticate).async { request =>
-      val sinceId = request.getQueryString("since") map Integer.parseInt getOrElse 0
-      chat.get(request.user.id, sinceId) map { messages =>
-        Ok(Json.toJson(
-          messages.map((ChatMessage.fromDb _).tupled)
-        ))
-      }
-    }
-  }
 
   // chat room many clients -> merge hub -> broadcasthub -> many clients
   private val (chatSink, chatSource) = {
@@ -119,11 +87,9 @@ class ChatController @Inject()(
         }
       }
 
-    val flow = Flow[JsValue]
+    Flow[JsValue]
       .via(Flow.fromSinkAndSource(userSink, initSource.concat(userSource)))
       .log("chatFlow")
-
-    flow
   }
 
   // TODO secure with same origin check

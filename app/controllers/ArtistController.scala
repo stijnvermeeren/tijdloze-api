@@ -7,6 +7,7 @@ import model.db.dao.ArtistDAO
 import play.api.cache.{AsyncCacheApi, Cached}
 import play.api.libs.json.{JsError, Json}
 import play.api.mvc._
+import util.CurrentListUtil
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -16,7 +17,8 @@ class ArtistController @Inject()(
   authenticateAdmin: AuthenticateAdmin,
   cache: AsyncCacheApi,
   cached: Cached,
-  artistDAO: ArtistDAO
+  artistDAO: ArtistDAO,
+  currentList: CurrentListUtil
 ) extends InjectedController {
   def get(artistId: ArtistId) = {
     cached(s"artist/${artistId.value}") {
@@ -41,7 +43,7 @@ class ArtistController @Inject()(
             newArtist <- artistDAO.get(newArtistId)
           } yield {
             cache.remove("coreData")
-            cache.remove("currentList")
+            currentList.refresh()
             Ok(Json.toJson(Artist.fromDb(newArtist)))
           }
         }
@@ -62,7 +64,7 @@ class ArtistController @Inject()(
             artist <- artistDAO.get(artistId)
           } yield {
             cache.remove("coreData")
-            cache.remove("currentList")
+            currentList.refresh()
             cache.remove(s"artist/${artistId.value}")
             Ok(Json.toJson(Artist.fromDb(artist)))
           }

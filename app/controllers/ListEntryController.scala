@@ -6,6 +6,7 @@ import model.db.dao.ListEntryDAO
 import play.api.cache.AsyncCacheApi
 import play.api.libs.json.JsError
 import play.api.mvc._
+import util.CurrentListUtil
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -14,7 +15,8 @@ import scala.concurrent.Future
 class ListEntryController @Inject()(
   cache: AsyncCacheApi,
   authenticateAdmin: AuthenticateAdmin,
-  listEntryDAO: ListEntryDAO
+  listEntryDAO: ListEntryDAO,
+  currentList: CurrentListUtil
 ) extends InjectedController {
   def post(year: Int, position: Int) = {
     (Action andThen authenticateAdmin).async(parse.json) { implicit request =>
@@ -26,7 +28,7 @@ class ListEntryController @Inject()(
         listEntrySave => {
           listEntryDAO.save(year = year, position = position, songId = listEntrySave.songId) map { _ =>
             cache.remove("coreData")
-            cache.remove("currentList")
+            currentList.refresh()
             Ok("")
           }
         }
@@ -38,7 +40,7 @@ class ListEntryController @Inject()(
     (Action andThen authenticateAdmin).async { implicit request =>
       listEntryDAO.delete(year = year, position = position) map { _ =>
         cache.remove("coreData")
-        cache.remove("currentList")
+        currentList.refresh()
         Ok("")
       }
     }
