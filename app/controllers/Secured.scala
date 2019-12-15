@@ -55,19 +55,6 @@ class OptionallyAuthenticate @Inject()(config: Config, userDAO: UserDAO)(implici
       Right(new OptionallyAuthenticatedRequest(user, userId, request))
     }
   }
-
-  def auth(requestHeader: RequestHeader): Future[Either[Result, User]] = {
-    // TODO: implement proper auth
-    requestHeader.getQueryString("userId") match {
-      case Some(userId) =>
-        userDAO.get(userId) map {
-          case Some(user) => Right(user)
-          case None => Left(Forbidden)
-        }
-      case None =>
-        Future.successful(Left(Forbidden))
-    }
-  }
 }
 
 class AuthenticatedRequest[A](val user: User, request: Request[A]) extends WrappedRequest[A](request)

@@ -1,11 +1,11 @@
 package controllers
 
 import akka.stream.Materializer
-import akka.stream.scaladsl.{BroadcastHub, Flow, Keep, MergeHub, Sink, Source}
+import akka.stream.scaladsl.{BroadcastHub, Flow, Keep, MergeHub, Source}
 import util.Chat
 import javax.inject._
-import model.api.{ChatMessage, ChatSave, PublicUserInfo}
-import model.db.dao.ChatOnlineDAO
+import model.api.{ChatMessage, ChatSave, ChatTicket, PublicUserInfo}
+import model.db.dao.{ChatOnlineDAO, ChatTicketDAO}
 import play.api.libs.json._
 import play.api.mvc._
 
@@ -16,10 +16,16 @@ import scala.concurrent.duration._
 @Singleton
 class ChatController @Inject()(
   authenticate: Authenticate,
-  optionallyAuthenticate: OptionallyAuthenticate,
   chat: Chat,
-  chatOnlineDAO: ChatOnlineDAO
+  chatOnlineDAO: ChatOnlineDAO,
+  chatTicketDAO: ChatTicketDAO
 )(implicit mat: Materializer) extends InjectedController {
+
+  def ticket() = (Action andThen authenticate).async { implicit request =>
+    chatTicketDAO.create(request.user.id) map { ticket =>
+      Ok(Json.toJson(ChatTicket(ticket)))
+    }
+  }
 
   // chat room many clients -> merge hub -> broadcasthub -> many clients
   private val (chatSink, chatSource) = {
@@ -93,17 +99,20 @@ class ChatController @Inject()(
   }
 
   // TODO secure with same origin check
-  // TODO authenticate
   def ws(): WebSocket = {
     WebSocket.acceptOrResult[JsValue, JsValue] { requestHeader =>
-      optionallyAuthenticate.auth(requestHeader) flatMap {
-        case Right(user) =>
-          chat.saveOnlineStatus(user.id) map { _ =>
-            val flow = chatFlow(user.id)
-            Right(flow)
+
+      requestHeader.getQueryString("ticket") match {
+        case Some(ticket) =>
+          chatTicketDAO.use(ticket) map {
+            case Some(userId) =>
+              val flow = chatFlow(userId)
+              Right(flow)
+            case None =>
+              Left(Forbidden)
           }
-        case Left(e) =>
-          Future.successful(Left(e))
+        case None =>
+          Future.successful(Left(Forbidden))
       }
     }
   }
