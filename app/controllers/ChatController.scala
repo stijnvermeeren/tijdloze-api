@@ -85,7 +85,6 @@ class ChatController @Inject()(
     val initSource = Source
       .single(())
       .mapAsync(1) { _ =>
-        println("init")
         chatOnlineDAO.list(maxAgeSeconds = 30) map { users =>
           Json.toJson(
             users map PublicUserInfo.fromDb
@@ -98,7 +97,6 @@ class ChatController @Inject()(
       .log("chatFlow")
   }
 
-  // TODO secure with same origin check
   def ws(): WebSocket = {
     WebSocket.acceptOrResult[JsValue, JsValue] { requestHeader =>
 

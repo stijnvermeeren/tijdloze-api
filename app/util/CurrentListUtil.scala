@@ -52,7 +52,6 @@ class CurrentListUtil @Inject()(
       case None =>
         Future.failed(new Exception("Current year not found."))
     } map { currentList =>
-      println("send")
       currentListActorRef ! Json.toJson(currentList)
     } recover {
       case e: Exception => logger.error("Error while loading current list", e)

@@ -11,8 +11,6 @@ class CurrentListController @Inject()(
   currentList: CurrentListUtil
 )(implicit mat: Materializer) extends InjectedController {
 
-  // TODO secure with same origin check
-  // TODO authenticate
   def ws(): WebSocket = {
     WebSocket.accept[JsValue, JsValue] { requestHeader =>
       currentList.currentListFlow
