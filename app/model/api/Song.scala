@@ -8,7 +8,7 @@ final case class Song(
   artistId: ArtistId,
   albumId: AlbumId,
   title: String,
-  lyrics: String,
+  lyrics: Option[String],
   languageId: String,
   leadVocals: String,
   notes: Option[String],

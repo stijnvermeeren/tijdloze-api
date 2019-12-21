@@ -14,7 +14,7 @@ private[table] trait SongTableComponent extends TableComponent {
     val artistId = column[ArtistId]("artist_id")
     val albumId = column[AlbumId]("album_id")
     val title = column[String]("title")
-    val lyrics = column[String]("lyrics")
+    val lyrics = column[Option[String]]("lyrics")
     val languageId = column[String]("language_id")
     val leadVocals = column[String]("lead_vocals_id")
     val notes = column[Option[String]]("notes")
