@@ -2,20 +2,7 @@ package model.api
 
 import model.SongId
 import model.db.ListEntry
-import play.api.libs.json.Json
-
-final case class CurrentList(
-  year: Int,
-  entries: Seq[CurrentListEntry],
-  exitSongIds: Seq[SongId],
-  newSongs: Seq[CoreSong],
-  newAlbums: Seq[CoreAlbum],
-  newArtists: Seq[CoreArtist]
-)
-
-object CurrentList {
-  implicit val jsonWrites = Json.writes[CurrentList]
-}
+import play.api.libs.json._
 
 final case class CurrentListEntry(
   position: Int,
@@ -31,4 +18,17 @@ object CurrentListEntry {
       songId = listEntry.songId
     )
   }
+}
+
+final case class CurrentList(
+  year: Int,
+  entries: Seq[CurrentListEntry],
+  exitSongIds: Seq[SongId],
+  newSongs: Seq[CoreSong],
+  newAlbums: Seq[CoreAlbum],
+  newArtists: Seq[CoreArtist]
+)
+
+object CurrentList {
+  implicit val jsonWrites = Json.writes[CurrentList]
 }

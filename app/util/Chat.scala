@@ -1,7 +1,7 @@
 package util
 
 import akka.stream.Materializer
-import akka.stream.scaladsl.{BroadcastHub, Flow, Keep, MergeHub, Source}
+import akka.stream.scaladsl.{BroadcastHub, Flow, Keep, MergeHub, Sink, Source}
 import javax.inject.{Inject, Singleton}
 import model.api.{ChatMessage, ChatSave, PublicUserInfo}
 import model.db
@@ -21,8 +21,9 @@ class Chat @Inject() (
   displayNames: DisplayNames
 )(implicit mat: Materializer) {
   val logger = Logger(getClass)
+  val lastMessagesSize: Int = 2
 
-  private def post(userId: String, message: String): Future[db.ChatMessage] = {
+  def post(userId: String, message: String): Future[db.ChatMessage] = {
     saveOnlineStatus(userId)
 
     chatMessageDAO.save(userId, message) map { chatMessage =>
@@ -30,7 +31,7 @@ class Chat @Inject() (
     }
   }
 
-  private def saveOnlineStatus(userId: String): Future[Unit] = {
+  def saveOnlineStatus(userId: String): Future[Unit] = {
     chatOnlineDAO.save(userId) recover {
       case e =>
         logger.error("Error while saving chat online status.", e)
@@ -66,30 +67,18 @@ class Chat @Inject() (
     }
 
   val lastMessagesSource: Source[Seq[ChatMessage], _] = chatSource
-    .map{x =>
-      println("a " + x)
-      x
-    }
     .scan(Seq.empty[ChatMessage]){
-      case (previous, newMessage) => previous.takeRight(1) :+ newMessage
-    }
-    .map{x =>
-      println("+ " + x)
-      x
+      case (previous, newMessage) => previous.takeRight(lastMessagesSize - 1) :+ newMessage
     }
     .expand(Iterator.continually(_))
-    .map{x =>
-      println("- " + x)
-      x
-    }
+    // Ensure the lastMessageSource does not backpressure the chat stream.
+    // This is a hack and won't work well if we have a bigger throughput.
+    .throttle(elements = 1000, per = 1.second)
+    .toMat(BroadcastHub.sink)(Keep.right).run() // allow individual users to connect dynamically */
 
-  private val lastMessagesJsonSource: Source[JsValue, _] = lastMessagesSource
-    .take(1)
-    .flatMapConcat(messages => { println(messages.map(_.message)); Source(messages.toList) })
-    .map(Json.toJson[ChatMessage])
-
-  private val chatJsonSource: Source[JsValue, _] = chatSource
-    .map(Json.toJson[ChatMessage])
+  // Keep draining the lastMessagesSource so that it never backpressures.
+  lastMessagesSource
+    .runWith(Sink.ignore)
 
   def chatFlow(userId: String): Flow[JsValue, JsValue, _] = {
     val userSink = Flow[JsValue]
@@ -113,7 +102,13 @@ class Chat @Inject() (
       }
     }
 
+    val chatJsonSource: Source[JsValue, _] = chatSource.map(Json.toJson[ChatMessage])
     val userSource: Source[JsValue, _] = chatJsonSource merge userOnlineSource
+
+    val userLastMessagesJsonSource = lastMessagesSource
+      .take(1)
+      .mapConcat(_.toList)
+      .map(Json.toJson[ChatMessage])
 
     // initialisation
     val initSource = Source
@@ -129,7 +124,7 @@ class Chat @Inject() (
     Flow[JsValue]
       .via(Flow.fromSinkAndSource(
         userSink,
-        initSource.concat(lastMessagesJsonSource).concat(userSource)
+        initSource.concat(userLastMessagesJsonSource).concat(userSource)
       ))
       .log("chatFlow")
   }

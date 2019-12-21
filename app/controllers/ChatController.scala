@@ -1,5 +1,6 @@
 package controllers
 
+import akka.stream.Materializer
 import util.Chat
 import javax.inject._
 import model.api.ChatTicket
@@ -15,7 +16,7 @@ class ChatController @Inject()(
   authenticate: Authenticate,
   chat: Chat,
   chatTicketDAO: ChatTicketDAO
-) extends InjectedController {
+)(implicit mat: Materializer) extends InjectedController {
 
   def ticket() = (Action andThen authenticate).async { implicit request =>
     chatTicketDAO.create(request.user.id) map { ticket =>

@@ -6,7 +6,7 @@ import javax.inject.{Inject, Singleton}
 import model.api.{CoreAlbum, CoreArtist, CoreSong, CurrentList, CurrentListEntry}
 import model.db.dao.{AlbumDAO, ArtistDAO, ListEntryDAO, ListExitDAO, SongDAO, YearDAO}
 import play.api.Logger
-import play.api.libs.json.{JsValue, Json}
+import play.api.libs.json._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
