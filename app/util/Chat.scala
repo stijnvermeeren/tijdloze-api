@@ -5,7 +5,7 @@ import akka.stream.scaladsl.{BroadcastHub, Flow, Keep, MergeHub, Sink, Source}
 import javax.inject.{Inject, Singleton}
 import model.api.{ChatMessage, ChatSave, PublicUserInfo}
 import model.db
-import model.db.dao.{ChatMessageDAO, ChatOnlineDAO}
+import model.db.dao.{ChatMessageDAO, ChatOnlineDAO, UserDAO}
 import play.api.Logger
 import play.api.libs.json.{JsValue, Json}
 import play.api.libs.json._
@@ -18,6 +18,7 @@ import scala.concurrent.duration._
 class Chat @Inject() (
   chatMessageDAO: ChatMessageDAO,
   chatOnlineDAO: ChatOnlineDAO,
+  userDAO: UserDAO,
   displayNames: DisplayNames
 )(implicit mat: Materializer) {
   val logger = Logger(getClass)
@@ -26,9 +27,17 @@ class Chat @Inject() (
   def post(userId: String, message: String): Future[db.ChatMessage] = {
     saveOnlineStatus(userId)
 
-    chatMessageDAO.save(userId, message) map { chatMessage =>
-      chatMessage
+    userDAO.get(userId) flatMap {
+      case Some(user) if !user.isBlocked =>
+        chatMessageDAO.save(userId, message) map { chatMessage =>
+          chatMessage
+        }
+      case Some(user) if user.isBlocked =>
+        Future.failed(new Exception("User is blocked"))
+      case None =>
+        Future.failed(new Exception("User not found"))
     }
+
   }
 
   def saveOnlineStatus(userId: String): Future[Unit] = {
@@ -72,6 +81,7 @@ class Chat @Inject() (
     }
     .expand(Iterator.continually(_))
     // Ensure the lastMessageSource does not backpressure the chat stream.
+    // Need to throttle this to avoid draining the CPU.
     // This is a hack and won't work well if we have a bigger throughput.
     .throttle(elements = 1000, per = 1.second)
     .toMat(BroadcastHub.sink)(Keep.right).run() // allow individual users to connect dynamically */
