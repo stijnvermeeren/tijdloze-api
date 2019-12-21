@@ -7,7 +7,6 @@ import model.api.{ChatMessage, ChatSave, PublicUserInfo}
 import model.db
 import model.db.dao.{ChatMessageDAO, ChatOnlineDAO, UserDAO}
 import play.api.Logger
-import play.api.libs.json.{JsValue, Json}
 import play.api.libs.json._
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -22,7 +21,7 @@ class Chat @Inject() (
   displayNames: DisplayNames
 )(implicit mat: Materializer) {
   val logger = Logger(getClass)
-  val lastMessagesSize: Int = 2
+  val lastMessagesSize: Int = 10
 
   def post(userId: String, message: String): Future[db.ChatMessage] = {
     saveOnlineStatus(userId)
