@@ -60,3 +60,4 @@ GET     /text/:key                       controllers.TextController.get(key: Str
 POST    /text/:key                       controllers.TextController.save(key: String)
 
 POST    /year/:year                      controllers.YearController.post(year: Int)
+DELETE  /year/:year                      controllers.YearController.delete(year: Int)

@@ -19,6 +19,14 @@ class YearDAO @Inject()(allTables: AllTables) {
     } map (_ => ())
   }
 
+  def delete(year: Int): Future[Unit] = {
+    db run {
+      YearTable
+        .filter(_.year === year)
+        .delete
+    } map (_ => ())
+  }
+
   def getAll(): Future[Seq[Int]] = {
     db run {
       YearTable.map(_.year).sortBy(_.asc).result
