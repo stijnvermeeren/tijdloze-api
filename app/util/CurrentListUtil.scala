@@ -26,11 +26,14 @@ class CurrentListUtil @Inject()(
 
   private val (currentListActorRef, source) = currentListSource.toMat(BroadcastHub.sink[JsValue])(Keep.both).run()
 
-  val currentListFlow = Flow[JsValue]
-    .via(Flow.fromSinkAndSource(Sink.ignore, source))
+  def currentListFlow() = Flow[JsValue]
+    .via(Flow.fromSinkAndSource(
+      Sink.ignore,
+      Source.fromFuture(load() map Json.toJson[CurrentList]) concat source
+    ))
     .log("chatFlow")
 
-  def refresh(): Unit = {
+  private def load(): Future[CurrentList] = {
     yearDAO.maxYear() flatMap {
       case Some(year) =>
         for {
@@ -51,7 +54,11 @@ class CurrentListUtil @Inject()(
         }
       case None =>
         Future.failed(new Exception("Current year not found."))
-    } map { currentList =>
+    }
+  }
+
+  def refresh(): Unit = {
+    load() map { currentList =>
       currentListActorRef ! Json.toJson(currentList)
     } recover {
       case e: Exception => logger.error("Error while loading current list", e)

@@ -13,7 +13,7 @@ class CurrentListController @Inject()(
 
   def ws(): WebSocket = {
     WebSocket.accept[JsValue, JsValue] { requestHeader =>
-      currentList.currentListFlow
+      currentList.currentListFlow()
     }
   }
 }
