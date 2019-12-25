@@ -19,8 +19,6 @@ libraryDependencies ++= Seq(
 assemblyJarName in assembly := "tijdloze-api.jar"
 
 assemblyMergeStrategy in assembly := {
-  case "play/reference-overrides.conf" => MergeStrategy.concat
-  case x =>
-    val oldStrategy = (assemblyMergeStrategy in assembly).value
-    oldStrategy(x)
+  case PathList("META-INF", xs @ _*) => MergeStrategy.discard
+  case x => MergeStrategy.first
 }
