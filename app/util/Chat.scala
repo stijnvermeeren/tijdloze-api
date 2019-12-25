@@ -86,8 +86,7 @@ class Chat @Inject() (
     .toMat(BroadcastHub.sink)(Keep.right).run() // allow individual users to connect dynamically */
 
   // Keep draining the lastMessagesSource so that it never backpressures.
-  lastMessagesSource
-    .runWith(Sink.ignore)
+  lastMessagesSource.runWith(Sink.ignore)
 
   def chatFlow(userId: String): Flow[JsValue, JsValue, _] = {
     val userSink = Flow[JsValue]

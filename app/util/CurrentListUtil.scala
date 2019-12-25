@@ -10,6 +10,7 @@ import play.api.libs.json._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import scala.concurrent.duration._
 
 @Singleton
 class CurrentListUtil @Inject()(
@@ -26,10 +27,22 @@ class CurrentListUtil @Inject()(
 
   private val (currentListActorRef, source) = currentListSource.toMat(BroadcastHub.sink[JsValue])(Keep.both).run()
 
+  // Keeps the last update available for sending immediately to new connections
+  private val lastSentSource = source
+    .expand(Iterator.continually(_))
+    // Ensure the lastSentSource does not backpressure the stream.
+    // Need to throttle this to avoid draining the CPU.
+    // This is a hack and won't work well if we have a bigger throughput.
+    .throttle(elements = 10, per = 1.second)
+    .toMat(BroadcastHub.sink)(Keep.right).run() // allow individual users to connect dynamically */
+
+  // Keep draining the lastSentSource so that it never backpressures.
+  lastSentSource.runWith(Sink.ignore)
+
   def currentListFlow() = Flow[JsValue]
     .via(Flow.fromSinkAndSource(
       Sink.ignore,
-      Source.fromFuture(load() map Json.toJson[CurrentList]) concat source
+      lastSentSource.take(1) concat source
     ))
     .log("chatFlow")
 
