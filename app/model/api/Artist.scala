@@ -7,7 +7,7 @@ final case class Artist(
   id: ArtistId,
   namePrefix: Option[String],
   name: String,
-  countryId: String,
+  countryId: Option[String],
   notes: Option[String],
   urlOfficial: Option[String],
   urlWikiEn: Option[String],

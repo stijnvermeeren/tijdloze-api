@@ -10,7 +10,7 @@ private[table] trait ArtistTableComponent extends TableComponent {
     val id = column[ArtistId]("id", O.AutoInc, O.PrimaryKey)
     val namePrefix = column[Option[String]]("name_prefix")
     val name = column[String]("name")
-    val countryId = column[String]("country_id")
+    val countryId = column[Option[String]]("country_id")
     val notes = column[Option[String]]("notes")
     val urlOfficial = column[Option[String]]("url_official")
     val urlWikiEn = column[Option[String]]("url_wikien")

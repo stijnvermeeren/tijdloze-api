@@ -7,7 +7,7 @@ final case class CoreArtist(
   id: ArtistId,
   namePrefix: Option[String],
   name: String,
-  countryId: String
+  countryId: Option[String]
 )
 
 object CoreArtist {
@@ -48,8 +48,8 @@ final case class CoreSong(
   artistId: ArtistId,
   albumId: AlbumId,
   title: String,
-  languageId: String,
-  leadVocals: String,
+  languageId: Option[String],
+  leadVocals: Option[String],
   positions: Map[String, Int]
 )
 
