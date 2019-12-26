@@ -38,6 +38,7 @@ class SongDAO @Inject()(allTables: AllTables) {
     import data._
     val newSong = Song(
       artistId = artistId,
+      secondArtistId = None,
       albumId = albumId,
       title = title,
       lyrics = lyrics.map(_.trim).filter(_.nonEmpty),

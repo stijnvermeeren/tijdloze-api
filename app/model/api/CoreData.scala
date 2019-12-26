@@ -46,6 +46,7 @@ object CoreAlbum {
 final case class CoreSong(
   id: SongId,
   artistId: ArtistId,
+  secondArtistId: Option[ArtistId],
   albumId: AlbumId,
   title: String,
   languageId: Option[String],
@@ -58,6 +59,7 @@ object CoreSong {
     CoreSong(
       id = song.id,
       artistId = song.artistId,
+      secondArtistId = song.secondArtistId,
       albumId = song.albumId,
       title = song.title,
       languageId = song.languageId,

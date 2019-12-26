@@ -6,6 +6,7 @@ import play.api.libs.json.Json
 final case class Song(
   id: SongId,
   artistId: ArtistId,
+  secondArtistId: Option[ArtistId],
   albumId: AlbumId,
   title: String,
   lyrics: Option[String],
@@ -22,6 +23,7 @@ object Song {
     Song(
       id = dbSong.id,
       artistId = dbSong.artistId,
+      secondArtistId = dbSong.secondArtistId,
       albumId = dbSong.albumId,
       title = dbSong.title,
       lyrics = dbSong.lyrics,

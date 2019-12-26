@@ -12,6 +12,7 @@ private[table] trait SongTableComponent extends TableComponent {
   class SongTable(tag: Tag) extends Table[Song](tag, "song") {
     val id = column[SongId]("id", O.AutoInc, O.PrimaryKey)
     val artistId = column[ArtistId]("artist_id")
+    val secondArtistId = column[Option[ArtistId]]("second_artist_id")
     val albumId = column[AlbumId]("album_id")
     val title = column[String]("title")
     val lyrics = column[Option[String]]("lyrics")
@@ -23,7 +24,7 @@ private[table] trait SongTableComponent extends TableComponent {
     val spotifyId = column[Option[String]]("spotify_id")
     val lastUpdate = column[DateTime]("last_update")
 
-    def * = (id, artistId, albumId, title, lyrics, languageId, leadVocals, notes, urlWikiEn, urlWikiNl, spotifyId, lastUpdate) <>
+    def * = (id, artistId, secondArtistId, albumId, title, lyrics, languageId, leadVocals, notes, urlWikiEn, urlWikiNl, spotifyId, lastUpdate) <>
       ((Song.apply _).tupled, Song.unapply)
   }
 

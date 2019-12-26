@@ -6,6 +6,7 @@ import org.joda.time.DateTime
 final case class Song(
   id: SongId = SongId(0),
   artistId: ArtistId,
+  secondArtistId: Option[ArtistId],
   albumId: AlbumId,
   title: String,
   lyrics: Option[String],
