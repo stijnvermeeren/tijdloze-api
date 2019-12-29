@@ -1,6 +1,6 @@
 package util
 
-import akka.stream.Materializer
+import akka.stream.{Materializer, OverflowStrategy}
 import akka.stream.scaladsl.{BroadcastHub, Flow, Keep, MergeHub, Sink, Source}
 import javax.inject.{Inject, Singleton}
 import model.api.{ChatMessage, ChatSave, PublicUserInfo}
@@ -46,6 +46,13 @@ class Chat @Inject() (
     }
   }
 
+  private def loadOnlineList(): Future[JsValue] = {
+    chatOnlineDAO.list(maxAgeSeconds = 30) map { users =>
+      Json.toJson(
+        users map PublicUserInfo.fromDb
+      )
+    }
+  }
 
   // chat room many clients -> merge hub -> broadcasthub -> many clients
   private val (chatSink, chatSource) = {
@@ -59,31 +66,38 @@ class Chat @Inject() (
     source.toMat(sink)(Keep.both).run()
   }
 
-  // source for online list
-  private val onlineSource: Source[JsValue, _] = Source
-    .tick(
-      initialDelay = 15.seconds,
-      interval = 15.seconds,
-      tick = ()
-    )
-    .mapAsync(1) { _ =>
-      chatOnlineDAO.list(maxAgeSeconds = 30) map { users =>
-        Json.toJson(
-          users map PublicUserInfo.fromDb
-        )
-      }
-    }
+  private val onlineTicksSource = Source.tick(
+    initialDelay = 15.seconds,
+    interval = 15.seconds,
+    tick = ()
+  )
 
-  val lastMessagesSource: Source[Seq[ChatMessage], _] = chatSource
-    .scan(Seq.empty[ChatMessage]){
-      case (previous, newMessage) => previous.takeRight(lastMessagesSize - 1) :+ newMessage
+  private val onlineActorSourceDef = Source.actorRef(bufferSize = 0, OverflowStrategy.dropNew)
+
+  // TODO: implement this without needing a BroadcastHub?
+  private val (onlineActorSourceMat, onlineActorSource) = onlineActorSourceDef.toMat(BroadcastHub.sink[JsValue])(Keep.both).run()
+
+  // source for online list
+  private val onlineSource: Source[JsValue, _] = {
+    val mergedSource = (onlineTicksSource merge onlineActorSource).mapAsync(1) { _ =>
+      loadOnlineList()
     }
-    .expand(Iterator.continually(_))
-    // Ensure the lastMessageSource does not backpressure the chat stream.
-    // Need to throttle this to avoid draining the CPU.
-    // This is a hack and won't work well if we have a bigger throughput.
-    .throttle(elements = 1000, per = 1.second)
-    .toMat(BroadcastHub.sink)(Keep.right).run() // allow individual users to connect dynamically */
+    // allow individual users to connect dynamically / avoid re-materializing this stream for every user
+    mergedSource.toMat(BroadcastHub.sink)(Keep.right).run()
+  }
+
+  private val lastMessagesSource: Source[Seq[ChatMessage], _] = {
+    chatSource
+      .scan(Seq.empty[ChatMessage]){
+        case (previous, newMessage) => previous.takeRight(lastMessagesSize - 1) :+ newMessage
+      }
+      .expand(Iterator.continually(_))
+      // Ensure the lastMessageSource does not backpressure the chat stream.
+      // Need to throttle this to avoid draining the CPU.
+      // This is a hack and won't work well if we have a bigger throughput.
+      .throttle(elements = 1000, per = 1.second)
+      .toMat(BroadcastHub.sink)(Keep.right).run() // allow individual users to connect dynamically
+  }
 
   // Keep draining the lastMessagesSource so that it never backpressures.
   lastMessagesSource.runWith(Sink.ignore)
@@ -120,11 +134,15 @@ class Chat @Inject() (
     val initSource = Source
       .single(())
       .mapAsync(1) { _ =>
-        chatOnlineDAO.list(maxAgeSeconds = 30) map { users =>
-          Json.toJson(
-            users map PublicUserInfo.fromDb
-          )
+        saveOnlineStatus(userId) flatMap { _ =>
+          // Immediately send new online list to all other chat users
+          val unit = () // avoid compiler warning
+          onlineActorSourceMat ! unit
+
+          // Ensure the current user has the up-to-date online list as well, even if he misses the previous message.
+          loadOnlineList()
         }
+
       }
 
     Flow[JsValue]
