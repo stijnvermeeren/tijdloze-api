@@ -1,7 +1,7 @@
 package util
 
 import akka.stream.{Materializer, OverflowStrategy}
-import akka.stream.scaladsl.{BroadcastHub, Flow, Keep, MergeHub, Sink, Source}
+import akka.stream.scaladsl.{BroadcastHub, Flow, Keep, MergeHub, Sink, Source, Merge}
 import javax.inject.{Inject, Singleton}
 import model.api.{ChatMessage, ChatSave, PublicUserInfo}
 import model.db
@@ -66,24 +66,26 @@ class Chat @Inject() (
     source.toMat(sink)(Keep.both).run()
   }
 
-  private val onlineTicksSource = Source.tick(
-    initialDelay = 15.seconds,
-    interval = 15.seconds,
-    tick = ()
-  )
-
-  private val onlineActorSourceDef = Source.actorRef(bufferSize = 0, OverflowStrategy.dropNew)
-
-  // TODO: implement this without needing a BroadcastHub?
-  private val (onlineActorSourceMat, onlineActorSource) = onlineActorSourceDef.toMat(BroadcastHub.sink[JsValue])(Keep.both).run()
-
   // source for online list
-  private val onlineSource: Source[JsValue, _] = {
-    val mergedSource = (onlineTicksSource merge onlineActorSource).mapAsync(1) { _ =>
+  private val (onlineActorRef, onlineSource) = {
+    val onlineTicksSource = Source.tick(
+      initialDelay = 15.seconds,
+      interval = 15.seconds,
+      tick = ()
+    )
+
+    val onlineActorSource = Source.actorRef[Unit](bufferSize = 0, OverflowStrategy.dropNew)
+
+    val mergedSource = Source.combineMat(onlineTicksSource, onlineActorSource)(Merge(_)) {
+      case (_, actorRef) => actorRef
+    }
+
+    val sourceForOnlineList = mergedSource.mapAsync(1) { _ =>
       loadOnlineList()
     }
+
     // allow individual users to connect dynamically / avoid re-materializing this stream for every user
-    mergedSource.toMat(BroadcastHub.sink)(Keep.right).run()
+    sourceForOnlineList.toMat(BroadcastHub.sink)(Keep.both).run()
   }
 
   private val lastMessagesSource: Source[Seq[ChatMessage], _] = {
@@ -137,7 +139,7 @@ class Chat @Inject() (
         saveOnlineStatus(userId) flatMap { _ =>
           // Immediately send new online list to all other chat users
           val unit = () // avoid compiler warning
-          onlineActorSourceMat ! unit
+          onlineActorRef ! unit
 
           // Ensure the current user has the up-to-date online list as well, even if he misses the previous message.
           loadOnlineList()
