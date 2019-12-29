@@ -17,19 +17,19 @@ import scala.concurrent.duration._
 class Chat @Inject() (
   chatMessageDAO: ChatMessageDAO,
   chatOnlineDAO: ChatOnlineDAO,
-  userDAO: UserDAO,
-  displayNames: DisplayNames
+  userDAO: UserDAO
 )(implicit mat: Materializer) {
   val logger = Logger(getClass)
   val lastMessagesSize: Int = 10
 
-  def post(userId: String, message: String): Future[db.ChatMessage] = {
+  def post(userId: String, message: String): Future[ChatMessage] = {
     saveOnlineStatus(userId)
 
     userDAO.get(userId) flatMap {
       case Some(user) if !user.isBlocked =>
-        chatMessageDAO.save(userId, message) map { chatMessage =>
-          chatMessage
+        chatMessageDAO.save(userId, message) map { dbChatMessage =>
+          // TODO: how to properly deal with nullable displayName in DB?
+          ChatMessage.fromDb(dbChatMessage, user.displayName.getOrElse(""))
         }
       case Some(user) if user.isBlocked =>
         Future.failed(new Exception("User is blocked"))
@@ -96,9 +96,7 @@ class Chat @Inject() (
             Future.failed(throw new Exception("Invalid message"))
           },
           chatSave => {
-            // TODO use actual user id and display name
             post(userId, chatSave.message)
-              .map(dbChatMessage => ChatMessage.fromDb(dbChatMessage, "DisplayName"))
           }
         )
       }

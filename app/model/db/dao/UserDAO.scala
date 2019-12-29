@@ -82,17 +82,6 @@ class UserDAO @Inject()(allTables: AllTables) {
     } map (_ => ())
   }
 
-  def getDisplayNames(): Future[Map[String, String]] = {
-    val result = db run {
-      UserTable
-        .filter(_.displayName.nonEmpty)
-        .map(user => (user.id, user.displayName.get))
-        .result
-    }
-
-    result map (_.toMap)
-  }
-
   def listAll(): Future[Seq[User]] = {
     db run {
       UserTable.sortBy(_.displayName).result
