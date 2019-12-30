@@ -44,7 +44,6 @@ class AlbumController @Inject()(
             newAlbum <- albumDAO.get(newAlbumId)
           } yield {
             cache.remove("coreData")
-            currentList.refresh()
             Ok(Json.toJson(Album.fromDb(newAlbum)))
           }
         }

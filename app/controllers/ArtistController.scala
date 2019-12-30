@@ -43,7 +43,6 @@ class ArtistController @Inject()(
             newArtist <- artistDAO.get(newArtistId)
           } yield {
             cache.remove("coreData")
-            currentList.refresh()
             Ok(Json.toJson(Artist.fromDb(newArtist)))
           }
         }
