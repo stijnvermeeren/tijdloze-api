@@ -90,9 +90,13 @@ class SongDAO @Inject()(allTables: AllTables) {
     }
   }
 
-  def newSongs(year: Int): Future[Seq[Song]] = {
+  def newSongs(year: Int, maxPosition: Int = 500): Future[Seq[Song]] = {
     def isNew(songId: Rep[SongId]): Rep[Boolean] = {
-      val entryYears = ListEntryTable.filter(_.songId === songId).map(_.year)
+      val entryYears = ListEntryTable
+        .filter(_.songId === songId)
+        .filter(_.position <= maxPosition)
+        .map(_.year)
+
       (entryYears.min === year).ifNull(false)
     }
 

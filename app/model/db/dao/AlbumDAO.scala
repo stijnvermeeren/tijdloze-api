@@ -68,11 +68,14 @@ class AlbumDAO @Inject()(allTables: AllTables) {
     }
   }
 
-  def newAlbums(year: Int): Future[Seq[Album]] = {
+  def newAlbums(year: Int, maxPosition: Int = 500): Future[Seq[Album]] = {
     def isNew(albumId: Rep[AlbumId]): Rep[Boolean] = {
       val entryYears = for {
         song <- SongTable.filter(_.albumId === albumId)
-        entryYear <- ListEntryTable.filter(_.songId === song.id).map(_.year)
+        entryYear <- ListEntryTable
+          .filter(_.songId === song.id)
+          .filter(_.position <= maxPosition)
+          .map(_.year)
       } yield entryYear
 
       (entryYears.min === year).ifNull(false)

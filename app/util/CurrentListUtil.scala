@@ -50,11 +50,11 @@ class CurrentListUtil @Inject()(
     yearDAO.maxYear() flatMap {
       case Some(year) =>
         for {
-          entries <- listEntryDAO.getByYear(year)
+          entries <- listEntryDAO.getByYear(year, maxPosition = 100)
           exits <- listExitDAO.getByYear(year)
-          newSongs <- songDAO.newSongs(year)
-          newAlbums <- albumDAO.newAlbums(year)
-          newArtists <- artistDAO.newArtists(year)
+          newSongs <- songDAO.newSongs(year, maxPosition = 100)
+          newAlbums <- albumDAO.newAlbums(year, maxPosition = 100)
+          newArtists <- artistDAO.newArtists(year, maxPosition = 100)
         } yield {
           CurrentList(
             year = year,
