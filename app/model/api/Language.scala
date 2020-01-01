@@ -8,12 +8,13 @@ final case class Language(
 )
 
 object Language {
+  val German = Language("dui", "Duits")
   val English = Language("eng", "Engels")
   val Dutch = Language("ned", "Nederlands")
   val French = Language("fra", "Frans")
   val Instrumental = Language("ins", "Instrumentaal")
 
-  val all = Seq(English, Dutch, French, Instrumental)
+  val all = Seq(German, English, Dutch, French, Instrumental)
 
   implicit val jsonWrites = Json.writes[Language]
 }
