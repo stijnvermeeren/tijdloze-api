@@ -12,6 +12,7 @@ object Country {
   val Australia = Country("au", "Australië")
   val Belgium = Country("be", "België")
   val Canada = Country("ca", "Canada")
+  val Cuba = Country("cu", "Cuba")
   val Germany = Country("de", "Duitsland")
   val Denmark = Country("dk", "Denemarken")
   val France = Country("fr", "Frankrijk")
@@ -22,7 +23,7 @@ object Country {
   val Sweden = Country("se", "Zweden")
   val USA = Country("us", "Verenigde Staten")
 
-  val all = Seq(Australia, Belgium, Canada, Germany, Denmark, France, UK, Ireland, Jamaica, Netherlands, Sweden, USA)
+  val all = Seq(Australia, Belgium, Canada, Cuba, Germany, Denmark, France, UK, Ireland, Jamaica, Netherlands, Sweden, USA)
 
   implicit val jsonWrites = Json.writes[Country]
 }

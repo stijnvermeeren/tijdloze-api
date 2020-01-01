@@ -12,9 +12,10 @@ object Language {
   val English = Language("eng", "Engels")
   val Dutch = Language("ned", "Nederlands")
   val French = Language("fra", "Frans")
+  val Spanish = Language("spa", "Spaans")
   val Instrumental = Language("ins", "Instrumentaal")
 
-  val all = Seq(German, English, Dutch, French, Instrumental)
+  val all = Seq(German, English, Dutch, French, Spanish, Instrumental)
 
   implicit val jsonWrites = Json.writes[Language]
 }
