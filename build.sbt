@@ -1,5 +1,5 @@
 name := "De Tijdloze Website API"
-
+maintainer := "Stijn Vermeeren"
 version := "1.0-SNAPSHOT"
 
 lazy val root = (project in file(".")).enablePlugins(PlayScala)
@@ -15,24 +15,3 @@ libraryDependencies ++= Seq(
   "org.apache.commons" % "commons-email" % "1.5",
   "com.pauldijou" %% "jwt-play-json" % "4.2.0"
 )
-
-assemblyJarName in assembly := "tijdloze-api.jar"
-
-assemblyMergeStrategy in assembly := {
-  case PathList("META-INF", xs @ _*) =>
-    MergeStrategy.discard
-  case classFile if classFile.contains(".class") =>
-    // TODO Why do we need this to avoid assembly errors?
-    MergeStrategy.first
-  case manifest if manifest.contains("MANIFEST.MF") =>
-    // We don't need manifest files since sbt-assembly will create
-    // one with the given settings
-    MergeStrategy.discard
-  case referenceOverrides if referenceOverrides.contains("reference-overrides.conf") =>
-    // Keep the content for all reference-overrides.conf files
-    MergeStrategy.concat
-  case x =>
-    // For all the other files, use the default sbt-assembly merge strategy
-    val oldStrategy = (assemblyMergeStrategy in assembly).value
-    oldStrategy(x)
-}
