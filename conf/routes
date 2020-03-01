@@ -16,7 +16,7 @@ POST    /album                           controllers.AlbumController.post()
 
 GET     /core-data                       controllers.CoreDataController.get()
 
-GET     /current-list/ws                 controllers.CurrentListController.ws()
+GET     /ws/current-list                 controllers.CurrentListController.ws()
 
 POST    /contact                         controllers.ContactController.post()
 
@@ -24,7 +24,7 @@ POST    /comment                         controllers.CommentController.post()
 GET     /comments/count                  controllers.CommentController.count()
 GET     /comments/:id                    controllers.CommentController.listPage(id: Int)
 
-GET     /chat/ws                         controllers.ChatController.ws()
+GET     /ws/chat                         controllers.ChatController.ws()
 GET     /chat/ticket                     controllers.ChatController.ticket()
 
 POST    /list-entry/:year/:position      controllers.ListEntryController.post(year: Int, position: Int)

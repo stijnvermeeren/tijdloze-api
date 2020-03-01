@@ -31,16 +31,8 @@ server {
   ssl_certificate /etc/letsencrypt/live/tijdloze.stijnshome.be/fullchain.pem;
   ssl_certificate_key /etc/letsencrypt/live/tijdloze.stijnshome.be/privkey.pem;
 
-  location /chat/ws {
-    proxy_pass http://127.0.0.1:9000/chat/ws;
-
-    proxy_http_version 1.1;
-    proxy_set_header Upgrade $http_upgrade;
-    proxy_set_header Connection "upgrade";
-  }
-
-  location /current-list/ws {
-    proxy_pass http://127.0.0.1:9000/current-list/ws;
+  location /ws/ {
+    proxy_pass http://127.0.0.1:9000/ws/;
 
     proxy_http_version 1.1;
     proxy_set_header Upgrade $http_upgrade;
