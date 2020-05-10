@@ -103,3 +103,10 @@ Then you can use for example
 - `systemctl status tijdloze-api`
 - `systemctl restart tijdloze-api`
 - `systemctl stop tijdloze-api`
+
+## Docker
+
+Build Docker image:
+```
+docker build --tag stijnvermeeren/tijdloze-api .
+```
