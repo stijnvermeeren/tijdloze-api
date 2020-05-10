@@ -6,4 +6,4 @@ services:
     ports:
       - "${MYSQL_PORT:-3306}:3306"
     environment:
-      MYSQL_ROOT_PASSWORD: {MYSQL_ROOT_PASSWORD:-secret}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-secret}
