@@ -17,7 +17,7 @@ Required environment variables:
 ## Building
 
 ```
-docker build --tag stijnvermeeren/tijdloze-db .
+docker build --tag stijnvermeeren/tijdloze-db:<VERSION> .
 ```
 
 ## Running

@@ -2,11 +2,8 @@ version: '3.1'
 
 services:
   tijdloze-db:
-    image: stijnvermeeren/tijdloze-db
-    environment:
-      MYSQL_ROOT_PASSWORD: secret
-  tijdloze-api:
-    image: stijnvermeeren/tijdloze-api
+    image: stijnvermeeren/tijdloze-db:2020.05.10
     ports:
-      - "9000:9000"
-
+      - "${MYSQL_PORT:-3306}:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: {MYSQL_ROOT_PASSWORD:-secret}

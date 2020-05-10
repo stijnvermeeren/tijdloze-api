@@ -1,7 +1,49 @@
 # De Tijdloze Website API
 
+The Tijdloze Website API is built using the [Scala programming language](https://www.scala-lang.org/) and the [Play Framework](https://www.playframework.com/).
+
 ## Running in development mode
 
+### Database setup
+
+The Tijdloze Website API uses a MySQL database.
+
+#### Using Docker image 
+
+The simplest way to set up the database is by using the Docker image [stijnvermeeren/tijdloze-db](https://hub.docker.com/repository/docker/stijnvermeeren/tijdloze-db).
+
+The Docker image has a database `tijdloze` with
+- The structure of all tables used by the API.
+- All data about artists, albums, songs and list entries.
+- Four dummy users from the `stijnvermeeren-tijdloze-dev.eu.auth0.com` Auth0 domain:
+  - `user1@example.com`
+  - `user2@example.com`
+  - `admin1@example.com` (Admin user) 
+  - `admin2@example.com` (Admin user)
+
+To start this database using [docker-compose](https://docs.docker.com/compose/), simply run the command `docker-compose up`. By default, the MySQL will be running on port 3306 and the password for the root user will be `secret` (only use this for local development, obviously). This can be changed by using environment variables (see [docker-compose.yml](docker-compose.yml)).
+
+The default database configuration for Play (see [conf/application.conf](conf/application.conf)) should work out-of-the-box when using the provided docker-compose file.
+
+#### Manual database setup
+
+Alternatively, to use a different database server, adjust the `slick.dbs.default` configuration values for Play accordingly (see _Configuration_ section below). The database host can also be configured using the `DB_HOST` environment variable.
+
+An SQL file to fill a database with the same structure and data as in the Docker image, can be found at [docker/db/init.sql](docker/db/init.sql).
+
+### Auth0
+
+The Tijdloze Website is designed to work with [Auth0](https://auth0.com/) for authentication and authorization.
+
+An Auth0 domain `stijnvermeeren-tijdloze-dev.eu.auth0.com` has been set up that can be used for development purposes (though without the ability to create new users beyond the ones listed above under _Database setup_). The public key for this Auth0 domain can be found at [docker/stijnvermeeren-tijdloze-dev.pem](docker/stijnvermeeren-tijdloze-dev.pem). 
+
+To use your own Auth0 domain, the API must have access to the public key, so that it can verify the JWT that is sent with each authenticated request. You must point the `tijdloze.auth0.publickey.path` configuration value for Play to the `.pem` certificate file containing this public key (see _Configuration_ section below).
+
+### Spotify
+
+Some admin endpoints call the Spotify API. In order for these endpoints to work, you must [create your own Spotify keys](https://developer.spotify.com/documentation/general/guides/app-settings/#register-your-app). The configuration values `tijdloze.spotify.clientId` and `tijdloze.spotify.clientSecret` should be set using the personal keys you obtained from Spotify (see _Configuration_ section below). The Tijdloze API only makes use of the [client credentials flow](https://developer.spotify.com/documentation/general/guides/authorization-guide/#client-credentials-flow).
+
+### Starting the API in development mode
 `sbt run`
 
 ## Building and deploying
