@@ -17,7 +17,7 @@ The simplest way to set up the database is by using the Docker image [stijnverme
 The Docker image has a database `tijdloze` with
 - The structure of all tables used by the API.
 - All data about artists, albums, songs and list entries.
-- Four dummy users from the `stijnvermeeren-tijdloze-dev.eu.auth0.com` Auth0 domain:
+- Four dummy users from the `stijnvermeeren-tijdloze-dev.eu.auth0.com` Auth0 domain, all with password "_secret_":
   - `user1@example.com`
   - `user2@example.com`
   - `admin1@example.com` (Admin user) 
