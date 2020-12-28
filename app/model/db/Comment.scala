@@ -8,5 +8,6 @@ final case class Comment(
   name: Option[String] = None,
   userId: Option[String],
   message: String,
-  timeStamp: DateTime = DateTime.now()
+  timeStamp: DateTime = DateTime.now(),
+  dateDeleted: Option[DateTime] = None
 )

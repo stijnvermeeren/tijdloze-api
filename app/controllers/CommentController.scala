@@ -1,5 +1,7 @@
 package controllers
 
+import model.CommentId
+
 import javax.inject._
 import model.api.{Comment, CommentSave}
 import model.db.dao.CommentDAO
@@ -23,6 +25,16 @@ class CommentController @Inject()(authenticate: Authenticate, commentDAO: Commen
         }
       }
     )
+  }
+
+  def delete(commentId: CommentId) = (Action andThen authenticate).async { implicit request =>
+    commentDAO.get(commentId) flatMap { commentOption =>
+      if (commentOption.exists(_.userId.contains(request.user.id))) {
+        commentDAO.delete(commentId).map(_ => Ok(""))
+      } else {
+        Future.successful(Unauthorized("Not permitted to delete comment."))
+      }
+    }
   }
 
   def listPage(page: Int) = Action.async { implicit rs =>
