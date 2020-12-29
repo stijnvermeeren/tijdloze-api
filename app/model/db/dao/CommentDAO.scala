@@ -18,8 +18,14 @@ class CommentDAO @Inject()(allTables: AllTables) {
 
   def save(userId: String, message: String): Future[Unit] = {
     db run {
-      CommentTable += Comment(userId = Some(userId), message = message)
-    } map (_ => ())
+      for {
+        commentId <- (CommentTable returning CommentTable.map(_.id)) += Comment(userId = Some(userId))
+        versionId <- (CommentVersionTable returning CommentVersionTable.map(_.id)) += (
+          CommentVersion(commentId = commentId, message = message)
+        )
+        _ <- CommentTable.filter(_.id === commentId).map(_.versionId).update(Some(versionId))
+      } yield (())
+    }
   }
 
   def delete(commentId: CommentId): Future[Unit] = {
@@ -46,11 +52,23 @@ class CommentDAO @Inject()(allTables: AllTables) {
     }
   }
 
-  def listPage(page: Int): Future[Seq[(Comment, Option[User])]] = {
+  def listPage(page: Int): Future[Seq[(Comment, Option[CommentVersion], Option[User])]] = {
     val pageSize = 20
     db run {
-      val joinedQuery = CommentTable.filter(_.dateDeleted.isEmpty) joinLeft UserTable on (_.userId === _.id)
-      joinedQuery.sortBy(_._1.id.desc).drop(pageSize * (page - 1)).take(pageSize).result
+      val joinedQuery = CommentTable.filter(_.dateDeleted.isEmpty)
+        .joinLeft(CommentVersionTable).on(_.versionId === _.id)
+        .joinLeft(UserTable).on(_._1.userId === _.id)
+
+      joinedQuery
+        .map {
+          case ((comment, version), user) => (comment, version, user)
+        }
+        .sortBy{
+          case (comment, _, _) => comment.id.desc
+        }
+        .drop(pageSize * (page - 1))
+        .take(pageSize)
+        .result
     }
   }
 }

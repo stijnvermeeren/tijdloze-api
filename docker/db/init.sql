@@ -4850,37 +4850,65 @@ CREATE TABLE `poll_vote` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
-DROP TABLE IF EXISTS `reactie`;
-CREATE TABLE `reactie` (
+DROP TABLE IF EXISTS `comment`;
+CREATE TABLE `comment` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `user_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
   `naam` varchar(255) CHARACTER SET ucs2 DEFAULT '',
-  `bericht` text NOT NULL,
-  `ip` varchar(15) DEFAULT '',
   `tijdstip` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `date_deleted` timestamp NULL DEFAULT NULL,
+  `version_id` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `user_id` (`user_id`),
   CONSTRAINT `reactie_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-INSERT INTO `reactie` (`id`, `user_id`, `naam`, `bericht`, `ip`, `tijdstip`, `date_deleted`) VALUES
-(1,	'auth0|5e66986f1efc7a0d639fec45',	NULL,	'Load up on guns, bring your friends',	'',	'2020-03-09 19:20:33',	NULL),
-(2,	'auth0|5e63ecaa320c120d43e6574a',	NULL,	'It\'s fun to lose and to pretend\n',	'',	'2020-03-09 19:20:41',	NULL),
-(3,	'auth0|5e66986f1efc7a0d639fec45',	NULL,	'She\'s over-bored and self-assured\n',	'',	'2020-03-09 19:20:50',	NULL),
-(4,	'auth0|5e63ecaa320c120d43e6574a',	NULL,	'Oh no, I know a dirty word\n',	'',	'2020-03-09 19:20:55',	NULL),
-(5,	'auth0|5e66986f1efc7a0d639fec45',	NULL,	'Hello, hello, hello, how low\n',	'',	'2020-03-09 19:21:03',	NULL),
-(6,	'auth0|5e63ecaa320c120d43e6574a',	NULL,	'Hello, hello, hello, how low\n',	'',	'2020-03-09 19:21:09',	NULL),
-(7,	'auth0|5e66986f1efc7a0d639fec45',	NULL,	'Hello, hello, hello, how low\n',	'',	'2020-03-09 19:21:13',	NULL),
-(8,	'auth0|5e63ecaa320c120d43e6574a',	NULL,	'Hello, hello, hello\n',	'',	'2020-03-09 19:21:22',	NULL),
-(9,	'auth0|5e66986f1efc7a0d639fec45',	NULL,	'With the lights out, it\'s less dangerous\n',	'',	'2020-03-09 19:21:27',	NULL),
-(10,	'auth0|5e63ecaa320c120d43e6574a',	NULL,	'Here we are now, entertain us\n',	'',	'2020-03-09 19:21:33',	NULL),
-(11,	'auth0|5e66986f1efc7a0d639fec45',	NULL,	'I feel stupid and contagious\n',	'',	'2020-03-09 19:21:38',	NULL),
-(12,	'auth0|5e63ecaa320c120d43e6574a',	NULL,	'Here we are now, entertain us\n',	'',	'2020-03-09 19:21:44',	NULL),
-(13,	'auth0|5e66986f1efc7a0d639fec45',	NULL,	'A mulatto\r\n',	'',	'2020-03-09 19:22:10',	NULL),
-(14,	'auth0|5e63ecaa320c120d43e6574a',	NULL,	'An albino',	'',	'2020-03-09 19:23:00',	NULL),
-(15,	'auth0|5e66986f1efc7a0d639fec45',	NULL,	'A mosquito',	'',	'2020-03-09 19:23:10',	NULL),
-(16,	'auth0|5e63ecaa320c120d43e6574a',	NULL,	'My libido',	'',	'2020-03-09 19:23:17',	NULL);
+INSERT INTO `comment` (`id`, `user_id`, `naam`, `tijdstip`, `date_deleted`, `version_id`) VALUES
+(1, 'auth0|5e66986f1efc7a0d639fec45', NULL, '2020-03-09 19:20:33', NULL, 1),
+(2, 'auth0|5e63ecaa320c120d43e6574a', NULL, '2020-03-09 19:20:41', NULL, 2),
+(3, 'auth0|5e66986f1efc7a0d639fec45', NULL, '2020-03-09 19:20:50', NULL, 3),
+(4, 'auth0|5e63ecaa320c120d43e6574a', NULL, '2020-03-09 19:20:55', NULL, 4),
+(5, 'auth0|5e66986f1efc7a0d639fec45', NULL, '2020-03-09 19:21:03', NULL, 5),
+(6, 'auth0|5e63ecaa320c120d43e6574a', NULL, '2020-03-09 19:21:09', NULL, 6),
+(7, 'auth0|5e66986f1efc7a0d639fec45', NULL, '2020-03-09 19:21:13', NULL, 7),
+(8, 'auth0|5e63ecaa320c120d43e6574a', NULL, '2020-03-09 19:21:22', NULL, 8),
+(9, 'auth0|5e66986f1efc7a0d639fec45', NULL, '2020-03-09 19:21:27', NULL, 9),
+(10, 'auth0|5e63ecaa320c120d43e6574a', NULL, '2020-03-09 19:21:33', NULL, 10),
+(11, 'auth0|5e66986f1efc7a0d639fec45', NULL, '2020-03-09 19:21:38', NULL, 11),
+(12, 'auth0|5e63ecaa320c120d43e6574a', NULL, '2020-03-09 19:21:44', NULL, 12),
+(13, 'auth0|5e66986f1efc7a0d639fec45', NULL, '2020-03-09 19:22:10', NULL, 13),
+(14, 'auth0|5e63ecaa320c120d43e6574a', NULL, '2020-03-09 19:23:00', NULL, 14),
+(15, 'auth0|5e66986f1efc7a0d639fec45', NULL, '2020-03-09 19:23:10', NULL, 15),
+(16, 'auth0|5e63ecaa320c120d43e6574a', NULL, '2020-03-09 19:23:17', NULL, 16);
+
+DROP TABLE IF EXISTS `comment_version`;
+CREATE TABLE `comment_version` (
+    `id` int(11) NOT NULL AUTO_INCREMENT,
+    `comment_id` int(11) NOT NULL,
+    `message` text DEFAULT NULL,
+    `created` timestamp NULL DEFAULT NULL,
+    PRIMARY KEY (`id`),
+    KEY `fi_comment_id` (`comment_id`),
+    CONSTRAINT `fk_comment_id` FOREIGN KEY (`comment_id`) REFERENCES `comment` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8mb4;
+
+INSERT INTO `comment_version` (`id`, `comment_id`, `message`, `created`) VALUES
+(1, 1, 'Load up on guns, bring your friends', '2020-03-09 19:20:33'),
+(2, 2, 'It\'s fun to lose and to pretend\n', '2020-03-09 19:20:41'),
+(3, 3, 'She\'s over-bored and self-assured\n', '2020-03-09 19:20:50'),
+(4, 4, 'Oh no, I know a dirty word\n', '2020-03-09 19:20:55'),
+(5, 5, 'Hello, hello, hello, how low\n', '2020-03-09 19:21:03'),
+(6, 6, 'Hello, hello, hello, how low\n', '2020-03-09 19:21:09'),
+(7, 7, 'Hello, hello, hello, how low\n', '2020-03-09 19:21:13'),
+(8, 8, 'Hello, hello, hello\n', '2020-03-09 19:21:22'),
+(9, 9, 'With the lights out, it\'s less dangerous\n', '2020-03-09 19:21:27'),
+(10, 10, 'Here we are now, entertain us\n', '2020-03-09 19:21:33'),
+(11, 11, 'I feel stupid and contagious\n', '2020-03-09 19:21:38'),
+(12, 12, 'Here we are now, entertain us\n', '2020-03-09 19:21:44'),
+(13, 13, 'A mulatto\r\n', '2020-03-09 19:22:10'),
+(14, 14, 'An albino', '2020-03-09 19:23:00'),
+(15, 15, 'A mosquito', '2020-03-09 19:23:10'),
+(16, 16, 'My libido', '2020-03-09 19:23:17');
 
 DROP TABLE IF EXISTS `song`;
 CREATE TABLE `song` (

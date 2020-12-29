@@ -7,7 +7,7 @@ final case class Comment(
   id: CommentId = CommentId(0),
   name: Option[String] = None,
   userId: Option[String],
-  message: String,
+  versionId: Option[CommentVersionId] = None,
   timeStamp: DateTime = DateTime.now(),
   dateDeleted: Option[DateTime] = None
 )

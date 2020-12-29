@@ -12,11 +12,11 @@ private[table] trait CommentTableComponent extends TableComponent {
     val id = column[CommentId]("id", O.AutoInc, O.PrimaryKey)
     val name = column[Option[String]]("naam")
     val userId = column[Option[String]]("user_id")
-    val message = column[String]("bericht")
+    val versionId = column[Option[CommentVersionId]]("version_id")
     val timestamp = column[DateTime]("tijdstip")
     val dateDeleted = column[Option[DateTime]]("date_deleted")
 
-    def * = (id, name, userId, message, timestamp, dateDeleted) <>
+    def * = (id, name, userId, versionId, timestamp, dateDeleted) <>
       ((Comment.apply _).tupled, Comment.unapply)
   }
 

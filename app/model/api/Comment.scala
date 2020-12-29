@@ -10,19 +10,21 @@ final case class Comment(
   name: String,
   userId: Option[String],
   message: String,
-  created: DateTime
+  created: DateTime,
+  updated: DateTime
 )
 
 object Comment {
   implicit val jsonWrites = Json.writes[Comment]
 
-  def fromDb(dbComment: db.Comment, user: Option[db.User]): Comment = {
+  def fromDb(dbComment: db.Comment, version: Option[db.CommentVersion], user: Option[db.User]): Comment = {
     Comment(
       id = dbComment.id,
       name = user.flatMap(_.displayName) orElse dbComment.name getOrElse "",
       userId = user.map(_.id),
-      message = dbComment.message,
-      created = dbComment.timeStamp
+      message = version.map(_.message).getOrElse(""),
+      created = dbComment.timeStamp,
+      updated = version.map(_.created).getOrElse(dbComment.timeStamp)
     )
   }
 }
