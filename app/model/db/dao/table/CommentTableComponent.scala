@@ -8,7 +8,7 @@ import com.github.tototoshi.slick.MySQLJodaSupport._
 private[table] trait CommentTableComponent extends TableComponent {
   import dbConfig.profile.api._
 
-  class CommentTable(tag: Tag) extends Table[Comment](tag, "reactie") {
+  class CommentTable(tag: Tag) extends Table[Comment](tag, "comment") {
     val id = column[CommentId]("id", O.AutoInc, O.PrimaryKey)
     val name = column[Option[String]]("naam")
     val userId = column[Option[String]]("user_id")

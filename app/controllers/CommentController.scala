@@ -20,8 +20,26 @@ class CommentController @Inject()(authenticate: Authenticate, commentDAO: Commen
         Future.successful(BadRequest(JsError.toJson(errors)))
       },
       commentSave => {
-        commentDAO.save(request.user.id, commentSave.message) map { _ =>
+        commentDAO.create(request.user.id, commentSave.message) map { _ =>
           Ok("")
+        }
+      }
+    )
+  }
+
+  def update(commentId: CommentId) = (Action andThen authenticate).async(parse.json) { implicit request =>
+    val data = request.body.validate[CommentSave]
+    data.fold(
+      errors => {
+        Future.successful(BadRequest(JsError.toJson(errors)))
+      },
+      commentSave => {
+        commentDAO.get(commentId) flatMap { commentOption =>
+          if (commentOption.exists(_.userId.contains(request.user.id))) {
+            commentDAO.update(commentId, commentSave.message).map(_ => Ok(""))
+          } else {
+            Future.successful(Unauthorized("Not permitted to update3 comment."))
+          }
         }
       }
     )

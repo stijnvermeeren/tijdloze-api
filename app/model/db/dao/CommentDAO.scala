@@ -16,10 +16,18 @@ class CommentDAO @Inject()(allTables: AllTables) {
   private val db = dbConfig.db
   import dbConfig.profile.api._
 
-  def save(userId: String, message: String): Future[Unit] = {
+  def create(userId: String, message: String): Future[Unit] = {
+    for {
+      commentId <- db run {
+        (CommentTable returning CommentTable.map(_.id)) += Comment(userId = Some(userId))
+      }
+      _ <- update(commentId, message)
+    } yield (())
+  }
+
+  def update(commentId: CommentId, message: String): Future[Unit] = {
     db run {
       for {
-        commentId <- (CommentTable returning CommentTable.map(_.id)) += Comment(userId = Some(userId))
         versionId <- (CommentVersionTable returning CommentVersionTable.map(_.id)) += (
           CommentVersion(commentId = commentId, message = message)
         )
