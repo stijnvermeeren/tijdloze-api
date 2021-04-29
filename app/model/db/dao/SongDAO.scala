@@ -63,6 +63,7 @@ class SongDAO @Inject()(allTables: AllTables) {
         .filter(_.id === songId)
         .map(x => (
           x.artistId,
+          x.secondArtistId,
           x.albumId,
           x.title,
           x.lyrics,
@@ -76,6 +77,7 @@ class SongDAO @Inject()(allTables: AllTables) {
         )
         .update((
           artistId,
+          secondArtistId,
           albumId,
           title,
           lyrics.map(_.trim).filter(_.nonEmpty),
