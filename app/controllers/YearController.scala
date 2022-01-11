@@ -4,7 +4,7 @@ import javax.inject._
 import model.db.dao.{ListEntryDAO, YearDAO}
 import play.api.cache.AsyncCacheApi
 import play.api.mvc._
-import util.CurrentListUtil
+import util.currentlist.CurrentListUtil
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -22,7 +22,7 @@ class YearController @Inject()(
     (Action andThen authenticateAdmin).async { request =>
       yearDAO.save(year) map { _ =>
         cache.remove("coreData")
-        currentList.refresh()
+        currentList.refresh(year)
         Ok("")
       }
     }
@@ -33,10 +33,15 @@ class YearController @Inject()(
       // only allow deleting a year if there are no entries in that year
       listEntryDAO.getByYear(year) flatMap { entries =>
         if (entries.isEmpty) {
-          yearDAO.delete(year) map { _ =>
+          yearDAO.delete(year) flatMap { _ =>
             cache.remove("coreData")
-            currentList.refresh()
-            Ok("")
+            yearDAO.maxYear() map {
+              case Some(maxYear) =>
+                currentList.refresh(maxYear)
+                Ok("")
+              case _ =>
+                Ok("")
+            }
           }
         } else {
           Future.successful(Forbidden)

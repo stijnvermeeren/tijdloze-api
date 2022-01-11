@@ -7,7 +7,7 @@ import model.db.dao.SongDAO
 import play.api.cache.{AsyncCacheApi, Cached}
 import play.api.libs.json.{JsError, Json}
 import play.api.mvc._
-import util.CurrentListUtil
+import util.currentlist.CurrentListUtil
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -64,7 +64,7 @@ class SongController @Inject()(
             song <- songDAO.get(songId)
           } yield {
             cache.remove("coreData")
-            currentList.refresh()
+            currentList.refreshSong(Song.fromDb(song))
             cache.remove(s"song/${songId.value}")
             Ok(Json.toJson(Song.fromDb(song)))
           }

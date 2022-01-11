@@ -53,9 +53,9 @@ class ListEntryDAO @Inject()(allTables: AllTables) {
     } map (_.get)
   }
 
-  def getByYear(year: Int, maxPosition: Int = 500): Future[Seq[ListEntry]] = {
+  def getByYear(year: Int): Future[Seq[ListEntry]] = {
     db run {
-      ListEntryTable.filter(_.year === year).filter(_.position <= maxPosition).result
+      ListEntryTable.filter(_.year === year).result
     }
   }
 }
