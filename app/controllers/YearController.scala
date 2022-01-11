@@ -22,7 +22,7 @@ class YearController @Inject()(
     (Action andThen authenticateAdmin).async { request =>
       yearDAO.save(year) map { _ =>
         cache.remove("coreData")
-        currentList.refresh(year)
+        currentList.updateCurrentYear(year)
         Ok("")
       }
     }
@@ -37,7 +37,7 @@ class YearController @Inject()(
             cache.remove("coreData")
             yearDAO.maxYear() map {
               case Some(maxYear) =>
-                currentList.refresh(maxYear)
+                currentList.updateCurrentYear(maxYear)
                 Ok("")
               case _ =>
                 Ok("")

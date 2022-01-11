@@ -28,7 +28,7 @@ class ListEntryController @Inject()(
         listEntrySave => {
           listEntryDAO.save(year = year, position = position, songId = listEntrySave.songId) map { _ =>
             cache.remove("coreData")
-            currentList.refresh(year)
+            currentList.updateEntry(year, position, songId = Some(listEntrySave.songId))
             Ok("")
           }
         }
@@ -40,7 +40,7 @@ class ListEntryController @Inject()(
     (Action andThen authenticateAdmin).async { implicit request =>
       listEntryDAO.delete(year = year, position = position) map { _ =>
         cache.remove("coreData")
-        currentList.refresh(year)
+        currentList.updateEntry(year, position, songId = None)
         Ok("")
       }
     }

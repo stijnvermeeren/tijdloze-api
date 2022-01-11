@@ -21,7 +21,7 @@ class ListExitController @Inject()(
     (Action andThen authenticateAdmin).async { request =>
       listExitDAO.save(year, songId) map { _ =>
         cache.remove("coreData")
-        currentList.refresh(year)
+        currentList.updateCurrentYear(year)
         Ok("")
       }
     }
@@ -31,7 +31,7 @@ class ListExitController @Inject()(
     (Action andThen authenticateAdmin).async { request =>
       listExitDAO.delete(year, songId) map { _ =>
         cache.remove("coreData")
-        currentList.refresh(year)
+        currentList.updateCurrentYear(year)
         Ok("")
       }
     }
@@ -41,7 +41,7 @@ class ListExitController @Inject()(
     (Action andThen authenticateAdmin).async { request =>
       listExitDAO.deleteAll(year) map { _ =>
         cache.remove("coreData")
-        currentList.refresh(year)
+        currentList.updateCurrentYear(year)
         Ok("")
       }
     }

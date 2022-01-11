@@ -2,7 +2,9 @@ package util.currentlist
 
 import akka.stream.scaladsl.{BroadcastHub, Flow, Keep, Sink, Source}
 import akka.stream.{Materializer, OverflowStrategy}
-import model.api.{Album, Song, Artist}
+import model.SongId
+import model.api.{Album, Artist, Song}
+import model.db.ListEntry
 import model.db.dao._
 import play.api.Logger
 import play.api.libs.json._
@@ -42,25 +44,27 @@ class CurrentListUtil @Inject()(
     .log("chatFlow")
 
 
-  def refreshSong(song: Song): Unit = {
+  def updateSong(song: Song): Unit = {
     currentListActorRef ! Json.toJson(SongUpdate(song))
   }
 
-  def refreshAlbum(album: Album): Unit = {
+  def updateAlbum(album: Album): Unit = {
     currentListActorRef ! Json.toJson(AlbumUpdate(album))
   }
 
-  def refreshArtist(artist: Artist): Unit = {
+  def updateArtist(artist: Artist): Unit = {
     currentListActorRef ! Json.toJson(ArtistUpdate(artist))
   }
 
-  def refresh(year: Int): Unit = {
+  def updateEntry(year: Int, position: Int, songId: Option[SongId]): Unit = {
+    currentListActorRef ! Json.toJson(ListEntryUpdate(year, position, songId))
+  }
+
+  def updateCurrentYear(year: Int): Unit = {
     val data = for {
-      entries <- listEntryDAO.getByYear(year)
       exits <- listExitDAO.getByYear(year)
-    } yield ListUpdate(
-      year = year,
-      entries = entries.map(ListUpdateEntry.fromDb),
+    } yield CurrentYearUpdate(
+      currentYear = year,
       exitSongIds = exits.map(_.songId)
     )
 
