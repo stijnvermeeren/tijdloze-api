@@ -34,18 +34,22 @@ class CoreDataController @Inject()(
           case None => Future.successful(Seq.empty)
         }
       } yield {
-        val groupedEntries = entries.groupBy(_.songId)
+        val songGroupedEntries = entries.groupBy(_.songId)
+        val yearGroupedEntries = entries.groupBy(_.year).toSeq.map {
+          case (year, values) => CoreList(year = year, songIds = values.sortBy(_.position).map(_.songId))
+        }
 
         Ok(Json.toJson(CoreData(
           artists = artists.map(CoreArtist.fromDb),
           albums = albums.map(CoreAlbum.fromDb),
           songs = songs map { song =>
-            CoreSong.fromDb(song, groupedEntries.getOrElse(song.id, Seq.empty))
+            CoreSong.fromDb(song, songGroupedEntries.getOrElse(song.id, Seq.empty))
           },
           countries = Country.all,
           languages = Language.all,
           vocalsGenders = VocalsGender.all,
           years = years,
+          lists = yearGroupedEntries,
           exitSongIds = exits.map(_.songId)
         )))
       }

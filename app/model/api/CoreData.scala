@@ -71,6 +71,15 @@ object CoreSong {
   implicit val jsonWrites = Json.writes[CoreSong]
 }
 
+final case class CoreList(
+  year: Int,
+  songIds: Seq[SongId]
+)
+
+object CoreList {
+  implicit val jsonWrites = Json.writes[CoreList]
+}
+
 final case class CoreData(
   artists: Seq[CoreArtist],
   albums: Seq[CoreAlbum],
@@ -79,6 +88,7 @@ final case class CoreData(
   languages: Seq[Language],
   vocalsGenders: Seq[VocalsGender],
   years: Seq[Int],
+  lists: Seq[CoreList],
   exitSongIds: Seq[SongId]
 )
 
