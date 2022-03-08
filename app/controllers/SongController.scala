@@ -44,6 +44,7 @@ class SongController @Inject()(
             newSong <- songDAO.get(newSongId)
           } yield {
             cache.remove("coreData")
+            currentList.updateSong(Song.fromDb(newSong))
             Ok(Json.toJson(Song.fromDb(newSong)))
           }
         }
