@@ -84,9 +84,6 @@ final case class CoreData(
   artists: Seq[CoreArtist],
   albums: Seq[CoreAlbum],
   songs: Seq[CoreSong],
-  countries: Seq[Country],
-  languages: Seq[Language],
-  vocalsGenders: Seq[VocalsGender],
   years: Seq[Int],
   lists: Seq[CoreList],
   exitSongIds: Seq[SongId]

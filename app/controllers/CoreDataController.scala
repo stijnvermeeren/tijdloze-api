@@ -45,9 +45,6 @@ class CoreDataController @Inject()(
           songs = songs map { song =>
             CoreSong.fromDb(song, songGroupedEntries.getOrElse(song.id, Seq.empty))
           },
-          countries = Country.all,
-          languages = Language.all,
-          vocalsGenders = VocalsGender.all,
           years = years,
           lists = yearGroupedEntries,
           exitSongIds = exits.map(_.songId)
