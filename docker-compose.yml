@@ -2,7 +2,7 @@ version: '3.1'
 
 services:
   tijdloze-db:
-    image: stijnvermeeren/tijdloze-db:2020.05.10
+    image: stijnvermeeren/tijdloze-db:2022.10.14
     ports:
       - "${MYSQL_PORT:-3306}:3306"
     environment:
