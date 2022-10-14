@@ -41,7 +41,7 @@ class SpotifyAPI @Inject() (ws: WSClient, config: Config) {
 
     def handleResponse(response: WSResponse) = {
       val items = (response.json \ "tracks" \ "items").as[JsArray]
-      items.value map { value =>
+      items.value.toSeq map { value =>
         val artists = (value \ "artists").as[JsArray]
 
         SpotifyHit(

@@ -33,7 +33,7 @@ class Chat @Inject() (
         }
       case Some(user) if user.isBlocked =>
         Future.failed(new Exception("User is blocked"))
-      case None =>
+      case _ =>
         Future.failed(new Exception("User not found"))
     }
 

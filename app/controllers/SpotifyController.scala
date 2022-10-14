@@ -40,9 +40,9 @@ class SpotifyController @Inject()(
       spotifyAPI.getToken() flatMap { token =>
         songDAO.getAll() flatMap { allSongs =>
           artistDAO.getAll() flatMap { allArtists =>
-            val artistsById = allArtists.groupBy(_.id).mapValues(_.head)
+            val artistsById = allArtists.groupBy(_.id).view.mapValues(_.head).toMap
             albumDAO.getAll() flatMap { allAlbums =>
-              val albumsById = allAlbums.groupBy(_.id).mapValues(_.head)
+              val albumsById = allAlbums.groupBy(_.id).view.mapValues(_.head).toMap
 
               allSongs.foldLeft(Future.successful(())) { case (result, song) =>
                 result flatMap { _ =>

@@ -4,6 +4,10 @@ The Tijdloze Website API is built using the [Scala programming language](https:/
 
 The Tijdloze Website API is available as a Docker image: [stijnvermeeren/tijdloze-api](https://hub.docker.com/repository/docker/stijnvermeeren/tijdloze-api). Instructions on how to use this Docker image together with the frontend of the Tijdloze Website can be found in the [README for the frontend project](https://github.com/stijnvermeeren/tijdloze-frontend). 
 
+## Requirement
+
+The Tijdloze Website API is built using Play Framework 2.8, which requires Java SE 8 through SE 11.
+
 ## Running in development mode
 
 ### Database setup

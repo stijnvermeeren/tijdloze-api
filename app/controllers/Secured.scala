@@ -20,7 +20,7 @@ class OptionallyAuthenticatedRequest[A](val user: Option[User], val userId: Opti
 
 class OptionallyAuthenticate @Inject()(config: Config, userDAO: UserDAO)(implicit val executionContext: ExecutionContext)
   extends ActionRefiner[Request, OptionallyAuthenticatedRequest] {
-  val logger = Logger(getClass)
+  private val logger = Logger(getClass)
 
   def refine[A](request: Request[A]): Future[Either[Result, OptionallyAuthenticatedRequest[A]]] = {
     val jwtResult = request.headers.get("Authorization") match {
@@ -64,7 +64,7 @@ class Authenticate @Inject() (
 )(implicit val executionContext: ExecutionContext)
   extends ActionRefiner[Request, AuthenticatedRequest] {
 
-  val logger = Logger(getClass)
+  private val logger = Logger(getClass)
 
   def refine[A](request: Request[A]): Future[Either[Result, AuthenticatedRequest[A]]] = {
     optionallyAuthenticate.refine(request) map { result =>
@@ -75,7 +75,7 @@ class Authenticate @Inject() (
             Left(Unauthorized)
           case Some(user) if !user.isBlocked =>
             Right(new AuthenticatedRequest(user, request))
-          case None =>
+          case _ =>
             logger.warn(s"Request to ${request.path} lacked authorization.")
             Left(Unauthorized)
         }
@@ -87,7 +87,7 @@ class Authenticate @Inject() (
 class AuthenticateAdmin @Inject() (authenticate: Authenticate)(implicit val executionContext: ExecutionContext)
   extends ActionRefiner[Request, AuthenticatedRequest] {
 
-  val logger = Logger(getClass)
+  private val logger = Logger(getClass)
 
   def refine[A](request: Request[A]): Future[Either[Result, AuthenticatedRequest[A]]] = {
     authenticate.refine(request) map {
