@@ -20,7 +20,7 @@ class ContactController @Inject() (optionallyAuthenticate: OptionallyAuthenticat
           }
 
           Mailer.send(
-            fromEmail = form.email getOrElse "anonymous@example.com",
+            fromEmail = form.email,
             fromName = form.name,
             to = config.getString("tijdloze.contact.recipient"),
             subject = "De Tijdloze Website: contact",
