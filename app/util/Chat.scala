@@ -1,10 +1,9 @@
 package util
 
-import akka.stream.{Materializer, OverflowStrategy}
+import akka.stream.Materializer
 import akka.stream.scaladsl.{BroadcastHub, Flow, Keep, MergeHub, Sink, Source, Merge}
 import javax.inject.{Inject, Singleton}
 import model.api.{ChatMessage, ChatSave, PublicUserInfo}
-import model.db
 import model.db.dao.{ChatMessageDAO, ChatOnlineDAO, UserDAO}
 import play.api.Logger
 import play.api.libs.json._
@@ -67,14 +66,14 @@ class Chat @Inject() (
   }
 
   // source for online list
-  private val (onlineActorRef, onlineSource) = {
+  private val (onlineQueue, onlineSource) = {
     val onlineTicksSource = Source.tick(
       initialDelay = 15.seconds,
       interval = 15.seconds,
       tick = ()
     )
 
-    val onlineActorSource = Source.actorRef[Unit](bufferSize = 0, OverflowStrategy.dropNew)
+    val onlineActorSource = Source.queue[Unit](bufferSize = 10)
 
     val mergedSource = Source.combineMat(onlineTicksSource, onlineActorSource)(Merge(_)) {
       case (_, actorRef) => actorRef
@@ -139,7 +138,7 @@ class Chat @Inject() (
         saveOnlineStatus(userId) flatMap { _ =>
           // Immediately send new online list to all other chat users
           val unit = () // avoid compiler warning
-          onlineActorRef ! unit
+          onlineQueue.offer(unit)
 
           // Ensure the current user has the up-to-date online list as well, even if he misses the previous message.
           loadOnlineList()

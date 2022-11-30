@@ -1,10 +1,9 @@
 package util.currentlist
 
 import akka.stream.scaladsl.{BroadcastHub, Flow, Keep, Sink, Source}
-import akka.stream.{Materializer, OverflowStrategy}
+import akka.stream.Materializer
 import model.SongId
 import model.api.{Album, Artist, Song}
-import model.db.ListEntry
 import model.db.dao._
 import play.api.Logger
 import play.api.libs.json._
@@ -20,9 +19,9 @@ class CurrentListUtil @Inject()(
 )(implicit mat: Materializer) {
   val logger = Logger(getClass)
 
-  private val currentListSource = Source.actorRef[JsValue](bufferSize = 1, overflowStrategy = OverflowStrategy.dropNew)
+  private val currentListSource = Source.queue[JsValue](bufferSize = 10)
 
-  private val (currentListActorRef, source) = currentListSource.toMat(BroadcastHub.sink[JsValue])(Keep.both).run()
+  private val (currentListQueue, source) = currentListSource.toMat(BroadcastHub.sink[JsValue])(Keep.both).run()
 
   // Keeps the last update available for sending immediately to new connections
   private val lastSentSource = source
@@ -45,19 +44,19 @@ class CurrentListUtil @Inject()(
 
 
   def updateSong(song: Song): Unit = {
-    currentListActorRef ! Json.toJson(SongUpdate(song))
+    currentListQueue.offer(Json.toJson(SongUpdate(song)))
   }
 
   def updateAlbum(album: Album): Unit = {
-    currentListActorRef ! Json.toJson(AlbumUpdate(album))
+    currentListQueue.offer(Json.toJson(AlbumUpdate(album)))
   }
 
   def updateArtist(artist: Artist): Unit = {
-    currentListActorRef ! Json.toJson(ArtistUpdate(artist))
+    currentListQueue.offer(Json.toJson(ArtistUpdate(artist)))
   }
 
   def updateEntry(year: Int, position: Int, songId: Option[SongId]): Unit = {
-    currentListActorRef ! Json.toJson(ListEntryUpdate(year, position, songId))
+    currentListQueue.offer(Json.toJson(ListEntryUpdate(year, position, songId)))
   }
 
   def updateCurrentYear(year: Int): Unit = {
@@ -69,7 +68,7 @@ class CurrentListUtil @Inject()(
     )
 
     data map { currentList =>
-      currentListActorRef ! Json.toJson(currentList)
+      currentListQueue.offer(Json.toJson(currentList))
     } recover {
       case e: Exception => logger.error(s"Error while loading list of year ${year}", e)
     }
