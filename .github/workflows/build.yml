@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  test:
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -17,3 +17,16 @@ jobs:
           java-version: 11
       - name: Build
         run: sbt dist
+      - name: Deploy with rsync
+        run: rsync -avz target/universal/de-tijdloze-website-api-1.0-SNAPSHOT.zip ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:~/tijdloze-api/
+      - name: npm ci on server
+        uses: appleboy/ssh-action@v0.1.5
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd tijdloze-api
+            rm -r de-tijdloze-website-api-1.0-SNAPSHOT
+            unzip de-tijdloze-website-api-1.0-SNAPSHOT.zip
+            sudo systemctl restart tijdloze-api.service
