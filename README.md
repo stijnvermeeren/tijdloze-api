@@ -74,7 +74,7 @@ In `/etc/nginx/sites-available/tijdloze-api.conf`:
 server {
   listen 443 ssl;
   listen [::]:443 ssl;
-  server_name api.tijdloze.stijnshome.be;
+  server_name api.tijdloze.rocks;
 
   ssl_certificate /etc/letsencrypt/live/tijdloze.stijnshome.be/fullchain.pem;
   ssl_certificate_key /etc/letsencrypt/live/tijdloze.stijnshome.be/privkey.pem;
@@ -88,14 +88,14 @@ server {
   }
 
   location / {
-    proxy_pass http://127.0.0.1:9000/;
+    proxy_pass http://127.0.0.1:9000;
   }
 }
 
 server {
   listen 80;
   listen [::]:80;
-  server_name api.tijdloze.stijnshome.be;
+  server_name api.tijdloze.rocks;
 
   location /.well-known { 
     root /srv/httproot;
