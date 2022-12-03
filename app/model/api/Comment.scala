@@ -11,7 +11,8 @@ final case class Comment(
   userId: Option[String],
   message: String,
   created: DateTime,
-  updated: DateTime
+  updated: DateTime,
+  deleted: Option[DateTime]
 )
 
 object Comment {
@@ -24,7 +25,8 @@ object Comment {
       userId = user.map(_.id),
       message = version.map(_.message).getOrElse(""),
       created = dbComment.timeStamp,
-      updated = version.map(_.created).getOrElse(dbComment.timeStamp)
+      updated = version.map(_.created).getOrElse(dbComment.timeStamp),
+      deleted = dbComment.dateDeleted
     )
   }
 }

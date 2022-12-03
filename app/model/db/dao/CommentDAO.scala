@@ -45,6 +45,15 @@ class CommentDAO @Inject()(allTables: AllTables) {
     } map (_ => ())
   }
 
+  def restore(commentId: CommentId): Future[Unit] = {
+    db run {
+      CommentTable
+        .filter(_.id === commentId)
+        .map(_.dateDeleted)
+        .update(None)
+    } map (_ => ())
+  }
+
   def get(commentId: CommentId): Future[Option[Comment]] = {
     db run {
       CommentTable
@@ -76,6 +85,23 @@ class CommentDAO @Inject()(allTables: AllTables) {
         }
         .drop(pageSize * (page - 1))
         .take(pageSize)
+        .result
+    }
+  }
+
+  def listDeleted(): Future[Seq[(Comment, Option[CommentVersion], Option[User])]] = {
+    db run {
+      val joinedQuery = CommentTable.filter(_.dateDeleted.nonEmpty)
+        .joinLeft(CommentVersionTable).on(_.versionId === _.id)
+        .joinLeft(UserTable).on(_._1.userId === _.id)
+
+      joinedQuery
+        .map {
+          case ((comment, version), user) => (comment, version, user)
+        }
+        .sortBy {
+          case (comment, _, _) => comment.id.desc
+        }
         .result
     }
   }

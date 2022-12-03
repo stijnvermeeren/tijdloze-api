@@ -12,7 +12,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 @Singleton
-class CommentController @Inject()(authenticate: Authenticate, commentDAO: CommentDAO) extends InjectedController {
+class CommentController @Inject()(authenticate: Authenticate, authenticateAdmin: AuthenticateAdmin, commentDAO: CommentDAO) extends InjectedController {
   def post() = (Action andThen authenticate).async(parse.json) { implicit request =>
     val data = request.body.validate[CommentSave]
     data.fold(
@@ -47,7 +47,7 @@ class CommentController @Inject()(authenticate: Authenticate, commentDAO: Commen
 
   def delete(commentId: CommentId) = (Action andThen authenticate).async { implicit request =>
     commentDAO.get(commentId) flatMap { commentOption =>
-      if (commentOption.exists(_.userId.contains(request.user.id))) {
+      if (request.user.isAdmin || commentOption.exists(_.userId.contains(request.user.id))) {
         commentDAO.delete(commentId).map(_ => Ok(""))
       } else {
         Future.successful(Unauthorized("Not permitted to delete comment."))
@@ -55,9 +55,29 @@ class CommentController @Inject()(authenticate: Authenticate, commentDAO: Commen
     }
   }
 
+  def restore(commentId: CommentId) = (Action andThen authenticate).async { implicit request =>
+    commentDAO.get(commentId) flatMap { commentOption =>
+      if (request.user.isAdmin || commentOption.exists(_.userId.contains(request.user.id))) {
+        commentDAO.restore(commentId).map(_ => Ok(""))
+      } else {
+        Future.successful(Unauthorized("Not permitted to restore comment."))
+      }
+    }
+  }
+
   def listPage(page: Int) = Action.async { implicit rs =>
     for {
       commentsWithUser <- commentDAO.listPage(page)
+    } yield {
+      Ok(Json.toJson(
+        commentsWithUser map (Comment.fromDb _).tupled
+      ))
+    }
+  }
+
+  def listDeleted() = (Action andThen authenticateAdmin).async { implicit rs =>
+    for {
+      commentsWithUser <- commentDAO.listDeleted()
     } yield {
       Ok(Json.toJson(
         commentsWithUser map (Comment.fromDb _).tupled
