@@ -109,7 +109,7 @@ server {
 
 ### File limit
 
-For dealing with many visitors, make sure that nginx is allowed to open plenty of files (see e.g. [this post](https://www.cyberciti.biz/faq/linux-unix-nginx-too-many-open-files/)).
+For dealing with many visitors, make sure that nginx is allowed to open plenty of files (see e.g. [this post](https://www.cyberciti.biz/faq/linux-unix-nginx-too-many-open-files/)). This is mainly because each visitor will create a websocket connection, and each socket connection requires a Linux file handle.
 
 In `/etc/sysctl.conf` add `fs.file-max = 70000`.
 
