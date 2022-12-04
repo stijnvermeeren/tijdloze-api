@@ -3,7 +3,7 @@ package util.currentlist
 import akka.stream.scaladsl.{BroadcastHub, Flow, Keep, Sink, Source}
 import akka.stream.Materializer
 import model.SongId
-import model.api.{Album, Artist, Song}
+import model.api.{Album, Artist, Poll, Song}
 import model.db.dao._
 import play.api.Logger
 import play.api.libs.json._
@@ -15,7 +15,8 @@ import scala.concurrent.duration._
 @Singleton
 class CurrentListUtil @Inject()(
   listEntryDAO: ListEntryDAO,
-  listExitDAO: ListExitDAO
+  listExitDAO: ListExitDAO,
+  pollDAO: PollDAO
 )(implicit mat: Materializer) {
   val logger = Logger(getClass)
 
@@ -72,5 +73,16 @@ class CurrentListUtil @Inject()(
     } recover {
       case e: Exception => logger.error(s"Error while loading list of year ${year}", e)
     }
+  }
+
+  def updateLatestPoll(): Unit = {
+    pollDAO.getLatest() map {
+      case Some((dbPoll, dbAnswers)) =>
+        val apiPoll = Poll.fromDb(dbPoll, dbAnswers)
+        currentListQueue.offer(Json.toJson(PollUpdate(apiPoll)))
+      case None =>
+        // No active poll
+    }
+
   }
 }

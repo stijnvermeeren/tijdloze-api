@@ -6,6 +6,7 @@ import model.api._
 import model.db.dao.PollDAO
 import play.api.libs.json.{JsError, Json}
 import play.api.mvc._
+import util.currentlist.CurrentListUtil
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -14,7 +15,8 @@ import scala.concurrent.Future
 class PollController @Inject()(
   authenticate: Authenticate,
   authenticateAdmin: AuthenticateAdmin,
-  pollDAO: PollDAO
+  pollDAO: PollDAO,
+  currentList: CurrentListUtil
 ) extends InjectedController {
 
   def createPoll() = {
@@ -28,7 +30,9 @@ class PollController @Inject()(
           pollDAO.createPoll(pollCreate) flatMap { pollId =>
             pollDAO.getPoll(pollId) map {
               case Some((dbPoll, dbAnswers)) =>
-                Ok(Json.toJson(Poll.fromDb(dbPoll, dbAnswers)))
+                val apiPoll = Poll.fromDb(dbPoll, dbAnswers)
+                currentList.updateLatestPoll()
+                Ok(Json.toJson(apiPoll))
               case None =>
                 InternalServerError("Error while saving poll to the database.")
             }
@@ -49,6 +53,7 @@ class PollController @Inject()(
           pollDAO.updatePoll(pollId, pollUpdate) flatMap { _ =>
             pollDAO.getPoll(pollId) map {
               case Some((dbPoll, dbAnswers)) =>
+                currentList.updateLatestPoll()
                 Ok(Json.toJson(Poll.fromDb(dbPoll, dbAnswers)))
               case None =>
                 InternalServerError("Error while saving poll to the database.")
@@ -70,6 +75,7 @@ class PollController @Inject()(
           pollDAO.updatePollAnswer(pollAnswerId, pollAnswerUpdate) flatMap { _ =>
             pollDAO.getPoll(pollId) map {
               case Some((dbPoll, dbAnswers)) =>
+                currentList.updateLatestPoll()
                 Ok(Json.toJson(Poll.fromDb(dbPoll, dbAnswers)))
               case None =>
                 InternalServerError("Error while saving poll to the database.")
@@ -83,6 +89,7 @@ class PollController @Inject()(
   def hidePoll(pollId: PollId) = {
     (Action andThen authenticateAdmin).async { request =>
       pollDAO.setDeleted(pollId, isDeleted = true) map { _ =>
+        currentList.updateLatestPoll()
         Ok("")
       }
     }
@@ -91,6 +98,7 @@ class PollController @Inject()(
   def showPoll(pollId: PollId) = {
     (Action andThen authenticateAdmin).async { request =>
       pollDAO.setDeleted(pollId, isDeleted = false) map { _ =>
+        currentList.updateLatestPoll()
         Ok("")
       }
     }

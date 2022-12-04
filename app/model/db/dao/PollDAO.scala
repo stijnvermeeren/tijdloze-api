@@ -32,7 +32,7 @@ class PollDAO @Inject()(allTables: AllTables) {
 
   def getLatest(): Future[Option[(Poll, Seq[PollAnswer])]] = {
     db run {
-      PollTable.sortBy(_.id.desc).result.headOption
+      PollTable.sortBy(_.id.desc).filterNot(_.isDeleted).result.headOption
     } flatMap {
       case Some(poll) =>
         db run {
