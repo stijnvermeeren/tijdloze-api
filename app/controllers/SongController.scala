@@ -73,4 +73,17 @@ class SongController @Inject()(
       )
     }
   }
+
+  def delete(songId: SongId) = {
+    (Action andThen authenticateAdmin).async { implicit request =>
+      for {
+        _ <- songDAO.delete(songId)
+      } yield {
+        cache.remove("coreData")
+        currentList.deleteSong(songId)
+        cache.remove(s"song/${songId.value}")
+        Ok("")
+      }
+    }
+  }
 }

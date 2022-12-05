@@ -4,14 +4,17 @@
 
 GET     /song/:id                        controllers.SongController.get(id: model.SongId)
 PUT     /song/:id                        controllers.SongController.put(id: model.SongId)
+DELETE  /song/:id                        controllers.SongController.delete(id: model.SongId)
 POST    /song                            controllers.SongController.post()
 
 GET     /artist/:id                      controllers.ArtistController.get(id: model.ArtistId)
 PUT     /artist/:id                      controllers.ArtistController.put(id: model.ArtistId)
+DELETE  /artist/:id                      controllers.ArtistController.delete(id: model.ArtistId)
 POST    /artist                          controllers.ArtistController.post()
 
 GET     /album/:id                       controllers.AlbumController.get(id: model.AlbumId)
 PUT     /album/:id                       controllers.AlbumController.put(id: model.AlbumId)
+DELETE  /album/:id                       controllers.AlbumController.delete(id: model.AlbumId)
 POST    /album                           controllers.AlbumController.post()
 
 GET     /core-data                       controllers.CoreDataController.get()

@@ -2,7 +2,7 @@ package util.currentlist
 
 import akka.stream.scaladsl.{BroadcastHub, Flow, Keep, Sink, Source}
 import akka.stream.Materializer
-import model.SongId
+import model.{AlbumId, ArtistId, SongId}
 import model.api.{Album, Artist, Poll, Song}
 import model.db.dao._
 import play.api.Logger
@@ -48,12 +48,24 @@ class CurrentListUtil @Inject()(
     currentListQueue.offer(Json.toJson(SongUpdate(song)))
   }
 
+  def deleteSong(songId: SongId): Unit = {
+    currentListQueue.offer(Json.toJson(SongDelete(songId)))
+  }
+
   def updateAlbum(album: Album): Unit = {
     currentListQueue.offer(Json.toJson(AlbumUpdate(album)))
   }
 
+  def deleteAlbum(albumId: AlbumId): Unit = {
+    currentListQueue.offer(Json.toJson(AlbumDelete(albumId)))
+  }
+
   def updateArtist(artist: Artist): Unit = {
     currentListQueue.offer(Json.toJson(ArtistUpdate(artist)))
+  }
+
+  def deleteArtist(artistId: ArtistId): Unit = {
+    currentListQueue.offer(Json.toJson(ArtistDelete(artistId)))
   }
 
   def updateEntry(year: Int, position: Int, songId: Option[SongId]): Unit = {

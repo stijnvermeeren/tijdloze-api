@@ -91,4 +91,10 @@ class ArtistDAO @Inject()(allTables: AllTables) {
       ArtistTable.filter(artist => isNew(artist.id)).result
     }
   }
+
+  def delete(artistId: ArtistId): Future[Int] = {
+    db run {
+      ArtistTable.filter(_.id === artistId).delete
+    }
+  }
 }

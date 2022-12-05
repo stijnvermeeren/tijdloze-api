@@ -92,18 +92,9 @@ class SongDAO @Inject()(allTables: AllTables) {
     }
   }
 
-  def newSongs(year: Int, maxPosition: Int = 500): Future[Seq[Song]] = {
-    def isNew(songId: Rep[SongId]): Rep[Boolean] = {
-      val entryYears = ListEntryTable
-        .filter(_.songId === songId)
-        .filter(_.position <= maxPosition)
-        .map(_.year)
-
-      (entryYears.min === year).ifNull(false)
-    }
-
+  def delete(songId: SongId): Future[Int] = {
     db run {
-      SongTable.filter(song => isNew(song.id)).result
+      SongTable.filter(_.id === songId).delete
     }
   }
 }

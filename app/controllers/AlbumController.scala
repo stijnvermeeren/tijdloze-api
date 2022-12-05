@@ -73,4 +73,17 @@ class AlbumController @Inject()(
       )
     }
   }
+
+  def delete(albumId: AlbumId) = {
+    (Action andThen authenticateAdmin).async { implicit request =>
+      for {
+        _ <- albumDAO.delete(albumId)
+      } yield {
+        cache.remove("coreData")
+        currentList.deleteAlbum(albumId)
+        cache.remove(s"album/${albumId.value}")
+        Ok("")
+      }
+    }
+  }
 }

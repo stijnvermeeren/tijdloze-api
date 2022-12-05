@@ -72,4 +72,17 @@ class ArtistController @Inject()(
       )
     }
   }
+
+  def delete(artistId: ArtistId) = {
+    (Action andThen authenticateAdmin).async { implicit request =>
+      for {
+        _ <- artistDAO.delete(artistId)
+      } yield {
+        cache.remove("coreData")
+        currentList.deleteArtist(artistId)
+        cache.remove(s"artist/${artistId.value}")
+        Ok("")
+      }
+    }
+  }
 }
