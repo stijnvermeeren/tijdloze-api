@@ -11,11 +11,18 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 class SpotifyAPI @Inject() (ws: WSClient, config: Config) {
   def getToken(): Future[String] = {
+    val clientId = config.getString("tijdloze.spotify.clientId")
+    val clientSecret = config.getString("tijdloze.spotify.clientSecret")
+
+    if (clientId.isEmpty || clientSecret.isEmpty) {
+      throw new Exception("Unable to use Spotify API without clientId and clientSecret.")
+    }
+
     val request = ws
       .url("https://accounts.spotify.com/api/token")
       .withAuth(
-        username = config.getString("tijdloze.spotify.clientId"),
-        password = config.getString("tijdloze.spotify.clientSecret"),
+        username = clientId,
+        password = clientSecret,
         WSAuthScheme.BASIC
       )
 

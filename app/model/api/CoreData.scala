@@ -73,7 +73,8 @@ object CoreSong {
 
 final case class CoreList(
   year: Int,
-  songIds: Seq[SongId]
+  songIds: Seq[SongId],
+  top100SongCount: Int
 )
 
 object CoreList {

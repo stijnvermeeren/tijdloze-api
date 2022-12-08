@@ -36,7 +36,11 @@ class CoreDataController @Inject()(
       } yield {
         val songGroupedEntries = entries.groupBy(_.songId)
         val yearGroupedEntries = entries.groupBy(_.year).toSeq.map {
-          case (year, values) => CoreList(year = year, songIds = values.sortBy(_.position).map(_.songId))
+          case (year, values) => CoreList(
+            year = year,
+            songIds = values.sortBy(_.position).map(_.songId),
+            top100SongCount = values.count(_.position <= 100)
+          )
         }
 
         Ok(Json.toJson(CoreData(
