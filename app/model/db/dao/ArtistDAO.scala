@@ -31,6 +31,7 @@ class ArtistDAO @Inject()(allTables: AllTables) {
     val newArtist = Artist(
       namePrefix = namePrefix.map(_.trim).filter(_.nonEmpty),
       name = name,
+      aliases = aliases.map(_.trim).filter(_.nonEmpty),
       countryId = countryId.map(_.trim).filter(_.nonEmpty),
       notes = notes.map(_.trim).filter(_.nonEmpty),
       urlOfficial = urlOfficial.map(_.trim).filter(_.nonEmpty),
@@ -53,6 +54,7 @@ class ArtistDAO @Inject()(allTables: AllTables) {
         .map(x => (
           x.namePrefix,
           x.name,
+          x.aliases,
           x.countryId,
           x.notes,
           x.urlOfficial,
@@ -64,6 +66,7 @@ class ArtistDAO @Inject()(allTables: AllTables) {
         .update((
           namePrefix.map(_.trim).filter(_.nonEmpty),
           name,
+          aliases.map(_.trim).filter(_.nonEmpty),
           countryId.map(_.trim).filter(_.nonEmpty),
           notes.map(_.trim).filter(_.nonEmpty),
           urlOfficial.map(_.trim).filter(_.nonEmpty),

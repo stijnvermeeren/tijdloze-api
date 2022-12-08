@@ -7,6 +7,7 @@ final case class CoreArtist(
   id: ArtistId,
   namePrefix: Option[String],
   name: String,
+  aliases: Option[String],
   countryId: Option[String]
 )
 
@@ -16,6 +17,7 @@ object CoreArtist {
       id = artist.id,
       namePrefix = artist.namePrefix,
       name = artist.name,
+      aliases = artist.aliases,
       countryId = artist.countryId
     )
   }
@@ -49,6 +51,7 @@ final case class CoreSong(
   secondArtistId: Option[ArtistId],
   albumId: AlbumId,
   title: String,
+  aliases: Option[String],
   languageId: Option[String],
   leadVocals: Option[String],
   positions: Map[String, Int]
@@ -62,6 +65,7 @@ object CoreSong {
       secondArtistId = song.secondArtistId,
       albumId = song.albumId,
       title = song.title,
+      aliases = song.aliases,
       languageId = song.languageId,
       leadVocals = song.leadVocals,
       positions = entries.map(entry => entry.year.toString.takeRight(2) -> entry.position).toMap

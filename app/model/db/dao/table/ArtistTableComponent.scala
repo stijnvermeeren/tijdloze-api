@@ -10,6 +10,7 @@ private[table] trait ArtistTableComponent extends TableComponent {
     val id = column[ArtistId]("id", O.AutoInc, O.PrimaryKey)
     val namePrefix = column[Option[String]]("name_prefix")
     val name = column[String]("name")
+    val aliases = column[Option[String]]("aliases")
     val countryId = column[Option[String]]("country_id")
     val notes = column[Option[String]]("notes")
     val urlOfficial = column[Option[String]]("url_official")
@@ -17,7 +18,7 @@ private[table] trait ArtistTableComponent extends TableComponent {
     val urlWikiNl = column[Option[String]]("url_wikinl")
     val urlAllMusic = column[Option[String]]("url_allmusic")
 
-    def * = (id, namePrefix, name, countryId, notes, urlOfficial, urlWikiEn, urlWikiNl, urlAllMusic) <>
+    def * = (id, namePrefix, name, aliases, countryId, notes, urlOfficial, urlWikiEn, urlWikiNl, urlAllMusic) <>
       ((Artist.apply _).tupled, Artist.unapply)
   }
 

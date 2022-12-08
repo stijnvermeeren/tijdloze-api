@@ -5,6 +5,7 @@ import play.api.libs.json.Json
 final case class ArtistSave(
   namePrefix: Option[String],
   name: String,
+  aliases: Option[String],
   countryId: Option[String],
   notes: Option[String],
   urlOfficial: Option[String],

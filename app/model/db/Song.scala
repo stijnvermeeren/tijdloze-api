@@ -9,6 +9,7 @@ final case class Song(
   secondArtistId: Option[ArtistId],
   albumId: AlbumId,
   title: String,
+  aliases: Option[String],
   lyrics: Option[String],
   languageId: Option[String],
   leadVocals: Option[String],
