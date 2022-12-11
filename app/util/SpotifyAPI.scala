@@ -65,50 +65,6 @@ class SpotifyAPI @Inject() (ws: WSClient, config: Config) {
     requestHandler(request, handleResponse)
   }
 
-  def findSongId(token: String, artist: String, album: String, title: String): Future[Option[String]] = {
-    def request() = {
-      val request = ws
-        .url("https://api.spotify.com/v1/search")
-        .addHttpHeaders("Authorization" -> s"Bearer $token")
-        .addQueryStringParameters(
-          "q" -> s"$artist $title $album",
-          "type" -> "track",
-          "market" -> "BE",
-          "limit" -> "1"
-        )
-
-      request.get()
-    }
-
-    def handleResponse(response: WSResponse) = {
-      val items = (response.json \ "tracks" \ "items").as[JsArray]
-      items.value.headOption flatMap { value =>
-        val artists = (value \ "artists").as[JsArray]
-        val spotifyArtist = (artists.value.head \ "name").as[String]
-        val spotifyTitle = (value \ "name").as[String]
-        val spotifyAlbum = (value \ "album" \ "name").as[String]
-
-
-        val query = s"$artist - $title ($album)"
-        val found = s"$spotifyArtist - $spotifyTitle ($spotifyAlbum)"
-        println()
-        if (query != found) {
-          println(s"Query: $query")
-          println(s"Found: $found")
-        }
-
-        if (artist == spotifyArtist) {
-          Some((value \ "id").as[String])
-        } else {
-          None
-        }
-
-      }
-    }
-
-    requestHandler(request, handleResponse)
-  }
-
   def requestHandler[T <: WSResponse, S](request: () => Future[T], process: T => S): Future[S] = {
     request() flatMap { response =>
       if (response.status == 429) {

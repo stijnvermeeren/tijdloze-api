@@ -34,39 +34,4 @@ class SpotifyController @Inject()(
       }
     }
   }
-
-  def load() = {
-    (Action andThen authenticateAdmin).async { implicit request =>
-      spotifyAPI.getToken() flatMap { token =>
-        songDAO.getAll() flatMap { allSongs =>
-          artistDAO.getAll() flatMap { allArtists =>
-            val artistsById = allArtists.groupBy(_.id).view.mapValues(_.head).toMap
-            albumDAO.getAll() flatMap { allAlbums =>
-              val albumsById = allAlbums.groupBy(_.id).view.mapValues(_.head).toMap
-
-              allSongs.foldLeft(Future.successful(())) { case (result, song) =>
-                result flatMap { _ =>
-                  val title = song.title
-                  val artist = artistsById(song.artistId)
-                  val artistName = s"${artist.namePrefix} ${artist.name}".trim
-                  val album = albumsById(song.albumId).title
-                  // s"${coreSong.title} ${coreArtist.firstName} ${coreArtist.name}"
-                  spotifyAPI.findSongId(token = token, artist = artistName, album = album, title = title) flatMap {
-                    case Some(spotifyId) =>
-                      println(s"Processed: $artistName - $title")
-                      songDAO.setSpotifyId(song.id, Some(spotifyId)) map (_ => ())
-                    case None =>
-                      println(s"!!! Not found: $artistName - $title")
-                      Future.successful(())
-                  }
-                }
-              }
-            }
-          }
-        }
-      } map { _ =>
-        Ok("ok")
-      }
-    }
-  }
 }
