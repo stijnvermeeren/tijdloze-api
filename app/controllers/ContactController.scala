@@ -14,15 +14,25 @@ class ContactController @Inject() (optionallyAuthenticate: OptionallyAuthenticat
     (Action andThen optionallyAuthenticate)(parse.json) { request =>
       Json.fromJson[ContactForm](request.body) match {
         case JsSuccess(form, _) =>
-          val footer = request.user.map(_.id) match {
+          val footer1 = request.user.map(_.id) match {
             case Some(userId) => s" --- Message from verified user with id $userId."
-            case None => s" --- Message from unverified user."
+            case None => " --- Message from unverified user."
           }
+          val footer2 = form.email match {
+            case Some(email) => s" --- Reply-to email address: $email"
+            case None => " --- No reply-to email address provided."
+          }
+          val footer = Seq(footer1, footer2).mkString("/n")
+
+          val recipients: Seq[String] = config.getString("tijdloze.contact.recipients")
+            .split(';')
+            .map(_.trim)
+            .filter(_.nonEmpty)
 
           Mailer.send(
             fromEmail = form.email,
             fromName = form.name,
-            to = config.getString("tijdloze.contact.recipient"),
+            to = recipients,
             subject = "De Tijdloze Website: contact",
             message = s"${form.message}\n\n$footer"
           )

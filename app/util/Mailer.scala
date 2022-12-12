@@ -6,7 +6,7 @@ import scala.jdk.CollectionConverters._
 object Mailer {
   import org.apache.commons.mail._
 
-  def send(fromEmail: Option[String], fromName: String, to: String, subject: String, message: String): Unit = {
+  def send(fromEmail: Option[String], fromName: String, to: Seq[String], subject: String, message: String): Unit = {
     val email = new SimpleEmail()
     email.setHostName("localhost")
 
@@ -16,7 +16,7 @@ object Mailer {
     }
 
     email
-      .addTo(to)
+      .addTo(to:_*)
       .setFrom("stijn@stijnvermeeren.be", "Tijdloze Website")
       .setSubject(subject)
       .setMsg(message)
