@@ -22,7 +22,7 @@ class ContactController @Inject() (optionallyAuthenticate: OptionallyAuthenticat
             case Some(email) => s" --- Reply-to email address: $email"
             case None => " --- No reply-to email address provided."
           }
-          val footer = Seq(footer1, footer2).mkString("/n")
+          val footer = Seq(footer1, footer2).mkString("\n")
 
           val recipients: Seq[String] = config.getString("tijdloze.contact.recipients")
             .split(';')
