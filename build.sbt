@@ -1,4 +1,4 @@
-name := "De Tijdloze Website API"
+name := "tijdloze.rocks API"
 maintainer := "Stijn Vermeeren"
 version := "1.0-SNAPSHOT"
 
@@ -8,7 +8,7 @@ scalaVersion := "2.13.10"
 
 libraryDependencies ++= Seq(evolutions, guice, ws, ehcache, filters)
 libraryDependencies ++= Seq(
-  "mysql" % "mysql-connector-java" % "5.1.48",
+  "mysql" % "mysql-connector-java" % "8.0.33",
   "com.typesafe.play" %% "play-slick" % "5.1.0",
   "com.typesafe.play" %% "play-slick-evolutions" % "5.1.0",
   "com.typesafe.play" %% "play-json-joda" % "2.9.3",
