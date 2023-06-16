@@ -30,10 +30,10 @@ class SpotifyController @Inject()(
             artist.id,
             field = "spotifyId",
             value = Some(uniqueSpotifyArtist.id),
-            comment = Some(s"Spotify song (${song.id} ${song.title})"),
+            comment = Some(s"Spotify song (${song.id.value} ${song.title})"),
             isAccepted = true
           ) flatMap { _ =>
-            artistDAO.setSpotifyId(artist.id, uniqueSpotifyArtist.id)
+            artistDAO.setSpotifyId(artist.id, Some(uniqueSpotifyArtist.id))
           }
         case _ =>
           FutureUtil.traverseSequentially(spotifyArtists) { spotifyArtist =>

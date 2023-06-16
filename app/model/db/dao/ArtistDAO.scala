@@ -86,9 +86,9 @@ class ArtistDAO @Inject()(allTables: AllTables) {
     }
   }
 
-  def setSpotifyId(artistId: ArtistId, spotifyId: String): Future[Int] = {
+  def setSpotifyId(artistId: ArtistId, spotifyId: Option[String]): Future[Int] = {
     db run {
-      ArtistTable.filter(_.id === artistId).map(_.spotifyId).update(Some(spotifyId))
+      ArtistTable.filter(_.id === artistId).map(_.spotifyId).update(spotifyId)
     }
   }
 }

@@ -15,6 +15,12 @@ class CrawlArtistDAO @Inject()(allTables: AllTables) {
   private val db = dbConfig.db
   import dbConfig.profile.api._
 
+  def findById(id: CrawlArtistId): Future[Option[CrawlArtist]] = {
+    db run {
+      CrawlArtistTable.filter(_.id === id).result.headOption
+    }
+  }
+
   def find(artistId: ArtistId, field: String, value: Option[String]): Future[Option[CrawlArtist]] = {
     db run {
       CrawlArtistTable
@@ -88,6 +94,24 @@ class CrawlArtistDAO @Inject()(allTables: AllTables) {
         db run {
           CrawlArtistTable += newCrawl
         }
+    }
+  }
+
+  def getFirstPending(): Future[Option[CrawlArtist]] = {
+    db run {
+      CrawlArtistTable.filter(_.isAccepted.isEmpty).result.headOption
+    }
+  }
+
+  def accept(crawlArtistId: CrawlArtistId): Future[Int] = {
+    db run {
+      CrawlArtistTable.filter(_.id === crawlArtistId).map(_.isAccepted).update(Some(true))
+    }
+  }
+
+  def reject(crawlArtistId: CrawlArtistId): Future[Int] = {
+    db run {
+      CrawlArtistTable.filter(_.id === crawlArtistId).map(_.isAccepted).update(Some(false))
     }
   }
 }
