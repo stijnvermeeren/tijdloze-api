@@ -2,6 +2,7 @@ package controllers
 
 import model.CrawlArtistId
 import model.db.dao.{ArtistDAO, CrawlArtistDAO}
+import play.api.cache.AsyncCacheApi
 import play.api.libs.json.Json
 import play.api.mvc._
 
@@ -13,7 +14,8 @@ import scala.concurrent.Future
 class CrawlArtistController @Inject()(
   authenticateAdmin: AuthenticateAdmin,
   crawlArtistDAO: CrawlArtistDAO,
-  artistDAO: ArtistDAO
+  artistDAO: ArtistDAO,
+  cache: AsyncCacheApi
 ) extends InjectedController {
   def getFirstPending() = {
     (Action andThen authenticateAdmin).async { implicit rs =>
@@ -29,7 +31,9 @@ class CrawlArtistController @Inject()(
         case Some(crawl) =>
           val artistUpdate = crawl.field match {
             case "spotifyId" =>
-              artistDAO.setSpotifyId(crawl.artistId, crawl.value)
+              artistDAO.setSpotifyId(crawl.artistId, crawl.value).map{ _ =>
+                cache.remove(s"artist/${crawl.artistId.value}")
+              }
             case _ =>
               Future.successful(())
           }

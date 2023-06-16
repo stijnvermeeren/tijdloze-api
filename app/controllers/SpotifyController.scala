@@ -4,6 +4,7 @@ import model.db.{Artist, Song}
 
 import javax.inject._
 import model.db.dao.{AlbumDAO, ArtistDAO, CrawlArtistDAO, SongDAO}
+import play.api.cache.AsyncCacheApi
 import play.api.libs.json.Json
 import play.api.mvc._
 import util.FutureUtil
@@ -19,7 +20,8 @@ class SpotifyController @Inject()(
   songDAO: SongDAO,
   artistDAO: ArtistDAO,
   albumDAO: AlbumDAO,
-  crawlArtistDAO: CrawlArtistDAO
+  crawlArtistDAO: CrawlArtistDAO,
+  cache: AsyncCacheApi
 ) extends InjectedController {
 
   def crawlArtistsFromSongs() = {
@@ -34,6 +36,8 @@ class SpotifyController @Inject()(
             isAccepted = true
           ) flatMap { _ =>
             artistDAO.setSpotifyId(artist.id, Some(uniqueSpotifyArtist.id))
+          } map { _ =>
+            cache.remove(s"artist/${artist.id.value}")
           }
         case _ =>
           FutureUtil.traverseSequentially(spotifyArtists) { spotifyArtist =>
