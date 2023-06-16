@@ -15,6 +15,7 @@ private[dao] class AllTables @Inject()(protected val dbConfigProvider: DatabaseC
   with ChatMessageTableComponent
   with ChatOnlineTableComponent
   with ChatTicketTableComponent
+  with CrawlArtistTableComponent
   with UserTableComponent
   with ListEntryTableComponent
   with ListExitTableComponent

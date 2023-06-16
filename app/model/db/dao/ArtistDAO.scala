@@ -37,7 +37,8 @@ class ArtistDAO @Inject()(allTables: AllTables) {
       urlOfficial = urlOfficial.map(_.trim).filter(_.nonEmpty),
       urlWikiEn = urlWikiEn.map(_.trim).filter(_.nonEmpty),
       urlWikiNl = urlWikiNl.map(_.trim).filter(_.nonEmpty),
-      urlAllMusic = urlAllMusic.map(_.trim).filter(_.nonEmpty)
+      urlAllMusic = urlAllMusic.map(_.trim).filter(_.nonEmpty),
+      spotifyId = spotifyId.map(_.trim).filter(_.nonEmpty)
     )
 
     db run {
@@ -60,7 +61,8 @@ class ArtistDAO @Inject()(allTables: AllTables) {
           x.urlOfficial,
           x.urlWikiEn,
           x.urlWikiNl,
-          x.urlAllMusic
+          x.urlAllMusic,
+          x.spotifyId
         )
         )
         .update((
@@ -72,32 +74,21 @@ class ArtistDAO @Inject()(allTables: AllTables) {
           urlOfficial.map(_.trim).filter(_.nonEmpty),
           urlWikiEn.map(_.trim).filter(_.nonEmpty),
           urlWikiNl.map(_.trim).filter(_.nonEmpty),
-          urlAllMusic.map(_.trim).filter(_.nonEmpty)
+          urlAllMusic.map(_.trim).filter(_.nonEmpty),
+          spotifyId.map(_.trim).filter(_.nonEmpty)
         ))
-    }
-  }
-
-  def newArtists(year: Int, maxPosition: Int = 500): Future[Seq[Artist]] = {
-    def isNew(artistId: Rep[ArtistId]): Rep[Boolean] = {
-      val entryYears = for {
-        song <- SongTable.filter(_.artistId === artistId)
-        entryYear <- ListEntryTable
-          .filter(_.songId === song.id)
-          .filter(_.position <= maxPosition)
-          .map(_.year)
-      } yield entryYear
-
-      (entryYears.min === year).ifNull(false)
-    }
-
-    db run {
-      ArtistTable.filter(artist => isNew(artist.id)).result
     }
   }
 
   def delete(artistId: ArtistId): Future[Int] = {
     db run {
       ArtistTable.filter(_.id === artistId).delete
+    }
+  }
+
+  def setSpotifyId(artistId: ArtistId, spotifyId: String): Future[Int] = {
+    db run {
+      ArtistTable.filter(_.id === artistId).map(_.spotifyId).update(Some(spotifyId))
     }
   }
 }

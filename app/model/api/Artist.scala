@@ -13,7 +13,8 @@ final case class Artist(
   urlOfficial: Option[String],
   urlWikiEn: Option[String],
   urlWikiNl: Option[String],
-  urlAllMusic: Option[String]
+  urlAllMusic: Option[String],
+  spotifyId: Option[String]
 )
 
 object Artist {
@@ -28,7 +29,8 @@ object Artist {
       urlOfficial = dbArtist.urlOfficial,
       urlWikiEn = dbArtist.urlWikiEn,
       urlWikiNl = dbArtist.urlWikiNl,
-      urlAllMusic = dbArtist.urlAllMusic
+      urlAllMusic = dbArtist.urlAllMusic,
+      spotifyId = dbArtist.spotifyId
     )
   }
 

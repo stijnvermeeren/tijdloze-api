@@ -51,6 +51,7 @@ DELETE  /user/:id/block                  controllers.UserController.unblock(id: 
 GET     /cache/invalidate                controllers.CacheController.invalidate()
 
 GET     /spotify/find                    controllers.SpotifyController.find()
+GET     /spotify/crawl-artists           controllers.SpotifyController.crawlArtistsFromSongs()
 
 POST    /poll                            controllers.PollController.createPoll()
 GET     /poll/list                       controllers.PollController.list()

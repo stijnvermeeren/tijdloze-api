@@ -1,13 +1,13 @@
-package util
+package util.spotify
 
 import com.typesafe.config.Config
-import javax.inject.Inject
 import model.api.SpotifyHit
 import play.api.libs.json.JsArray
-import play.api.libs.ws.{WSAuthScheme, WSClient, WSRequest, WSResponse}
+import play.api.libs.ws.{WSAuthScheme, WSClient, WSResponse}
 
-import scala.concurrent.Future
+import javax.inject.Inject
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 class SpotifyAPI @Inject() (ws: WSClient, config: Config) {
   def getToken(): Future[String] = {
@@ -59,6 +59,31 @@ class SpotifyAPI @Inject() (ws: WSClient, config: Config) {
           year = Integer.parseInt((value \ "album" \ "release_date").as[String].take(4))
         )
 
+      }
+    }
+
+    requestHandler(request, handleResponse)
+  }
+
+  def getArtistsFromTrack(token: String, trackId: String): Future[Seq[SpotifyArtist]] = {
+    def request() = {
+      val request = ws
+        .url(s"https://api.spotify.com/v1/tracks/${trackId}")
+        .addHttpHeaders("Authorization" -> s"Bearer $token")
+        .addQueryStringParameters(
+          "market" -> "BE"
+        )
+
+      request.get()
+    }
+
+    def handleResponse(response: WSResponse) = {
+      val artists = (response.json \ "artists").as[JsArray]
+      artists.value.toSeq map { artist =>
+        SpotifyArtist(
+          id = (artist \ "id").as[String],
+          name = (artist \ "name").as[String]
+        )
       }
     }
 

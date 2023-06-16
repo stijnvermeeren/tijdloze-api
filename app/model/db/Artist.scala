@@ -11,5 +11,6 @@ final case class Artist(
   urlOfficial: Option[String],
   urlWikiEn: Option[String],
   urlWikiNl: Option[String],
-  urlAllMusic: Option[String]
+  urlAllMusic: Option[String],
+  spotifyId: Option[String]
 )
