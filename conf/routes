@@ -54,6 +54,7 @@ GET     /spotify/find                    controllers.SpotifyController.find()
 GET     /spotify/crawl-artists           controllers.SpotifyController.crawlArtistsFromSongs()
 
 GET     /wikidata/crawl-artists-spotify  controllers.WikidataController.crawlArtistsFromSpotify()
+GET     /wikidata/crawl-artist-details   controllers.WikidataController.crawlArtistDetails()
 
 GET     /crawl-artist                    controllers.CrawlArtistController.getFirstPending()
 POST    /crawl-artist/:id                controllers.CrawlArtistController.accept(id: model.CrawlArtistId)

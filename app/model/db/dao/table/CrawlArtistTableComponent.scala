@@ -12,7 +12,7 @@ private[table] trait CrawlArtistTableComponent extends TableComponent {
     val id = column[CrawlArtistId]("id", O.AutoInc, O.PrimaryKey)
     val artistId = column[ArtistId]("artist_id")
     val crawlDate = column[DateTime]("crawl_date")
-    val field = column[String]("field")
+    val field = column[CrawlField]("field")
     val value = column[Option[String]]("value")
     val comment = column[Option[String]]("comment")
     val isAuto = column[Boolean]("is_auto")

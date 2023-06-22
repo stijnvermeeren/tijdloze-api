@@ -13,7 +13,8 @@ final case class Artist(
   urlWikiNl: Option[String],
   urlAllMusic: Option[String],
   spotifyId: Option[String],
-  wikidataId: Option[String]
+  wikidataId: Option[String],
+  musicbrainzId: Option[String]
 ) {
   val fullName: String = namePrefix match {
     case Some(prefix) => s"$prefix $name"

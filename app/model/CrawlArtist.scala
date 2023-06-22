@@ -8,7 +8,7 @@ final case class CrawlArtist(
   id: CrawlArtistId = CrawlArtistId(0),
   artistId: ArtistId,
   crawlDate: DateTime,
-  field: String,
+  field: CrawlField,
   value: Option[String] = None,
   comment: Option[String] = None,
   isAuto: Boolean,

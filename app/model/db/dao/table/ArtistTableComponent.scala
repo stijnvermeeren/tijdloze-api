@@ -19,8 +19,9 @@ private[table] trait ArtistTableComponent extends TableComponent {
     val urlAllMusic = column[Option[String]]("url_allmusic")
     val spotifyId = column[Option[String]]("spotify_id")
     val wikidataId = column[Option[String]]("wikidata_id")
+    val musicbrainzId = column[Option[String]]("musicbrainz_id")
 
-    def * = (id, namePrefix, name, aliases, countryId, notes, urlOfficial, urlWikiEn, urlWikiNl, urlAllMusic, spotifyId, wikidataId) <>
+    def * = (id, namePrefix, name, aliases, countryId, notes, urlOfficial, urlWikiEn, urlWikiNl, urlAllMusic, spotifyId, wikidataId, musicbrainzId) <>
       ((Artist.apply _).tupled, Artist.unapply)
   }
 

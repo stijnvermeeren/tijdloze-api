@@ -21,7 +21,7 @@ class CrawlArtistDAO @Inject()(allTables: AllTables) {
     }
   }
 
-  def find(artistId: ArtistId, field: String, value: Option[String]): Future[Option[CrawlArtist]] = {
+  def find(artistId: ArtistId, field: CrawlField, value: Option[String]): Future[Option[CrawlArtist]] = {
     db run {
       CrawlArtistTable
         .filter(_.artistId === artistId)
@@ -40,7 +40,7 @@ class CrawlArtistDAO @Inject()(allTables: AllTables) {
 
   def saveAuto(
     artistId: ArtistId,
-    field: String,
+    field: CrawlField,
     value: Option[String],
     comment: Option[String],
     isAccepted: Boolean
@@ -73,7 +73,7 @@ class CrawlArtistDAO @Inject()(allTables: AllTables) {
 
   def savePending(
     artistId: ArtistId,
-    field: String,
+    field: CrawlField,
     value: Option[String],
     comment: Option[String]
   ): Future[Int] = {

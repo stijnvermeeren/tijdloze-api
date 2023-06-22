@@ -1,5 +1,6 @@
 package controllers
 
+import model.CrawlField
 import model.db.{Artist, Song}
 
 import javax.inject._
@@ -28,7 +29,7 @@ class SpotifyController @Inject()(
     def setArtistSpotifyId(song: Song, artist: Artist, spotifyArtists: Seq[SpotifyArtist]) = {
       def saveAuto(spotifyId: String) = crawlArtistDAO.saveAuto(
         artist.id,
-        field = "spotifyId",
+        field = CrawlField.SpotifyId,
         value = Some(spotifyId),
         comment = Some(s"Spotify song (${song.id.value} ${song.title})"),
         isAccepted = true
@@ -42,18 +43,14 @@ class SpotifyController @Inject()(
         case Some(uniqueSpotifyArtist) =>
           saveAuto(uniqueSpotifyArtist.id)
         case _ =>
-          println()
-          println(artist)
-          println(spotifyArtists)
           spotifyArtists.find(_.name == artist.fullName) match {
             case Some(matchingArtist) =>
-              println(matchingArtist)
               saveAuto(matchingArtist.id)
             case None =>
               FutureUtil.traverseSequentially(spotifyArtists) { spotifyArtist =>
                 crawlArtistDAO.savePending(
                   artist.id,
-                  field = "spotifyId",
+                  field = CrawlField.SpotifyId,
                   value = Some(spotifyArtist.id),
                   comment = Some(s"Spotify song (${song.id} ${song.title})")
                 )

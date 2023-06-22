@@ -15,7 +15,8 @@ final case class Artist(
   urlWikiNl: Option[String],
   urlAllMusic: Option[String],
   spotifyId: Option[String],
-  wikidataId: Option[String]
+  wikidataId: Option[String],
+  musicbrainzId: Option[String]
 )
 
 object Artist {
@@ -32,7 +33,8 @@ object Artist {
       urlWikiNl = dbArtist.urlWikiNl,
       urlAllMusic = dbArtist.urlAllMusic,
       spotifyId = dbArtist.spotifyId,
-      wikidataId = dbArtist.wikidataId
+      wikidataId = dbArtist.wikidataId,
+      musicbrainzId = dbArtist.musicbrainzId
     )
   }
 

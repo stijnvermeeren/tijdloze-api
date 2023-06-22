@@ -29,19 +29,13 @@ class CrawlArtistController @Inject()(
     (Action andThen authenticateAdmin).async { implicit request =>
       crawlArtistDAO.findById(crawlArtistId).flatMap{
         case Some(crawl) =>
-          val artistUpdate = crawl.field match {
-            case "spotifyId" =>
-              artistDAO.setSpotifyId(crawl.artistId, crawl.value).map{ _ =>
-                cache.remove(s"artist/${crawl.artistId.value}")
-              }
-            case _ =>
-              Future.successful(())
-          }
-
           for {
-            _ <- artistUpdate
+            _ <- crawl.field.save(artistDAO)(crawl.artistId, crawl.value)
             _ <- crawlArtistDAO.accept(crawlArtistId)
-          } yield Ok
+          } yield {
+            cache.remove(s"artist/${crawl.artistId.value}")
+            Ok
+          }
         case None => Future.successful(Ok)
       }
     }
