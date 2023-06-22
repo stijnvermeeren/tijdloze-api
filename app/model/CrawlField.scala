@@ -35,7 +35,7 @@ object CrawlField {
   case object SpotifyId extends CrawlField("spotifyId", _.spotifyId, _.setSpotifyId)
   case object MusicbrainzId extends CrawlField("musicbrainzId", _.musicbrainzId, _.setMusicbrainzId)
 
-  val allValues = Seq(UrlAllMusic, CountryId, UrlWikiEn, UrlWikiNl, UrlOfficial, SpotifyId, MusicbrainzId)
+  val allValues = Seq(UrlAllMusic, CountryId, UrlWikiEn, UrlWikiNl, UrlOfficial, WikidataId, SpotifyId, MusicbrainzId)
 
   implicit val crawlFieldColumnType = MappedColumnType.base[CrawlField, String](
     _.name,

@@ -24,9 +24,9 @@ jobs:
           known_hosts: 'unnecessary'
       - name: Adding Known Hosts
         run: ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
-      - name: Deploy with rsync
+      - name: Copy zip to server with rsync
         run: rsync -avz target/universal/tijdloze-rocks-api-1.0-SNAPSHOT.zip ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:~/tijdloze-api/
-      - name: npm ci on server
+      - name: Deploy on server
         uses: appleboy/ssh-action@v0.1.5
         with:
           host: ${{ secrets.SSH_HOST }}
