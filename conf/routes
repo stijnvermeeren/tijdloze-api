@@ -53,6 +53,8 @@ GET     /cache/invalidate                controllers.CacheController.invalidate(
 GET     /spotify/find                    controllers.SpotifyController.find()
 GET     /spotify/crawl-artists           controllers.SpotifyController.crawlArtistsFromSongs()
 
+GET     /wikidata/crawl-artists-spotify  controllers.WikidataController.crawlArtistsFromSpotify()
+
 GET     /crawl-artist                    controllers.CrawlArtistController.getFirstPending()
 POST    /crawl-artist/:id                controllers.CrawlArtistController.accept(id: model.CrawlArtistId)
 DELETE  /crawl-artist/:id                controllers.CrawlArtistController.reject(id: model.CrawlArtistId)

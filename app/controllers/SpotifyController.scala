@@ -26,27 +26,38 @@ class SpotifyController @Inject()(
 
   def crawlArtistsFromSongs() = {
     def setArtistSpotifyId(song: Song, artist: Artist, spotifyArtists: Seq[SpotifyArtist]) = {
+      def saveAuto(spotifyId: String) = crawlArtistDAO.saveAuto(
+        artist.id,
+        field = "spotifyId",
+        value = Some(spotifyId),
+        comment = Some(s"Spotify song (${song.id.value} ${song.title})"),
+        isAccepted = true
+      ) flatMap { _ =>
+        artistDAO.setSpotifyId(artist.id, Some(spotifyId))
+      } map { _ =>
+        cache.remove(s"artist/${artist.id.value}")
+      }
+
       spotifyArtists.headOption.filter(_ => spotifyArtists.length == 1) match {
         case Some(uniqueSpotifyArtist) =>
-          crawlArtistDAO.saveAuto(
-            artist.id,
-            field = "spotifyId",
-            value = Some(uniqueSpotifyArtist.id),
-            comment = Some(s"Spotify song (${song.id.value} ${song.title})"),
-            isAccepted = true
-          ) flatMap { _ =>
-            artistDAO.setSpotifyId(artist.id, Some(uniqueSpotifyArtist.id))
-          } map { _ =>
-            cache.remove(s"artist/${artist.id.value}")
-          }
+          saveAuto(uniqueSpotifyArtist.id)
         case _ =>
-          FutureUtil.traverseSequentially(spotifyArtists) { spotifyArtist =>
-            crawlArtistDAO.savePending(
-              artist.id,
-              field = "spotifyId",
-              value = Some(spotifyArtist.id),
-              comment = Some(s"Spotify song (${song.id} ${song.title})")
-            )
+          println()
+          println(artist)
+          println(spotifyArtists)
+          spotifyArtists.find(_.name == artist.fullName) match {
+            case Some(matchingArtist) =>
+              println(matchingArtist)
+              saveAuto(matchingArtist.id)
+            case None =>
+              FutureUtil.traverseSequentially(spotifyArtists) { spotifyArtist =>
+                crawlArtistDAO.savePending(
+                  artist.id,
+                  field = "spotifyId",
+                  value = Some(spotifyArtist.id),
+                  comment = Some(s"Spotify song (${song.id} ${song.title})")
+                )
+              }
           }
       }
     }
@@ -58,11 +69,22 @@ class SpotifyController @Inject()(
             song.spotifyId.map(spotifyId => (song, spotifyId))
           }
           FutureUtil.traverseSequentially(songsWithSpotifyId) { case (song, spotifyId) =>
-            for {
-              artist <- artistDAO.get(song.artistId)
-              spotifyArtists <- spotifyAPI.getArtistsFromTrack(token, spotifyId)
-              _ <- setArtistSpotifyId(song, artist, spotifyArtists)
-            } yield Thread.sleep(1000)
+            spotifyAPI.getArtistsFromTrack(token, spotifyId) flatMap { spotifyArtists =>
+              val mainArtist = for {
+                artist <- artistDAO.get(song.artistId)
+                _ <- setArtistSpotifyId(song, artist, spotifyArtists)
+              } yield Thread.sleep(1000)
+
+              song.secondArtistId match {
+                case Some(secondArtistId) => mainArtist.flatMap{ _ =>
+                  for {
+                    artist <- artistDAO.get(secondArtistId)
+                    _ <- setArtistSpotifyId(song, artist, spotifyArtists)
+                  } yield Thread.sleep(1000)
+                }
+                case None => mainArtist
+              }
+            }
           }
         }
       } map { _ =>

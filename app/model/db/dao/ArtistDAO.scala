@@ -38,7 +38,8 @@ class ArtistDAO @Inject()(allTables: AllTables) {
       urlWikiEn = urlWikiEn.map(_.trim).filter(_.nonEmpty),
       urlWikiNl = urlWikiNl.map(_.trim).filter(_.nonEmpty),
       urlAllMusic = urlAllMusic.map(_.trim).filter(_.nonEmpty),
-      spotifyId = spotifyId.map(_.trim).filter(_.nonEmpty)
+      spotifyId = spotifyId.map(_.trim).filter(_.nonEmpty),
+      wikidataId = wikidataId.map(_.trim).filter(_.nonEmpty)
     )
 
     db run {
@@ -62,7 +63,8 @@ class ArtistDAO @Inject()(allTables: AllTables) {
           x.urlWikiEn,
           x.urlWikiNl,
           x.urlAllMusic,
-          x.spotifyId
+          x.spotifyId,
+          x.wikidataId
         )
         )
         .update((
@@ -75,7 +77,8 @@ class ArtistDAO @Inject()(allTables: AllTables) {
           urlWikiEn.map(_.trim).filter(_.nonEmpty),
           urlWikiNl.map(_.trim).filter(_.nonEmpty),
           urlAllMusic.map(_.trim).filter(_.nonEmpty),
-          spotifyId.map(_.trim).filter(_.nonEmpty)
+          spotifyId.map(_.trim).filter(_.nonEmpty),
+          wikidataId.map(_.trim).filter(_.nonEmpty)
         ))
     }
   }
@@ -89,6 +92,12 @@ class ArtistDAO @Inject()(allTables: AllTables) {
   def setSpotifyId(artistId: ArtistId, spotifyId: Option[String]): Future[Int] = {
     db run {
       ArtistTable.filter(_.id === artistId).map(_.spotifyId).update(spotifyId)
+    }
+  }
+
+  def setWikidataId(artistId: ArtistId, wikidataId: Option[String]): Future[Int] = {
+    db run {
+      ArtistTable.filter(_.id === artistId).map(_.wikidataId).update(wikidataId)
     }
   }
 }

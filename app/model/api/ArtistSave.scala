@@ -12,7 +12,8 @@ final case class ArtistSave(
   urlWikiEn: Option[String],
   urlWikiNl: Option[String],
   urlAllMusic: Option[String],
-  spotifyId: Option[String]
+  spotifyId: Option[String],
+  wikidataId: Option[String]
 )
 
 object ArtistSave {
