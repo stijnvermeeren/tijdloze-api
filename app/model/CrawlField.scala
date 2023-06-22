@@ -39,7 +39,7 @@ object CrawlField {
 
   implicit val crawlFieldColumnType = MappedColumnType.base[CrawlField, String](
     _.name,
-    dbValue => allValues.find(_.name == dbValue).get
+    dbValue => allValues.find(_.name == dbValue).getOrElse(throw new RuntimeException(s"Unknown CrawlField `$dbValue`"))
   )
 
 
