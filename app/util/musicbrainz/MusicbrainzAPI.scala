@@ -22,7 +22,7 @@ class MusicbrainzAPI @Inject()(ws: WSClient, config: Config) {
       )
   }
 
-  def searchAlbum(album: Album, artist: Artist): Future[Seq[String]] = {
+  def searchAlbum(album: Album, artist: Artist): Future[Seq[MusicbrainzReleaseGroup]] = {
     val artistQuery = artist.musicbrainzId match {
       case Some(musicbrainzId) => s"""arid:"$musicbrainzId""""
       case None => s"""artist:"${artist.fullName}""""
@@ -41,10 +41,32 @@ class MusicbrainzAPI @Inject()(ws: WSClient, config: Config) {
     val query = s"$artistQuery AND $titleQuery AND $yearQuery"
     sendRequest("release-group", query).get().map { response =>
       val items = (response.json \ "release-groups").as[JsArray]
-      items.value.toSeq flatMap { value =>
-        (value \ "id").toOption map { id =>
-          id.as[JsString].value
-        }
+      val results = items.value.toSeq flatMap { value =>
+        for {
+          id <- (value \ "id").toOption
+          title <- (value \ "title").toOption
+          releaseType <- (value \ "primary-type").toOption
+        } yield MusicbrainzReleaseGroup(
+          id = id.as[JsString].value,
+          title = title.as[JsString].value,
+          releaseType = releaseType.as[JsString].value
+        )
+      }
+
+      val matchingTitle = results.filter(_.title == searchTitle)
+      val isAlbum = results.filter(_.releaseType == "Album")
+      val matchingTitleAndAlbum = results
+        .filter(_.title == searchTitle)
+        .filter(_.releaseType == "Album")
+
+      if (matchingTitleAndAlbum.length == 1) {
+        matchingTitleAndAlbum
+      } else if (matchingTitle.length == 1) {
+        matchingTitle
+      } else if (isAlbum.length == 1) {
+        isAlbum
+      } else {
+        results
       }
     }
   }
