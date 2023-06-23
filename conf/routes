@@ -57,6 +57,7 @@ GET     /wikidata/crawl-artists-spotify  controllers.WikidataController.crawlArt
 GET     /wikidata/crawl-artist-details   controllers.WikidataController.crawlArtistDetails()
 
 GET     /musicbrainz/crawl-albums        controllers.MusicbrainzController.crawlAlbums()
+GET     /coverartarchive/crawl-albums    controllers.CoverArtArchiveController.crawlAlbums()
 
 GET     /crawl-artist                    controllers.CrawlArtistController.getFirstPending()
 POST    /crawl-artist/:id                controllers.CrawlArtistController.accept(id: model.CrawlArtistId)
