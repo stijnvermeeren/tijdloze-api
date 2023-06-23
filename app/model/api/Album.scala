@@ -27,10 +27,10 @@ object Album {
       urlWikiEn = dbAlbum.urlWikiEn,
       urlWikiNl = dbAlbum.urlWikiNl,
       urlAllMusic = dbAlbum.urlAllMusic,
-      spotifyId = dbAlbum.urlAllMusic,
-      wikidataId = dbAlbum.urlAllMusic,
-      musicbrainzId = dbAlbum.urlAllMusic,
-      cover = dbAlbum.urlAllMusic
+      spotifyId = dbAlbum.spotifyId,
+      wikidataId = dbAlbum.wikidataId,
+      musicbrainzId = dbAlbum.musicbrainzId,
+      cover = dbAlbum.cover
     )
   }
 
