@@ -2,33 +2,34 @@ package model
 package db
 package dao
 
-import model.db.dao.table.CrawlArtistTable
+import model.db.dao.table.CrawlAlbumTable
 import org.joda.time.DateTime
 import play.api.db.slick.DatabaseConfigProvider
+import slick.basic.DatabaseConfig
 import slick.jdbc.JdbcProfile
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 @Singleton
-class CrawlArtistDAO @Inject()(configProvider: DatabaseConfigProvider) {
+class CrawlAlbumDAO @Inject()(configProvider: DatabaseConfigProvider) {
   val dbConfig = configProvider.get[JdbcProfile]
   private val db = dbConfig.db
   import dbConfig.profile.api._
 
-  val crawlArtistTable = TableQuery[CrawlArtistTable]
+  val crawlAlbumTable = TableQuery[CrawlAlbumTable]
 
-  def findById(id: CrawlArtistId): Future[Option[CrawlArtist]] = {
+  def findById(id: CrawlAlbumId): Future[Option[CrawlAlbum]] = {
     db run {
-      crawlArtistTable.filter(_.id === id).result.headOption
+      crawlAlbumTable.filter(_.id === id).result.headOption
     }
   }
 
-  def find(artistId: ArtistId, field: ArtistCrawlField, value: Option[String]): Future[Option[CrawlArtist]] = {
+  def find(albumId: AlbumId, field: AlbumCrawlField, value: Option[String]): Future[Option[CrawlAlbum]] = {
     db run {
-      crawlArtistTable
-        .filter(_.artistId === artistId)
+      crawlAlbumTable
+        .filter(_.albumId === albumId)
         .filter(_.field === field)
         .filter(_.value === value)
         .result
@@ -36,21 +37,21 @@ class CrawlArtistDAO @Inject()(configProvider: DatabaseConfigProvider) {
     }
   }
 
-  def delete(crawlArtistId: CrawlArtistId): Future[Int] = {
+  def delete(crawlAlbumId: CrawlAlbumId): Future[Int] = {
     db run {
-      crawlArtistTable.filter(_.id === crawlArtistId).delete
+      crawlAlbumTable.filter(_.id === crawlAlbumId).delete
     }
   }
 
   def saveAuto(
-    artistId: ArtistId,
-    field: ArtistCrawlField,
+    albumId: AlbumId,
+    field: AlbumCrawlField,
     value: Option[String],
     comment: Option[String],
     isAccepted: Boolean
   ): Future[Int] = {
-    val newCrawl = CrawlArtist(
-      artistId = artistId,
+    val newCrawl = CrawlAlbum(
+      albumId = albumId,
       crawlDate = DateTime.now(),
       field = field,
       value = value,
@@ -59,30 +60,30 @@ class CrawlArtistDAO @Inject()(configProvider: DatabaseConfigProvider) {
       isAccepted = Some(isAccepted)
     )
 
-    find(artistId, field, value) flatMap {
+    find(albumId, field, value) flatMap {
       case Some(existingCrawl) if existingCrawl.isAuto && existingCrawl.isAccepted.contains(isAccepted) =>
         Future.successful(0)
       case Some(existingCrawl) =>
         delete(existingCrawl.id) flatMap { _ =>
           db run {
-            crawlArtistTable += newCrawl
+            crawlAlbumTable += newCrawl
           }
         }
       case None =>
         db run {
-          crawlArtistTable += newCrawl
+          crawlAlbumTable += newCrawl
         }
     }
   }
 
   def savePending(
-    artistId: ArtistId,
-    field: ArtistCrawlField,
+    albumId: AlbumId,
+    field: AlbumCrawlField,
     value: Option[String],
     comment: Option[String]
   ): Future[Int] = {
-    val newCrawl = CrawlArtist(
-      artistId = artistId,
+    val newCrawl = CrawlAlbum(
+      albumId = albumId,
       crawlDate = DateTime.now(),
       field = field,
       value = value,
@@ -91,31 +92,31 @@ class CrawlArtistDAO @Inject()(configProvider: DatabaseConfigProvider) {
       isAccepted = None
     )
 
-    find(artistId, field, value) flatMap {
+    find(albumId, field, value) flatMap {
       case Some(existingCrawl) =>
         Future.successful(0)
       case None =>
         db run {
-          crawlArtistTable += newCrawl
+          crawlAlbumTable += newCrawl
         }
     }
   }
 
-  def getFirstPending(): Future[Option[CrawlArtist]] = {
+  def getFirstPending(): Future[Option[CrawlAlbum]] = {
     db run {
-      crawlArtistTable.filter(_.isAccepted.isEmpty).result.headOption
+      crawlAlbumTable.filter(_.isAccepted.isEmpty).result.headOption
     }
   }
 
-  def accept(crawlArtistId: CrawlArtistId): Future[Int] = {
+  def accept(crawlAlbumId: CrawlAlbumId): Future[Int] = {
     db run {
-      crawlArtistTable.filter(_.id === crawlArtistId).map(_.isAccepted).update(Some(true))
+      crawlAlbumTable.filter(_.id === crawlAlbumId).map(_.isAccepted).update(Some(true))
     }
   }
 
-  def reject(crawlArtistId: CrawlArtistId): Future[Int] = {
+  def reject(crawlAlbumId: CrawlAlbumId): Future[Int] = {
     db run {
-      crawlArtistTable.filter(_.id === crawlArtistId).map(_.isAccepted).update(Some(false))
+      crawlAlbumTable.filter(_.id === crawlAlbumId).map(_.isAccepted).update(Some(false))
     }
   }
 }

@@ -4,28 +4,32 @@ package dao
 
 import javax.inject.{Inject, Singleton}
 import model.api.UserSave
-import model.db.dao.table.AllTables
+import model.db.dao.table.UserTable
 import org.joda.time.DateTime
 import com.github.tototoshi.slick.MySQLJodaSupport._
+import play.api.db.slick.DatabaseConfigProvider
+import slick.jdbc.JdbcProfile
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton
-class UserDAO @Inject()(allTables: AllTables) {
-  import allTables._
+class UserDAO @Inject()(configProvider: DatabaseConfigProvider) {
+  val dbConfig = configProvider.get[JdbcProfile]
   private val db = dbConfig.db
   import dbConfig.profile.api._
 
+  val userTable = TableQuery[UserTable]
+
   def get(id: String): Future[Option[User]] = {
     db run {
-      UserTable.filter(_.id === id).result.headOption
+      userTable.filter(_.id === id).result.headOption
     }
   }
 
   def save(id: String, userSave: UserSave): Future[Unit] = {
     db run {
-      UserTable
+      userTable
         .filter(_.id === id)
         .map(user => (
           user.name,
@@ -50,7 +54,7 @@ class UserDAO @Inject()(allTables: AllTables) {
         Future.successful(())
       } else {
         db run {
-          UserTable += User(
+          userTable += User(
             id = id,
             name = userSave.name,
             firstName = userSave.firstName,
@@ -66,7 +70,7 @@ class UserDAO @Inject()(allTables: AllTables) {
 
   def setDisplayName(id: String, displayName: String): Future[Unit] = {
     db run {
-      UserTable
+      userTable
         .filter(_.id === id)
         .map(_.displayName)
         .update(Some(displayName))
@@ -75,7 +79,7 @@ class UserDAO @Inject()(allTables: AllTables) {
 
   def setBlocked(id: String, isBlocked: Boolean): Future[Unit] = {
     db run {
-      UserTable
+      userTable
         .filter(_.id === id)
         .map(_.isBlocked)
         .update(isBlocked)
@@ -84,7 +88,7 @@ class UserDAO @Inject()(allTables: AllTables) {
 
   def listAll(): Future[Seq[User]] = {
     db run {
-      UserTable.sortBy(_.displayName).result
+      userTable.sortBy(_.displayName).result
     }
   }
 }

@@ -1,26 +1,31 @@
 package model.db.dao
 
 import com.github.tototoshi.slick.MySQLJodaSupport._
+
 import javax.inject.{Inject, Singleton}
-import model.db.dao.table.AllTables
+import model.db.dao.table.ChatTicketTable
 import model.db.ChatTicket
 import org.joda.time.DateTime
-import java.util.UUID
+import play.api.db.slick.DatabaseConfigProvider
+import slick.jdbc.JdbcProfile
 
+import java.util.UUID
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 @Singleton
-class ChatTicketDAO @Inject()(allTables: AllTables) {
-  import allTables._
+class ChatTicketDAO @Inject()(configProvider: DatabaseConfigProvider) {
+  val dbConfig = configProvider.get[JdbcProfile]
   private val db = dbConfig.db
   import dbConfig.profile.api._
+
+  val chatTicketTable = TableQuery[ChatTicketTable]
 
   def create(userId: String): Future[String] =  {
     val uuid = UUID.randomUUID().toString
 
     db run {
-      ChatTicketTable += ChatTicket(ticket = uuid, userId = userId)
+      chatTicketTable += ChatTicket(ticket = uuid, userId = userId)
     } map { _ =>
       uuid
     }
@@ -30,7 +35,7 @@ class ChatTicketDAO @Inject()(allTables: AllTables) {
     val maxAgeSeconds = 30
 
     db run {
-      ChatTicketTable
+      chatTicketTable
         .filter(_.ticket === ticket)
         .filter(_.created > DateTime.now().minusSeconds(maxAgeSeconds))
         .filter(_.used.isEmpty)
@@ -39,7 +44,7 @@ class ChatTicketDAO @Inject()(allTables: AllTables) {
     } flatMap {
       case Some(ticketEntry) =>
         db run {
-          ChatTicketTable
+          chatTicketTable
             .filter(_.ticket === ticket)
             .filter(_.used.isEmpty)
             .map(_.used)

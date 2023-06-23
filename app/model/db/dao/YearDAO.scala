@@ -2,26 +2,30 @@ package model.db
 package dao
 
 import javax.inject.{Inject, Singleton}
-import model.db.dao.table.AllTables
+import model.db.dao.table.YearTable
+import play.api.db.slick.DatabaseConfigProvider
+import slick.jdbc.JdbcProfile
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 @Singleton
-class YearDAO @Inject()(allTables: AllTables) {
-  import allTables._
+class YearDAO @Inject()(configProvider: DatabaseConfigProvider) {
+  val dbConfig = configProvider.get[JdbcProfile]
   private val db = dbConfig.db
   import dbConfig.profile.api._
 
+  val yearTable = TableQuery[YearTable]
+
   def save(year: Int): Future[Unit] = {
     db run {
-      YearTable += Year(year)
+      yearTable += Year(year)
     } map (_ => ())
   }
 
   def delete(year: Int): Future[Unit] = {
     db run {
-      YearTable
+      yearTable
         .filter(_.year === year)
         .delete
     } map (_ => ())
@@ -29,13 +33,13 @@ class YearDAO @Inject()(allTables: AllTables) {
 
   def getAll(): Future[Seq[Int]] = {
     db run {
-      YearTable.map(_.year).sortBy(_.asc).result
+      yearTable.map(_.year).sortBy(_.asc).result
     }
   }
 
   def maxYear(): Future[Option[Int]] = {
     db run {
-      YearTable.map(_.year).sortBy(_.desc).result.headOption
+      yearTable.map(_.year).sortBy(_.desc).result.headOption
     }
   }
 }

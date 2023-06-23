@@ -10,7 +10,11 @@ final case class Album(
   releaseYear: Int,
   urlWikiEn: Option[String],
   urlWikiNl: Option[String],
-  urlAllMusic: Option[String]
+  urlAllMusic: Option[String],
+  spotifyId: Option[String],
+  wikidataId: Option[String],
+  musicbrainzId: Option[String],
+  cover: Option[String]
 )
 
 object Album {
@@ -22,7 +26,11 @@ object Album {
       releaseYear = dbAlbum.releaseYear,
       urlWikiEn = dbAlbum.urlWikiEn,
       urlWikiNl = dbAlbum.urlWikiNl,
-      urlAllMusic = dbAlbum.urlAllMusic
+      urlAllMusic = dbAlbum.urlAllMusic,
+      spotifyId = dbAlbum.urlAllMusic,
+      wikidataId = dbAlbum.urlAllMusic,
+      musicbrainzId = dbAlbum.urlAllMusic,
+      cover = dbAlbum.urlAllMusic
     )
   }
 

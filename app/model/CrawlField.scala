@@ -1,49 +1,87 @@
 package model
 
-import model.db.Artist
-import model.db.dao.ArtistDAO
+import model.db.{Album, Artist}
+import model.db.dao.{AlbumDAO, ArtistDAO}
 import play.api.libs.json.{JsString, Writes}
 import slick.jdbc.H2Profile.MappedColumnType
 import slick.jdbc.H2Profile.api.stringColumnType
 
-
 import scala.concurrent.Future
 
-sealed abstract class CrawlField(
-                                  val name: String,
-                                  val extractValue: Artist => Option[String],
-                                  val save: ArtistDAO => (ArtistId, Option[String]) => Future[Int]
-                                ) {
+trait CrawlField[Model, Id, Table] {
+  val name: String
+  val extractValue: Model => Option[String]
+  val save: Table => (Id, Option[String]) => Future[Int]
+
   def equalsExisting(candidateValue: String, newValue: String): Boolean = {
     candidateValue == newValue
   }
 }
 
-object CrawlField {
-  case object UrlAllMusic extends CrawlField("urlAllMusic", _.urlAllMusic, _.setUrlAllMusic) {
+sealed abstract class ArtistCrawlField(
+  val name: String,
+  val extractValue: Artist => Option[String],
+  val save: ArtistDAO => (ArtistId, Option[String]) => Future[Int]
+) extends CrawlField[Artist, ArtistId, ArtistDAO]
+
+object ArtistCrawlField {
+  case object UrlAllMusic extends ArtistCrawlField("urlAllMusic", _.urlAllMusic, _.setUrlAllMusic) {
     override def equalsExisting(candidateValue: String, newValue: String): Boolean = {
       def allMusicId(value: String): String = value.split('/').last.split('-').last
       allMusicId(candidateValue) == allMusicId(newValue)
     }
   }
 
-  case object CountryId extends CrawlField("countryId", _.countryId, _.setCountryId)
-  case object UrlWikiEn extends CrawlField("urlWikiEn", _.urlWikiEn, _.setUrlWikiEn)
-  case object UrlWikiNl extends CrawlField("urlWikiNl", _.urlWikiNl, _.setUrlWikiNl)
-  case object UrlOfficial extends CrawlField("urlOfficial", _.urlOfficial, _.setUrlOfficial)
-  case object WikidataId extends CrawlField("wikidataId", _.wikidataId, _.setWikidataId)
-  case object SpotifyId extends CrawlField("spotifyId", _.spotifyId, _.setSpotifyId)
-  case object MusicbrainzId extends CrawlField("musicbrainzId", _.musicbrainzId, _.setMusicbrainzId)
+  case object CountryId extends ArtistCrawlField("countryId", _.countryId, _.setCountryId)
+  case object UrlWikiEn extends ArtistCrawlField("urlWikiEn", _.urlWikiEn, _.setUrlWikiEn)
+  case object UrlWikiNl extends ArtistCrawlField("urlWikiNl", _.urlWikiNl, _.setUrlWikiNl)
+  case object UrlOfficial extends ArtistCrawlField("urlOfficial", _.urlOfficial, _.setUrlOfficial)
+  case object WikidataId extends ArtistCrawlField("wikidataId", _.wikidataId, _.setWikidataId)
+  case object SpotifyId extends ArtistCrawlField("spotifyId", _.spotifyId, _.setSpotifyId)
+  case object MusicbrainzId extends ArtistCrawlField("musicbrainzId", _.musicbrainzId, _.setMusicbrainzId)
 
   val allValues = Seq(UrlAllMusic, CountryId, UrlWikiEn, UrlWikiNl, UrlOfficial, WikidataId, SpotifyId, MusicbrainzId)
 
-  implicit val crawlFieldColumnType = MappedColumnType.base[CrawlField, String](
+  implicit val crawlFieldColumnType = MappedColumnType.base[ArtistCrawlField, String](
     _.name,
-    dbValue => allValues.find(_.name == dbValue).getOrElse(throw new RuntimeException(s"Unknown CrawlField `$dbValue`"))
+    dbValue => allValues.find(_.name == dbValue).getOrElse(throw new RuntimeException(s"Unknown ArtistCrawlField `$dbValue`"))
   )
 
 
-  implicit val jsonWrites = new Writes[CrawlField] {
-    def writes(crawlField: CrawlField) = JsString(crawlField.name)
+  implicit val jsonWrites = new Writes[ArtistCrawlField] {
+    def writes(crawlField: ArtistCrawlField) = JsString(crawlField.name)
+  }
+}
+
+sealed abstract class AlbumCrawlField(
+  val name: String,
+  val extractValue: Album => Option[String],
+  val save: AlbumDAO => (AlbumId, Option[String]) => Future[Int]
+) extends CrawlField[Album, AlbumId, AlbumDAO]
+
+object AlbumCrawlField {
+  case object UrlAllMusic extends AlbumCrawlField("urlAllMusic", _.urlAllMusic, _.setUrlAllMusic) {
+    override def equalsExisting(candidateValue: String, newValue: String): Boolean = {
+      def allMusicId(value: String): String = value.split('/').last.split('-').last
+      allMusicId(candidateValue) == allMusicId(newValue)
+    }
+  }
+
+  case object UrlWikiEn extends AlbumCrawlField("urlWikiEn", _.urlWikiEn, _.setUrlWikiEn)
+  case object UrlWikiNl extends AlbumCrawlField("urlWikiNl", _.urlWikiNl, _.setUrlWikiNl)
+  case object WikidataId extends AlbumCrawlField("wikidataId", _.wikidataId, _.setWikidataId)
+  case object SpotifyId extends AlbumCrawlField("spotifyId", _.spotifyId, _.setSpotifyId)
+  case object MusicbrainzId extends AlbumCrawlField("musicbrainzId", _.musicbrainzId, _.setMusicbrainzId)
+  case object Cover extends AlbumCrawlField("cover", _.cover, _.setCover)
+
+  val allValues = Seq(UrlAllMusic, UrlWikiEn, UrlWikiNl, WikidataId, SpotifyId, MusicbrainzId, Cover)
+
+  implicit val crawlFieldColumnType = MappedColumnType.base[AlbumCrawlField, String](
+    _.name,
+    dbValue => allValues.find(_.name == dbValue).getOrElse(throw new RuntimeException(s"Unknown AlbumCrawlField `$dbValue`"))
+  )
+
+  implicit val jsonWrites = new Writes[AlbumCrawlField] {
+    def writes(crawlField: AlbumCrawlField) = JsString(crawlField.name)
   }
 }

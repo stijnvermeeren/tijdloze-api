@@ -4,27 +4,31 @@ package dao
 
 import javax.inject.{Inject, Singleton}
 import model.api.SongSave
-import model.db.dao.table.AllTables
+import model.db.dao.table.SongTable
 import org.joda.time.DateTime
 import com.github.tototoshi.slick.MySQLJodaSupport._
+import play.api.db.slick.DatabaseConfigProvider
+import slick.jdbc.JdbcProfile
 
 import scala.concurrent.Future
 
 @Singleton
-class SongDAO @Inject()(allTables: AllTables) {
-  import allTables._
+class SongDAO @Inject()(configProvider: DatabaseConfigProvider) {
+  val dbConfig = configProvider.get[JdbcProfile]
   private val db = dbConfig.db
   import dbConfig.profile.api._
 
+  val songTable = TableQuery[SongTable]
+
   def get(songId: SongId): Future[Song] = {
     db run {
-      SongTable.filter(_.id === songId).result.head
+      songTable.filter(_.id === songId).result.head
     }
   }
 
   def getAll(): Future[Seq[Song]] = {
     db run {
-      SongTable.result
+      songTable.result
     }
   }
 
@@ -46,7 +50,7 @@ class SongDAO @Inject()(allTables: AllTables) {
     )
 
     db run {
-      (SongTable returning SongTable.map(_.id)) += newSong
+      (songTable returning songTable.map(_.id)) += newSong
     }
   }
 
@@ -54,7 +58,7 @@ class SongDAO @Inject()(allTables: AllTables) {
     import data._
 
     db run {
-      SongTable
+      songTable
         .filter(_.id === songId)
         .map(x => (
           x.artistId,
@@ -91,7 +95,7 @@ class SongDAO @Inject()(allTables: AllTables) {
 
   def delete(songId: SongId): Future[Int] = {
     db run {
-      SongTable.filter(_.id === songId).delete
+      songTable.filter(_.id === songId).delete
     }
   }
 }

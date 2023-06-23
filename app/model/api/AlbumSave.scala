@@ -9,7 +9,11 @@ final case class AlbumSave(
   releaseYear: Int,
   urlWikiEn: Option[String],
   urlWikiNl: Option[String],
-  urlAllMusic: Option[String]
+  urlAllMusic: Option[String],
+  spotifyId: Option[String],
+  wikidataId: Option[String],
+  musicbrainzId: Option[String],
+  cover: Option[String]
 )
 
 object AlbumSave {

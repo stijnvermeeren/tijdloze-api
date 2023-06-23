@@ -4,24 +4,30 @@ import javax.inject.{Inject, Singleton}
 import model.{PollAnswerId, PollId}
 import model.api.{PollAnswerUpdate, PollCreate, PollUpdate}
 import model.db.{Poll, PollAnswer, PollVote}
-import model.db.dao.table.AllTables
+import model.db.dao.table.{PollAnswerTable, PollTable, PollVoteTable}
+import play.api.db.slick.DatabaseConfigProvider
+import slick.jdbc.JdbcProfile
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 @Singleton
-class PollDAO @Inject()(allTables: AllTables) {
-  import allTables._
+class PollDAO @Inject()(configProvider: DatabaseConfigProvider) {
+  val dbConfig = configProvider.get[JdbcProfile]
   private val db = dbConfig.db
   import dbConfig.profile.api._
+
+  val pollTable = TableQuery[PollTable]
+  val pollAnswerTable = TableQuery[PollAnswerTable]
+  val pollVoteTable = TableQuery[PollVoteTable]
 
   def getPoll(pollId: PollId): Future[Option[(Poll, Seq[PollAnswer])]] = {
     for {
       pollOption <- db run {
-        PollTable.filter(_.id === pollId).result.headOption
+        pollTable.filter(_.id === pollId).result.headOption
       }
       answers <- db run {
-        PollAnswerTable.filter(_.pollId === pollId).result
+        pollAnswerTable.filter(_.pollId === pollId).result
       }
     } yield {
       pollOption map { poll =>
@@ -32,11 +38,11 @@ class PollDAO @Inject()(allTables: AllTables) {
 
   def getLatest(): Future[Option[(Poll, Seq[PollAnswer])]] = {
     db run {
-      PollTable.sortBy(_.id.desc).filterNot(_.isDeleted).result.headOption
+      pollTable.sortBy(_.id.desc).filterNot(_.isDeleted).result.headOption
     } flatMap {
       case Some(poll) =>
         db run {
-          PollAnswerTable.filter(_.pollId === poll.id).result
+          pollAnswerTable.filter(_.pollId === poll.id).result
         } map { answers =>
           Some(poll, answers)
         }
@@ -48,10 +54,10 @@ class PollDAO @Inject()(allTables: AllTables) {
   def list(): Future[Seq[(Poll, Seq[PollAnswer])]] = {
     for {
       polls <- db run {
-        PollTable.sortBy(_.id.desc).result
+        pollTable.sortBy(_.id.desc).result
       }
       answers <- db run {
-        PollAnswerTable.sortBy(_.id).result
+        pollAnswerTable.sortBy(_.id).result
       }
     } yield {
       polls map { poll =>
@@ -67,7 +73,7 @@ class PollDAO @Inject()(allTables: AllTables) {
     )
 
     db run {
-      (PollTable returning PollTable.map(_.id)) += newPoll
+      (pollTable returning pollTable.map(_.id)) += newPoll
     } flatMap { pollId =>
       val answers = data.answers map { answer =>
         PollAnswer(
@@ -77,14 +83,14 @@ class PollDAO @Inject()(allTables: AllTables) {
       }
 
       db run {
-        PollAnswerTable ++= answers
+        pollAnswerTable ++= answers
       } map (_ => pollId)
     }
   }
 
   def vote(userId: String, pollId: PollId, answerId: PollAnswerId): Future[Unit] = {
     val update = db run {
-      PollVoteTable
+      pollVoteTable
         .filter(_.pollId === pollId)
         .filter(_.userId === userId)
         .map(_.answerId)
@@ -94,7 +100,7 @@ class PollDAO @Inject()(allTables: AllTables) {
     val insert = update flatMap { updatedRows =>
       if (updatedRows < 1) {
         db run {
-          PollVoteTable += PollVote(
+          pollVoteTable += PollVote(
             userId = Some(userId),
             pollId = pollId,
             answerId = answerId
@@ -107,13 +113,13 @@ class PollDAO @Inject()(allTables: AllTables) {
 
     val count = insert flatMap { _ =>
       db run {
-        PollVoteTable.filter(_.answerId === answerId).length.result
+        pollVoteTable.filter(_.answerId === answerId).length.result
       }
     }
 
     count flatMap { voteCount =>
       db run {
-        PollAnswerTable
+        pollAnswerTable
           .filter(_.id === answerId)
           .map(_.voteCount)
           .update(voteCount)
@@ -123,13 +129,13 @@ class PollDAO @Inject()(allTables: AllTables) {
 
   def myVotes(userId: String): Future[Seq[PollVote]] = {
     db run {
-      PollVoteTable.filter(_.userId === userId).result
+      pollVoteTable.filter(_.userId === userId).result
     }
   }
 
   def updatePoll(pollId: PollId, pollUpdate: PollUpdate): Future[Unit] = {
     db run {
-      PollTable
+      pollTable
         .filter(_.id === pollId)
         .map(_.question)
         .update(pollUpdate.question)
@@ -138,7 +144,7 @@ class PollDAO @Inject()(allTables: AllTables) {
 
   def updatePollAnswer(pollAnswerId: PollAnswerId, pollAnswerUpdate: PollAnswerUpdate): Future[Unit] = {
     db run {
-      PollAnswerTable
+      pollAnswerTable
         .filter(_.id === pollAnswerId)
         .map(_.answer)
         .update(pollAnswerUpdate.answer)
@@ -147,7 +153,7 @@ class PollDAO @Inject()(allTables: AllTables) {
 
   def setDeleted(pollId: PollId, isDeleted: Boolean): Future[Unit] = {
     db run {
-      PollTable
+      pollTable
         .filter(_.id === pollId)
         .map(_.isDeleted)
         .update(isDeleted)

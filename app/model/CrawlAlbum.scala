@@ -4,17 +4,17 @@ import org.joda.time.DateTime
 import play.api.libs.json.Json
 import JsonWrites.dateTimeWriter
 
-final case class CrawlArtist(
-  id: CrawlArtistId = CrawlArtistId(0),
-  artistId: ArtistId,
+final case class CrawlAlbum(
+  id: CrawlAlbumId = CrawlAlbumId(0),
+  albumId: AlbumId,
   crawlDate: DateTime,
-  field: ArtistCrawlField,
+  field: AlbumCrawlField,
   value: Option[String] = None,
   comment: Option[String] = None,
   isAuto: Boolean,
   isAccepted: Option[Boolean] = None,
 )
 
-object CrawlArtist {
-  implicit val jsonWrites = Json.writes[CrawlArtist]
+object CrawlAlbum {
+  implicit val jsonWrites = Json.writes[CrawlAlbum]
 }

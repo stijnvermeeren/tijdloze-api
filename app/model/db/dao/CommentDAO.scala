@@ -3,23 +3,29 @@ package db
 package dao
 
 import javax.inject.{Inject, Singleton}
-import model.db.dao.table.AllTables
+import model.db.dao.table.{CommentTable, CommentVersionTable, UserTable}
 import org.joda.time.DateTime
 import com.github.tototoshi.slick.MySQLJodaSupport._
+import play.api.db.slick.DatabaseConfigProvider
+import slick.jdbc.JdbcProfile
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton
-class CommentDAO @Inject()(allTables: AllTables) {
-  import allTables._
+class CommentDAO @Inject()(configProvider: DatabaseConfigProvider) {
+  val dbConfig = configProvider.get[JdbcProfile]
   private val db = dbConfig.db
   import dbConfig.profile.api._
+
+  val commentTable = TableQuery[CommentTable]
+  val commentVersionTable = TableQuery[CommentVersionTable]
+  val userTable = TableQuery[UserTable]
 
   def create(userId: String, message: String): Future[Unit] = {
     for {
       commentId <- db run {
-        (CommentTable returning CommentTable.map(_.id)) += Comment(userId = Some(userId))
+        (commentTable returning commentTable.map(_.id)) += Comment(userId = Some(userId))
       }
       _ <- update(commentId, message)
     } yield (())
@@ -28,17 +34,17 @@ class CommentDAO @Inject()(allTables: AllTables) {
   def update(commentId: CommentId, message: String): Future[Unit] = {
     db run {
       for {
-        versionId <- (CommentVersionTable returning CommentVersionTable.map(_.id)) += (
+        versionId <- (commentVersionTable returning commentVersionTable.map(_.id)) += (
           CommentVersion(commentId = commentId, message = message)
         )
-        _ <- CommentTable.filter(_.id === commentId).map(_.versionId).update(Some(versionId))
+        _ <- commentTable.filter(_.id === commentId).map(_.versionId).update(Some(versionId))
       } yield (())
     }
   }
 
   def delete(commentId: CommentId): Future[Unit] = {
     db run {
-      CommentTable
+      commentTable
         .filter(_.id === commentId)
         .map(_.dateDeleted)
         .update(Some(DateTime.now()))
@@ -47,7 +53,7 @@ class CommentDAO @Inject()(allTables: AllTables) {
 
   def restore(commentId: CommentId): Future[Unit] = {
     db run {
-      CommentTable
+      commentTable
         .filter(_.id === commentId)
         .map(_.dateDeleted)
         .update(None)
@@ -56,7 +62,7 @@ class CommentDAO @Inject()(allTables: AllTables) {
 
   def get(commentId: CommentId): Future[Option[Comment]] = {
     db run {
-      CommentTable
+      commentTable
         .filter(_.id === commentId)
         .result
         .headOption
@@ -65,16 +71,16 @@ class CommentDAO @Inject()(allTables: AllTables) {
 
   def count(): Future[Int] = {
     db run {
-      CommentTable.length.result
+      commentTable.length.result
     }
   }
 
   def listPage(page: Int): Future[Seq[(Comment, Option[CommentVersion], Option[User])]] = {
     val pageSize = 20
     db run {
-      val joinedQuery = CommentTable.filter(_.dateDeleted.isEmpty)
-        .joinLeft(CommentVersionTable).on(_.versionId === _.id)
-        .joinLeft(UserTable).on(_._1.userId === _.id)
+      val joinedQuery = commentTable.filter(_.dateDeleted.isEmpty)
+        .joinLeft(commentVersionTable).on(_.versionId === _.id)
+        .joinLeft(userTable).on(_._1.userId === _.id)
 
       joinedQuery
         .map {
@@ -91,9 +97,9 @@ class CommentDAO @Inject()(allTables: AllTables) {
 
   def listDeleted(): Future[Seq[(Comment, Option[CommentVersion], Option[User])]] = {
     db run {
-      val joinedQuery = CommentTable.filter(_.dateDeleted.nonEmpty)
-        .joinLeft(CommentVersionTable).on(_.versionId === _.id)
-        .joinLeft(UserTable).on(_._1.userId === _.id)
+      val joinedQuery = commentTable.filter(_.dateDeleted.nonEmpty)
+        .joinLeft(commentVersionTable).on(_.versionId === _.id)
+        .joinLeft(userTable).on(_._1.userId === _.id)
 
       joinedQuery
         .map {

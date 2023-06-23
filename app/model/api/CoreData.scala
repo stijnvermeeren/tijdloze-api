@@ -29,7 +29,8 @@ final case class CoreAlbum(
   id: AlbumId,
   artistId: ArtistId,
   title: String,
-  releaseYear: Int
+  releaseYear: Int,
+  cover: Option[String]
 )
 
 object CoreAlbum {
@@ -38,7 +39,8 @@ object CoreAlbum {
       id = album.id,
       artistId = album.artistId,
       title = album.title,
-      releaseYear = album.releaseYear
+      releaseYear = album.releaseYear,
+      cover = album.cover
     )
   }
 

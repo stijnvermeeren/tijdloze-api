@@ -1,6 +1,6 @@
 package controllers
 
-import model.CrawlField
+import model.{ArtistCrawlField, CrawlField}
 import model.db.dao.{AlbumDAO, ArtistDAO, CrawlArtistDAO, SongDAO}
 import model.db.{Artist, Song}
 import play.api.cache.AsyncCacheApi
@@ -33,9 +33,9 @@ class WikidataController @Inject()(
         FutureUtil.traverseSequentially(artistsWithSpotifyId) { case (artist, spotifyId) =>
           wikidataAPI.findBySpotifyId(spotifyId) flatMap { wikidataIds =>
             for {
-              _ <- crawlHelper.process(
+              _ <- crawlHelper.processArtist(
                 artist = artist,
-                field = CrawlField.WikidataId,
+                field = ArtistCrawlField.WikidataId,
                 candidateValues = wikidataIds,
                 comment = s"Spotify id (${artist.spotifyId.getOrElse("")})",
                 strategy = AutoIfUnique
@@ -59,44 +59,44 @@ class WikidataController @Inject()(
           wikidataAPI.getDetailsById(spotifyId) flatMap { wikidataDetails =>
             val comment = s"Wikidata (${artist.wikidataId.getOrElse("")})"
             for {
-              _ <- crawlHelper.process(
+              _ <- crawlHelper.processArtist(
                 artist = artist,
-                field = CrawlField.CountryId,
+                field = ArtistCrawlField.CountryId,
                 candidateValues = wikidataDetails.countryId,
                 comment = comment,
                 strategy = AutoOnlyForExistingValue
               )
-              _ <- crawlHelper.process(
+              _ <- crawlHelper.processArtist(
                 artist = artist,
-                field = CrawlField.UrlWikiEn,
+                field = ArtistCrawlField.UrlWikiEn,
                 candidateValues = wikidataDetails.urlWikiEn,
                 comment = comment,
-                strategy = AutoOnlyForExistingValue
+                strategy = AutoIfUnique
               )
-              _ <- crawlHelper.process(
+              _ <- crawlHelper.processArtist(
                 artist = artist,
-                field = CrawlField.UrlWikiNl,
+                field = ArtistCrawlField.UrlWikiNl,
                 candidateValues = wikidataDetails.urlWikiNl,
                 comment = comment,
-                strategy = AutoOnlyForExistingValue
+                strategy = AutoIfUnique
               )
-              _ <- crawlHelper.process(
+              _ <- crawlHelper.processArtist(
                 artist = artist,
-                field = CrawlField.UrlOfficial,
+                field = ArtistCrawlField.UrlOfficial,
                 candidateValues = wikidataDetails.urlOfficial,
                 comment = comment,
                 strategy = AutoOnlyForExistingValue
               )
-              _ <- crawlHelper.process(
+              _ <- crawlHelper.processArtist(
                 artist = artist,
-                field = CrawlField.UrlAllMusic,
+                field = ArtistCrawlField.UrlAllMusic,
                 candidateValues = wikidataDetails.allMusicId.map(id => s"https://www.allmusic.com/artist/$id"),
                 comment = comment,
-                strategy = AutoOnlyForExistingValue
+                strategy = AutoIfUnique
               )
-              _ <- crawlHelper.process(
+              _ <- crawlHelper.processArtist(
                 artist = artist,
-                field = CrawlField.MusicbrainzId,
+                field = ArtistCrawlField.MusicbrainzId,
                 candidateValues = wikidataDetails.musicbrainzId,
                 comment = comment,
                 strategy = AutoIfUnique

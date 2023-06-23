@@ -3,26 +3,30 @@ package db
 package dao
 
 import javax.inject.{Inject, Singleton}
-import model.db.dao.table.AllTables
+import model.db.dao.table.ListEntryTable
+import play.api.db.slick.DatabaseConfigProvider
+import slick.jdbc.JdbcProfile
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton
-class ListEntryDAO @Inject()(allTables: AllTables) {
-  import allTables._
+class ListEntryDAO @Inject()(configProvider: DatabaseConfigProvider) {
+  val dbConfig = configProvider.get[JdbcProfile]
   private val db = dbConfig.db
   import dbConfig.profile.api._
 
+  val listEntryTable = TableQuery[ListEntryTable]
+
   def getAll(): Future[Seq[ListEntry]] = {
     db run {
-      ListEntryTable.result
+      listEntryTable.result
     }
   }
 
   def save(year: Int, position: Int, songId: SongId): Future[Unit] = {
     db run {
-      val update = ListEntryTable
+      val update = listEntryTable
         .filter(_.year === year)
         .filter(_.position === position)
         .map(_.songId)
@@ -32,7 +36,7 @@ class ListEntryDAO @Inject()(allTables: AllTables) {
         if (updateCount > 0) {
           DBIO.successful(())
         } else {
-          ListEntryTable += ListEntry(songId = songId, year = year, position = position)
+          listEntryTable += ListEntry(songId = songId, year = year, position = position)
         }
       }
     } map (_ => ())
@@ -40,7 +44,7 @@ class ListEntryDAO @Inject()(allTables: AllTables) {
 
   def delete(year: Int, position: Int): Future[Int] = {
     db run {
-      ListEntryTable
+      listEntryTable
         .filter(_.year === year)
         .filter(_.position === position)
         .delete
@@ -49,13 +53,13 @@ class ListEntryDAO @Inject()(allTables: AllTables) {
 
   def currentYear(): Future[Int] = {
     db run {
-      ListEntryTable.map(_.year).max.result
+      listEntryTable.map(_.year).max.result
     } map (_.get)
   }
 
   def getByYear(year: Int): Future[Seq[ListEntry]] = {
     db run {
-      ListEntryTable.filter(_.year === year).result
+      listEntryTable.filter(_.year === year).result
     }
   }
 }

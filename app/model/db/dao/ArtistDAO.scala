@@ -4,25 +4,29 @@ package dao
 
 import javax.inject.{Inject, Singleton}
 import model.api.ArtistSave
-import model.db.dao.table.AllTables
+import model.db.dao.table.ArtistTable
+import play.api.db.slick.DatabaseConfigProvider
+import slick.jdbc.JdbcProfile
 
 import scala.concurrent.Future
 
 @Singleton
-class ArtistDAO @Inject()(allTables: AllTables) {
-  import allTables._
+class ArtistDAO @Inject()(configProvider: DatabaseConfigProvider) {
+  val dbConfig = configProvider.get[JdbcProfile]
   private val db = dbConfig.db
   import dbConfig.profile.api._
 
+  val artistTable = TableQuery[ArtistTable]
+
   def get(artistId: ArtistId): Future[Artist] = {
     db run {
-      ArtistTable.filter(_.id === artistId).result.head
+      artistTable.filter(_.id === artistId).result.head
     }
   }
 
   def getAll(): Future[Seq[Artist]] = {
     db run {
-      ArtistTable.result
+      artistTable.result
     }
   }
 
@@ -44,7 +48,7 @@ class ArtistDAO @Inject()(allTables: AllTables) {
     )
 
     db run {
-      (ArtistTable returning ArtistTable.map(_.id)) += newArtist
+      (artistTable returning artistTable.map(_.id)) += newArtist
     }
   }
 
@@ -52,7 +56,7 @@ class ArtistDAO @Inject()(allTables: AllTables) {
     import data._
 
     db run {
-      ArtistTable
+      artistTable
         .filter(_.id === artistId)
         .map(x => (
           x.namePrefix,
@@ -88,55 +92,55 @@ class ArtistDAO @Inject()(allTables: AllTables) {
 
   def delete(artistId: ArtistId): Future[Int] = {
     db run {
-      ArtistTable.filter(_.id === artistId).delete
+      artistTable.filter(_.id === artistId).delete
     }
   }
 
   def setCountryId(artistId: ArtistId, countryId: Option[String]): Future[Int] = {
     db run {
-      ArtistTable.filter(_.id === artistId).map(_.countryId).update(countryId)
+      artistTable.filter(_.id === artistId).map(_.countryId).update(countryId)
     }
   }
 
   def setSpotifyId(artistId: ArtistId, spotifyId: Option[String]): Future[Int] = {
     db run {
-      ArtistTable.filter(_.id === artistId).map(_.spotifyId).update(spotifyId)
+      artistTable.filter(_.id === artistId).map(_.spotifyId).update(spotifyId)
     }
   }
 
   def setWikidataId(artistId: ArtistId, wikidataId: Option[String]): Future[Int] = {
     db run {
-      ArtistTable.filter(_.id === artistId).map(_.wikidataId).update(wikidataId)
+      artistTable.filter(_.id === artistId).map(_.wikidataId).update(wikidataId)
     }
   }
 
   def setMusicbrainzId(artistId: ArtistId, wikidataId: Option[String]): Future[Int] = {
     db run {
-      ArtistTable.filter(_.id === artistId).map(_.musicbrainzId).update(wikidataId)
+      artistTable.filter(_.id === artistId).map(_.musicbrainzId).update(wikidataId)
     }
   }
 
   def setUrlWikiEn(artistId: ArtistId, url: Option[String]): Future[Int] = {
     db run {
-      ArtistTable.filter(_.id === artistId).map(_.urlWikiEn).update(url)
+      artistTable.filter(_.id === artistId).map(_.urlWikiEn).update(url)
     }
   }
 
   def setUrlWikiNl(artistId: ArtistId, url: Option[String]): Future[Int] = {
     db run {
-      ArtistTable.filter(_.id === artistId).map(_.urlWikiNl).update(url)
+      artistTable.filter(_.id === artistId).map(_.urlWikiNl).update(url)
     }
   }
 
   def setUrlOfficial(artistId: ArtistId, url: Option[String]): Future[Int] = {
     db run {
-      ArtistTable.filter(_.id === artistId).map(_.urlOfficial).update(url)
+      artistTable.filter(_.id === artistId).map(_.urlOfficial).update(url)
     }
   }
 
   def setUrlAllMusic(artistId: ArtistId, url: Option[String]): Future[Int] = {
     db run {
-      ArtistTable.filter(_.id === artistId).map(_.urlAllMusic).update(url)
+      artistTable.filter(_.id === artistId).map(_.urlAllMusic).update(url)
     }
   }
 }
