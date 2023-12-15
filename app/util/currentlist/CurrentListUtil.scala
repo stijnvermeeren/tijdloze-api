@@ -1,7 +1,7 @@
 package util.currentlist
 
-import akka.stream.scaladsl.{BroadcastHub, Flow, Keep, Sink, Source}
-import akka.stream.Materializer
+import org.apache.pekko.stream.scaladsl.{BroadcastHub, Flow, Keep, Sink, Source}
+import org.apache.pekko.stream.Materializer
 import model.{AlbumId, ArtistId, SongId}
 import model.api.{Album, Artist, Poll, Song}
 import model.db.dao._

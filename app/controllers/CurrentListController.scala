@@ -1,7 +1,7 @@
 package controllers
 
 import util.currentlist.CurrentListUtil
-import akka.stream.Materializer
+import org.apache.pekko.stream.Materializer
 
 import javax.inject._
 import play.api.libs.json._

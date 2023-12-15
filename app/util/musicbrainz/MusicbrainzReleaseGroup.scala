@@ -5,3 +5,5 @@ final case class MusicbrainzReleaseGroup(
   title: String,
   releaseType: String
 )
+
+case class DatedReleaseGroup(releaseGroup: MusicbrainzReleaseGroup, releaseDate: String)

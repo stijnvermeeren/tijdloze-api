@@ -1,7 +1,7 @@
 package util
 
-import akka.stream.Materializer
-import akka.stream.scaladsl.{BroadcastHub, Flow, Keep, MergeHub, Sink, Source, Merge}
+import org.apache.pekko.stream.Materializer
+import org.apache.pekko.stream.scaladsl.{BroadcastHub, Flow, Keep, MergeHub, Sink, Source, Merge}
 import javax.inject.{Inject, Singleton}
 import model.api.{ChatMessage, ChatSave, PublicUserInfo}
 import model.db.dao.{ChatMessageDAO, ChatOnlineDAO, UserDAO}

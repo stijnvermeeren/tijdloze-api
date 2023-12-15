@@ -1,6 +1,6 @@
 package controllers
 
-import akka.stream.Materializer
+import org.apache.pekko.stream.Materializer
 import util.Chat
 import javax.inject._
 import model.api.ChatTicket
