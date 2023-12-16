@@ -75,15 +75,6 @@ class MusicbrainzController @Inject()(
             query = s"${artist.fullName} ${song.title}"
             _ = println(s"${artist.fullName} - ${song.title}")
             matchingRow <- Future { awsAthena.search(query).headOption }
-            /* _ <- FutureUtil.traverseSequentially(releaseGroups) { releaseGroup =>
-              crawlHelper.processAlbum(
-                album = album,
-                field = AlbumCrawlField.MusicbrainzId,
-                candidateValues = releaseGroups.map(_.id),
-                comment = s"Musicbrainz search ($query)",
-                strategy = AutoOnlyForExistingValue
-              )
-            } */
             _ <- matchingRow match {
               case Some(row) =>
                 musicbrainzAPI.getRelease(row.releaseId).map(release => {
@@ -91,6 +82,16 @@ class MusicbrainzController @Inject()(
                     println(s"  OK (${album.musicbrainzId}, ${album.title}, ${album.releaseYear} / ${release.flatMap(_.releaseYear)})")
                   } else {
                     println(s"  MISMATCH!  Old: ${album.musicbrainzId}, ${album.title}.  New: ${release.map(_.releaseGroupId)}, ${release.map(_.title)})")
+
+                    if (album.musicbrainzId.isEmpty) {
+                      crawlHelper.processAlbum(
+                        album = album,
+                        field = AlbumCrawlField.MusicbrainzId,
+                        candidateValues = release.map(_.releaseGroupId).toSeq,
+                        comment = s"Musicbrainz search ($query)",
+                        strategy = AutoOnlyForExistingValue
+                      )
+                    }
                   }
                 })
               case None =>
