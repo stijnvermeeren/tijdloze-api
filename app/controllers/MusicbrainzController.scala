@@ -1,12 +1,16 @@
 package controllers
 
+import model.api.MusicbrainzResult
 import model.{AlbumCrawlField, ArtistCrawlField}
 import model.db.dao.{AlbumDAO, ArtistDAO, CrawlAlbumDAO, CrawlArtistDAO, SongDAO}
 import play.api.cache.AsyncCacheApi
+import play.api.libs.json.Json
 import play.api.mvc._
 import util.FutureUtil
+import util.coverartarchive.CoverArtArchiveAPI
 import util.crawl.{AutoIfUnique, AutoOnlyForExistingValue, CrawlHelper}
 import util.musicbrainz.{AWSAthena, MusicbrainzAPI}
+import util.spotify.SpotifyAPI
 import util.wikidata.WikidataAPI
 
 import javax.inject._
@@ -15,7 +19,10 @@ import scala.concurrent.Future
 
 @Singleton
 class MusicbrainzController @Inject()(
+  authenticateAdmin: AuthenticateAdmin,
+  spotifyAPI: SpotifyAPI,
   musicbrainzAPI: MusicbrainzAPI,
+  coverArtArchiveAPI: CoverArtArchiveAPI,
   awsAthena: AWSAthena,
   albumDAO: AlbumDAO,
   artistDAO: ArtistDAO,
@@ -101,6 +108,39 @@ class MusicbrainzController @Inject()(
           } yield ()
         }
       }.map(_ => Ok)
+    }
+  }
+
+
+  def find() = {
+    (Action).async { implicit request =>
+      request.getQueryString("query") match {
+        case Some(query) =>
+
+          Future { awsAthena.search (query).headOption } flatMap {
+            case Some(matchingRow) =>
+              for {
+                release <- musicbrainzAPI.getRelease(matchingRow.releaseId)
+                recording <- musicbrainzAPI.getRecording(matchingRow.recordingId)
+                artist <- recording.flatMap(_.artistMusicbrainzId) match {
+                  case Some(artistId) => musicbrainzAPI.getArtist(artistId)
+                  case None => Future.successful(None)
+                }
+                cover <- release.map(_.releaseGroupId) match {
+                  case Some(releaseGroupId) => coverArtArchiveAPI.searchAlbum(releaseGroupId)
+                  case None => Future.successful(None)
+                }
+                spotifyToken <- spotifyAPI.getToken()
+                spotifyResult <- spotifyAPI.findNewSong(spotifyToken, query, limit = 1)
+              } yield {
+                Ok(Json.toJson(MusicbrainzResult.fromData(matchingRow, release, recording, artist, cover, spotifyResult.headOption)))
+              }
+            case None =>
+              Future.successful(Ok(Json.toJson(MusicbrainzResult.empty)))
+          }
+        case None =>
+          Future.successful(BadRequest("No query specified."))
+      }
     }
   }
 }

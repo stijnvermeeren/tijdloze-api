@@ -15,7 +15,7 @@ import scala.concurrent.Future
 
 class AWSAthena @Inject()(ws: WSClient, config: Config) {
 
-  def search(input: String): Seq[Row] = {
+  def search(input: String): Seq[CanonicalMusicbrainzData] = {
     val dataSource = new AthenaDataSource()
     dataSource.setWorkGroup("primary")
     dataSource.setRegion("eu-central-1")
@@ -93,9 +93,9 @@ class AWSAthena @Inject()(ws: WSClient, config: Config) {
     try {
       val resultSet = statement.executeQuery(query)
 
-      val results = scala.collection.mutable.Buffer.empty[Row]
+      val results = scala.collection.mutable.Buffer.empty[CanonicalMusicbrainzData]
       while (resultSet.next()) {
-        results.append(Row(
+        results.append(CanonicalMusicbrainzData(
           artistName = resultSet.getString("artist_credit_name"),
           releaseName = resultSet.getString("release_name"),
           releaseId = resultSet.getString("release_mbid"),
@@ -116,10 +116,12 @@ class AWSAthena @Inject()(ws: WSClient, config: Config) {
   }
 }
 
-final case class Row(artistName: String,
-                     releaseId: String,
-                     releaseName: String,
-                     recordingId: String,
-                     recordingName: String,
-                     score: Int,
-                     year: String)
+final case class CanonicalMusicbrainzData(
+  artistName: String,
+  releaseId: String,
+  releaseName: String,
+  recordingId: String,
+  recordingName: String,
+  score: Int,
+  year: String
+)

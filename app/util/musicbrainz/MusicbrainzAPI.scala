@@ -182,6 +182,38 @@ class MusicbrainzAPI @Inject()(ws: WSClient, config: Config) {
     )
   }
 
+  def getRecording(id: String): Future[Option[MusicbrainzRecording]] = {
+    sendSearchRequest("recording", id = Some(id), query = Seq("inc" -> "artists")).get().map { response =>
+      val value = response.json
+      for {
+        id <- (value \ "id").toOption
+        title <- (value \ "title").toOption
+        artistMusicbrainzId = (value \ "artist-credit" \ 0 \ "artist" \ "id").toOption
+        artistName = (value \ "artist-credit" \ 0 \ "artist" \ "name").toOption
+      } yield MusicbrainzRecording(
+        id = id.as[JsString].value,
+        title = title.as[JsString].value,
+        artistName = artistName.map(_.as[JsString].value),
+        artistMusicbrainzId = artistMusicbrainzId.map(_.as[JsString].value)
+      )
+    }
+  }
+
+  def getArtist(id: String): Future[Option[MusicbrainzArtist]] = {
+    sendSearchRequest("artist", id = Some(id)).get().map { response =>
+      val value = response.json
+      for {
+        id <- (value \ "id").toOption
+        name <- (value \ "name").toOption
+        countryId = (value \ "area" \ "iso-3166-1-codes" \  0).toOption
+      } yield MusicbrainzArtist(
+        id = id.as[JsString].value,
+        name = name.as[JsString].value,
+        countryId = countryId.map(_.as[JsString].value.toLowerCase)
+      )
+    }
+  }
+
   def getRelease(id: String): Future[Option[MusicbrainzRelease]] = {
     sendSearchRequest("release", id = Some(id), query = Seq("inc" -> "release-groups")).get().map { response =>
       val value = response.json
@@ -191,10 +223,10 @@ class MusicbrainzAPI @Inject()(ws: WSClient, config: Config) {
         releaseGroupId <- (value \ "release-group" \ "id").toOption
         firstReleaseDate = (value \ "release-group" \ "first-release-date").toOption
       } yield MusicbrainzRelease(
-        id.as[JsString].value,
-        title.as[JsString].value,
-        firstReleaseDate.flatMap(value => Try(Integer.parseInt(value.as[JsString].value.take(4))).toOption),
-        releaseGroupId.as[JsString].value
+        id = id.as[JsString].value,
+        title = title.as[JsString].value,
+        releaseYear = firstReleaseDate.flatMap(value => Try(Integer.parseInt(value.as[JsString].value.take(4))).toOption),
+        releaseGroupId = releaseGroupId.as[JsString].value
       )
     }
   }

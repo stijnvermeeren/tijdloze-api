@@ -59,6 +59,7 @@ GET     /wikidata/crawl-artist-details   controllers.WikidataController.crawlArt
 GET     /musicbrainz/crawl-albums        controllers.MusicbrainzController.crawlAlbums()
 GET     /musicbrainz/search              controllers.MusicbrainzController.searchReleaseGroup(query: String)
 GET     /musicbrainz/crawl-songs         controllers.MusicbrainzController.crawlSongs()
+GET     /musicbrainz/find                controllers.MusicbrainzController.find()
 GET     /coverartarchive/crawl-albums    controllers.CoverArtArchiveController.crawlAlbums()
 
 GET     /crawl-artist                    controllers.CrawlArtistController.getFirstPending()
