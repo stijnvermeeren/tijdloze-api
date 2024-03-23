@@ -24,7 +24,48 @@ FROM "area"
 ON CONFLICT ("area_id") DO NOTHING;
 ```
 
-## Query for creating mbdata.csv dataset
+```postgresql
+
+CREATE TABLE stijn_artist (
+                              "name" text,
+                              "artist_id" int,
+                              UNIQUE ("name", "artist_id")
+);
+
+DELETE FROM stijn_artist;
+
+WITH data AS (
+    SELECT id, "name"
+    FROM artist
+
+    UNION
+
+    SELECT artist.id, artist_alias."name"
+    FROM artist
+             JOIN artist_alias ON artist_alias.artist = artist.id
+
+    UNION
+
+    SELECT artist.id, artist_credit_name."name"
+    FROM artist
+             JOIN artist_credit_name ON artist_credit_name.artist = artist.id
+
+    UNION
+
+    SELECT artist.id, artist2.name
+    FROM artist
+             JOIN l_artist_artist ON entity1 = artist.id
+             JOIN "link" ON l_artist_artist.link = "link".id AND "link_type" = 103
+             JOIN artist AS artist2 ON artist2.id = l_artist_artist.entity0
+             JOIN link_attribute ON link_attribute."link" = "link".id AND link_attribute.attribute_type = 1094
+)
+INSERT INTO stijn_artist
+SELECT LOWER(REGEXP_REPLACE(name, '\W', '', 'g')), id
+FROM data
+ON CONFLICT ("name", "artist_id") DO NOTHING;
+```
+
+## Query for creating tijdlozedb.csv dataset
 
 ```postgresql
 SELECT
