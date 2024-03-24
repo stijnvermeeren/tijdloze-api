@@ -65,6 +65,38 @@ FROM data
 ON CONFLICT ("name", "artist_id") DO NOTHING;
 ```
 
+
+```postgresql
+CREATE TABLE stijn_recording (
+                              "artist_id" int,
+                              "name" text,
+                              "recording_id" int
+);
+
+CREATE INDEX idx_recording_artist ON stijn_recording(artist_id);
+
+DELETE FROM stijn_recording;
+
+WITH data AS (
+    SELECT artist_credit_name.artist, recording.name, "recording"."id" as recording_id
+    FROM recording
+    JOIN artist_credit ON artist_credit.id = recording.artist_credit
+    JOIN "artist_credit_name" ON "artist_credit_name"."artist_credit" = "artist_credit"."id"
+    
+    UNION
+
+    SELECT artist_credit_name.artist, work.name, "recording"."id" as recording_id
+    FROM recording
+    JOIN artist_credit ON artist_credit.id = recording.artist_credit
+    JOIN "artist_credit_name" ON "artist_credit_name"."artist_credit" = "artist_credit"."id"
+    JOIN "l_recording_work" ON "l_recording_work"."entity0" = "recording"."id"
+    JOIN "work" ON "work"."id" = "l_recording_work"."entity1"
+)
+INSERT INTO stijn_recording
+SELECT artist, LOWER(REGEXP_REPLACE(name, '\W', '', 'g')), recording_id
+FROM data;
+```
+
 ## Query for creating tijdlozedb.csv dataset
 
 ```postgresql

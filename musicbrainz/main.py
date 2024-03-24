@@ -15,7 +15,7 @@ def query(cursor, query):
 
 
 def search_key(value: str) -> str:
-    return re.sub(r'[^A-Za-z0-9 ]+', '', value.lower())
+    return re.sub(r'[^a-zA-Z0-9]+', '', value.lower())
 
 def clean(value: str) -> str:
     return (value
@@ -23,6 +23,7 @@ def clean(value: str) -> str:
             .replace("’", "'")
             .replace("“", "\"")
             .replace("”", "\"")
+            .replace("‐", "-")
             )
 
 
@@ -50,29 +51,41 @@ class Song:
     def is_compilation_album(self):
         return self.release_type == 1 and 1 in self.release_secondary_types
 
-    def priority(self):
-        is_single_from_term = 0 if self.is_single_from else 10
+    def is_soundtrack_album(self):
+        return self.release_type == 1 and 2 in self.release_secondary_types
+
+    def relevance_for_query(self, query):
+        if search_key(self.title) == search_key(query):
+            # exact match
+            return self.recording_score
+        else:
+            # e.g. "Hotellounge (Be the Death of Me)" instead of "Hotellounge"
+            return self.recording_score / 10
+
+    def sort_key(self):
+        if self.release_year is None:
+            year_value = 9999
+        elif self.is_single_from or self.is_main_album():
+            year_value = self.release_year
+        else:
+            year_value = self.release_year + 1
+
+        reference_priorty = 1
+        if self.is_single_from:
+            reference_priorty = 0
 
         if self.is_main_album():
-            return is_single_from_term + 1
+            type_priority = 1
+        elif self.is_soundtrack_album():
+            type_priority = 2
+        elif self.is_compilation_album():
+            # Note that we have already ensured in the SQL query that we only take compilation albums from the artist,
+            # no "various artists" compilation albums.
+            type_priority = 3
         else:
-            return is_single_from_term + 2
+            type_priority = 4
 
-    def overridden_by(self, other_song):
-        if self.release_year:
-            if other_song.release_year:
-                if self.priority() < other_song.priority():
-                    # prefer album to single, even if the single is a year earlier
-                    return other_song.release_year < self.release_year - 1
-                if other_song.priority() < self.priority():
-                    # prefer album to single, even if the single is a year earlier
-                    return other_song.release_year < self.release_year + 2
-                else:
-                    return other_song.release_year < self.release_year
-            else:
-                return False
-        else:
-            return other_song.release_year is not None
+        return (year_value, reference_priorty, type_priority)
 
 
 def search_artist(cursor, artist: str) -> list[int]:
@@ -91,7 +104,7 @@ def search(cursor, artist_ids: list[int], search_title: str) -> Song:
     if not len(artist_ids):
         return None
 
-    where = """"artist"."id" IN ({})""".format(",".join([str(id) for id in artist_ids]))
+    where = """("artist"."id" IN ({}))""".format(",".join([str(id) for id in artist_ids]))
     singlesQuery = """
         SELECT
             release_group.name AS title,
@@ -112,6 +125,10 @@ def search(cursor, artist_ids: list[int], search_title: str) -> Song:
             single_from_relations[single_title] = set()
         single_from_relations[single_title].add(entry['album_id'])
 
+    where = """
+    ("stijn_recording"."artist_id" IN ({}) AND "stijn_recording"."name" LIKE '{}%')
+    """.format(",".join([str(id) for id in artist_ids]), search_key(search_title))
+
     recordingsQuery = """
         SELECT
            artist.gid,
@@ -126,27 +143,27 @@ def search(cursor, artist_ids: list[int], search_title: str) -> Song:
            "recording"."gid" as recording_id,
            "recording"."name" as recording_name,
            "work"."name" as work_name,
-           recording_artist_credit."name" as recording_artist_name,
+           "artist_credit"."name" as recording_artist_name,
            (SELECT COUNT(*) FROM "l_artist_url" WHERE "entity0" = "artist"."id") as artist_score,
            (SELECT COUNT(*) FROM "release" r2 JOIN "medium" m2 ON m2."release" = r2."id" JOIN "track" t2 ON t2."medium" = m2."id" WHERE t2."recording" = "recording"."id") as recording_score,
            (SELECT COUNT(*) FROM "l_recording_work" WHERE "entity1" = "work"."id") as work_score
-        FROM "artist"
+        FROM "stijn_recording"
+        JOIN "artist" ON "artist"."id" = "stijn_recording"."artist_id"
         LEFT JOIN "stijn_area_country_id" ON "stijn_area_country_id"."area_id" = "artist"."area"
-        JOIN "artist_credit_name" ON "artist_credit_name"."artist" = "artist"."id"
-        JOIN "artist_credit" ON "artist_credit"."id" = "artist_credit_name"."artist_credit"
-        JOIN "release_group" ON "release_group"."artist_credit" = "artist_credit"."id"
-        JOIN "release" ON "release"."release_group" = "release_group"."id"
-        JOIN "medium" ON "medium"."release" = "release"."id"
-        JOIN "track" ON "track"."medium" = "medium"."id"
-        JOIN "recording" ON "recording"."id" = "track"."recording"
-        JOIN "artist_credit" recording_artist_credit ON recording_artist_credit.id = "recording"."artist_credit"
+        JOIN "recording" ON "recording"."id" = "stijn_recording"."recording_id"
+        JOIN "track" ON "recording"."id" = "track"."recording"
+        JOIN "medium" ON "track"."medium" = "medium"."id" 
+        JOIN "release" ON "medium"."release" = "release"."id"
+        JOIN "release_group" ON "release"."release_group" = "release_group"."id"
+        JOIN "artist_credit" AS artist_credit_rg ON artist_credit_rg.id = "release_group"."artist_credit"
+        JOIN "artist_credit_name" ON "artist_credit_name"."artist_credit" = artist_credit_rg."id" AND "artist_credit_name"."artist" = "artist"."id"
+        JOIN "artist_credit" ON "artist_credit".id = "recording"."artist_credit"
         LEFT JOIN "l_recording_work" ON "l_recording_work"."entity0" = "recording"."id"
-        LEFT JOIN "work" ON "work"."id" = "l_recording_work"."entity1" 
+        LEFT JOIN "work" ON "work"."id" = "l_recording_work"."entity1"
         WHERE {} AND "release"."status" = 1  -- official
     """.format(where)
     songs = []
     release_group_release = {}
-    recording_title_count = {}
     for entry in query(cursor, recordingsQuery):
         title = entry['recording_name']
         release_group_id = entry['release_group_id']
@@ -175,46 +192,28 @@ def search(cursor, artist_ids: list[int], search_title: str) -> Song:
             release_group_release[song.release_group_id] = set()
         release_group_release[song.release_group_id].add(song.release_id)
 
-        if song.release_group_id not in recording_title_count:
-            recording_title_count[song.release_group_id] = Counter()
-        recording_title_count[song.release_group_id].update([song.title])
-
         songs.append(song)
 
-        if entry['work_name'] != song.title:
+        if entry['work_name'] is not None and entry['work_name'] != song.title:
             song2 = dataclasses.replace(song)
             song2.title = entry['work_name']
             songs.append(song2)
 
-    song_data = {}
-    for song in songs:
-        # song title found in at least 50% of all recordings of the release_group
-        if recording_title_count[song.release_group_id][song.title] >= 0.5 * len(release_group_release[song.release_group_id]):
-            key = search_key(song.title)
-            if key not in song_data or song_data[key].overridden_by(song):
-                song_data[key] = song
+    if len(songs):
+        max_recording_score = max([song.relevance_for_query(search_title) for song in songs])
+        # ignore obsure early demo's of a common song (e.g. Evanescence - My Immortal)
+        filtered_songs = [
+            song
+            for song in songs
+            if song.relevance_for_query(search_title) > max_recording_score / 10 or song.is_single_from
+        ]
 
-    # for song in sorted(
-    #         song_data.values(),
-    #         key=lambda song: (song.recording_score, song.artist_score), reverse=True
-    # ):
-    #     print("{} {}: {} ({}) - {} {} {} ({}, {}, {})".format(
-    #         song.artist_score,
-    #         song.recording_score,
-    #         song.recording_artist,
-    #         song.country_id,
-    #         song.title,
-    #         song.recording_id,
-    #         song.release_group_id,
-    #         song.release_group_name,
-    #         song.release_year,
-    #         song.release_type,
-    #         song.release_secondary_types
-    #     ))
+        # scored = sorted(filtered_songs, key=lambda song: song.sort_key())
+        # for song in scored:
+        #     print(song.sort_key(), song)
 
-    key = search_key(search_title)
-    if key in song_data:
-        return song_data[key]
+        best_match = min(filtered_songs, key=lambda song: song.sort_key())
+        return best_match
 
 def process_song(cursor, row):
     if row["artist2_name"]:
@@ -225,7 +224,7 @@ def process_song(cursor, row):
     print()
     print("{} - {}".format(artist_name, title))
 
-    artist_ids = search_artist(cursor, artist_name)
+    artist_ids = search_artist(cursor, row["artist_name"])
     song = search(cursor, artist_ids, title)
 
     artist_db = "{} {} ({})".format(row["artist_musicbrainz_id"], row["artist_name"], row["artist_country_id"])
@@ -266,6 +265,8 @@ try:
             with open('tijdlozedb.csv', newline='') as csvfile:
                 reader = csv.DictReader(csvfile)
                 for row in reader:
+                    if row['title'] != 'Hotellounge':
+                        pass
                     process_song(cursor, row)
 except psycopg2.DatabaseError as error:
     print("Error: {}".format(error))
