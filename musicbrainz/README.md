@@ -151,10 +151,13 @@ CREATE TABLE mb_song (
     "id" int PRIMARY KEY,
     "mb_id" varchar,
     "title" varchar,
+    "artist_id" int,
     "album_id" int,
     "is_single" boolean,
     "score" int
 );
+
+CREATE INDEX idx_mb_song_artist_id ON mb_song(artist_id);
 
 CREATE TABLE mb_song_alias (
     "song_id" int,

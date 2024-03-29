@@ -251,28 +251,31 @@ def process_artist(cursor, artist_id: int):
             is_single
         ))
 
-        song_values.append("({}, '{}', '{}', {}, {}, {})".format(
+        song_values.append("({}, '{}', '{}', {}, {}, {}, {})".format(
             best_match.recording_id,
             best_match.recording_mb_id,
             best_match.title.replace("'", "''"),
+            artist_id,
             best_match.release_group_id,
             best_match.is_single_from,
             best_match.recording_score
         ))
 
-    insert_album = """
-        INSERT INTO mb_album (id, mb_id, title, release_year, is_single)
-        VALUES {}
-        ON CONFLICT DO NOTHING;
-    """.format(", ".join(album_values))
-    cursor.execute(insert_album)
+    if len(album_values):
+        insert_album = """
+            INSERT INTO mb_album (id, mb_id, title, release_year, is_single)
+            VALUES {}
+            ON CONFLICT DO NOTHING;
+        """.format(", ".join(album_values))
+        cursor.execute(insert_album)
 
-    insert_song = """
-        INSERT INTO mb_song (id, mb_id, title, album_id, is_single, score)
-        VALUES {}
-        ON CONFLICT DO NOTHING;
-    """.format(", ".join(song_values))
-    cursor.execute(insert_song)
+    if len(song_values):
+        insert_song = """
+            INSERT INTO mb_song (id, mb_id, title, artist_id, album_id, is_single, score)
+            VALUES {}
+            ON CONFLICT DO NOTHING;
+        """.format(", ".join(song_values))
+        cursor.execute(insert_song)
 
 
 def search(cursor, artist_ids: list[int], search_title: str) -> Song:
@@ -441,13 +444,15 @@ try:
             password="musicbrainz"
     ) as conn:
         with conn.cursor() as cursor:
-            with open('tijdlozedb.csv', newline='') as csvfile:
-                process_artist(cursor, 9202)
+            for artist in query(cursor, "SELECT id, name FROM mb_artist ORDER BY score DESC;"):
+                print(artist['name'])
+                process_artist(cursor, artist['id'])
                 conn.commit()
-                reader = csv.DictReader(csvfile)
-                for row in reader:
-                    if row['title'] != 'Hotellounge':
-                        pass
-                    process_song(cursor, row)
+            # with open('tijdlozedb.csv', newline='') as csvfile:
+            #      reader = csv.DictReader(csvfile)
+            #      for row in reader:
+            #          if row['title'] != 'Hotellounge':
+            #              pass
+            #          process_song(cursor, row)
 except psycopg2.DatabaseError as error:
     print("Error: {}".format(error))
