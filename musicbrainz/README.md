@@ -140,7 +140,7 @@ CREATE INDEX idx_mb_artist_alias_artist_id ON mb_artist_alias(artist_id);
 CREATE INDEX idx_mb_artist_alias_alias ON mb_artist_alias(alias);
 
 CREATE TABLE mb_album (
-    "album_id" int PRIMARY KEY,
+    "id" int PRIMARY KEY,
     "mb_id" varchar,
     "title" varchar,
     "release_year" int,
