@@ -15,7 +15,8 @@ def query(cursor, query):
 
 
 def search_key(value: str) -> str:
-    return re.sub(r'[^a-zA-Z0-9]+', '', value.lower())
+    # TODO: when "(live)" in title, then restrict search to live albums
+    return re.sub(r'[^a-zA-Z0-9]+', '', value.lower().replace("(live)", ""))
 
 def clean(value: str) -> str:
     return (value
@@ -54,8 +55,11 @@ class Song:
     def is_soundtrack_album(self):
         return self.release_type == 1 and 2 in self.release_secondary_types
 
+    def is_exact_match(self, query):
+        return search_key(self.title) == search_key(query)
+
     def relevance_for_query(self, query):
-        if search_key(self.title) == search_key(query):
+        if self.is_exact_match(query):
             # exact match
             return self.recording_score
         else:
@@ -100,6 +104,12 @@ def search_artist(cursor, artist: str) -> list[int]:
     return [entry["artist_id"] for entry in query(cursor, artist_query)]
 
 
+def process_artist(cursor, artist_id: int):
+    artist_query = """
+    """
+    query(cursor, artist_query)
+
+
 def search(cursor, artist_ids: list[int], search_title: str) -> Song:
     if not len(artist_ids):
         return None
@@ -126,8 +136,10 @@ def search(cursor, artist_ids: list[int], search_title: str) -> Song:
         single_from_relations[single_title].add(entry['album_id'])
 
     where = """
-    ("stijn_recording"."artist_id" IN ({}) AND "stijn_recording"."name" LIKE '{}%')
-    """.format(",".join([str(id) for id in artist_ids]), search_key(search_title))
+    ("stijn_recording"."artist_id" IN ({}) AND ("stijn_recording"."name" LIKE '{}%' OR (
+        LENGTH("stijn_recording"."name") < 255 AND levenshtein_less_equal("stijn_recording"."name", '{}', 1) < 2))
+    )
+    """.format(",".join([str(id) for id in artist_ids]), search_key(search_title), search_key(search_title))
 
     recordingsQuery = """
         SELECT
@@ -205,7 +217,9 @@ def search(cursor, artist_ids: list[int], search_title: str) -> Song:
         filtered_songs = [
             song
             for song in songs
-            if song.relevance_for_query(search_title) > max_recording_score / 10 or song.is_single_from
+            if song.relevance_for_query(search_title) > max_recording_score / 10 or (
+                song.is_exact_match(search_title) and song.is_single_from
+            )
         ]
 
         # scored = sorted(filtered_songs, key=lambda song: song.sort_key())
@@ -248,9 +262,9 @@ def process_song(cursor, row):
             album_title += " (single)"
         album_mb = "{} {} ({})".format(song.release_group_id, album_title, song.release_year)
         if album_db == album_mb:
-            print("MB: ok")
+            print("MB: {} ok".format(song.artist_score))
         else:
-            print("MB: {}".format(album_mb))
+            print("MB: {} {}".format(song.artist_score, album_mb))
 
 
 

@@ -29,6 +29,7 @@ ON CONFLICT ("area_id") DO NOTHING;
 CREATE TABLE stijn_artist (
                               "name" text,
                               "artist_id" int,
+                              "score" int,
                               UNIQUE ("name", "artist_id")
 );
 
@@ -42,25 +43,28 @@ WITH data AS (
 
     SELECT artist.id, artist_alias."name"
     FROM artist
-             JOIN artist_alias ON artist_alias.artist = artist.id
+    JOIN artist_alias ON artist_alias.artist = artist.id
 
     UNION
 
     SELECT artist.id, artist_credit_name."name"
     FROM artist
-             JOIN artist_credit_name ON artist_credit_name.artist = artist.id
+    JOIN artist_credit_name ON artist_credit_name.artist = artist.id
 
     UNION
 
     SELECT artist.id, artist2.name
     FROM artist
-             JOIN l_artist_artist ON entity1 = artist.id
-             JOIN "link" ON l_artist_artist.link = "link".id AND "link_type" = 103
-             JOIN artist AS artist2 ON artist2.id = l_artist_artist.entity0
-             JOIN link_attribute ON link_attribute."link" = "link".id AND link_attribute.attribute_type = 1094
+    JOIN l_artist_artist ON entity1 = artist.id
+    JOIN "link" ON l_artist_artist.link = "link".id AND "link_type" = 103
+    JOIN artist AS artist2 ON artist2.id = l_artist_artist.entity0
+    JOIN link_attribute ON link_attribute."link" = "link".id AND link_attribute.attribute_type = 1094
 )
 INSERT INTO stijn_artist
-SELECT LOWER(REGEXP_REPLACE(name, '\W', '', 'g')), id
+SELECT 
+    LOWER(REGEXP_REPLACE(name, '\W', '', 'g')), 
+    id,
+    (SELECT COUNT(*) FROM "l_artist_url" WHERE "entity0" = data."id")
 FROM data
 ON CONFLICT ("name", "artist_id") DO NOTHING;
 ```
@@ -85,16 +89,128 @@ WITH data AS (
     
     UNION
 
+    SELECT artist_credit_name.artist, recording_alias.name, "recording"."id" as recording_id
+    FROM recording
+    JOIN artist_credit ON artist_credit.id = recording.artist_credit
+    JOIN "artist_credit_name" ON "artist_credit_name"."artist_credit" = "artist_credit"."id"
+    JOIN "recording_alias" ON "recording_alias"."recording" = "recording"."id" 
+
+    UNION
+
     SELECT artist_credit_name.artist, work.name, "recording"."id" as recording_id
     FROM recording
     JOIN artist_credit ON artist_credit.id = recording.artist_credit
     JOIN "artist_credit_name" ON "artist_credit_name"."artist_credit" = "artist_credit"."id"
     JOIN "l_recording_work" ON "l_recording_work"."entity0" = "recording"."id"
     JOIN "work" ON "work"."id" = "l_recording_work"."entity1"
+
+    UNION
+
+    SELECT artist_credit_name.artist, work_alias.name, "recording"."id" as recording_id
+    FROM recording
+    JOIN artist_credit ON artist_credit.id = recording.artist_credit
+    JOIN "artist_credit_name" ON "artist_credit_name"."artist_credit" = "artist_credit"."id"
+    JOIN "l_recording_work" ON "l_recording_work"."entity0" = "recording"."id"
+    JOIN "work" ON "work"."id" = "l_recording_work"."entity1"
+    JOIN "work_alias" ON "work_alias"."work" = "work"."id"
 )
 INSERT INTO stijn_recording
 SELECT artist, LOWER(REGEXP_REPLACE(name, '\W', '', 'g')), recording_id
 FROM data;
+```
+
+## Tables for export
+
+```postgresql
+CREATE TABLE mb_artist (
+    "id" int PRIMARY KEY,
+    "mb_id" varchar,
+    "name" varchar,
+    "country_id" varchar,
+    "score" int
+);
+
+CREATE TABLE mb_artist_alias (
+    "artist_id" int,
+    "alias" varchar,
+    UNIQUE ("artist_id", "alias")
+);
+
+CREATE INDEX idx_mb_artist_alias_artist_id ON mb_artist_alias(artist_id);
+CREATE INDEX idx_mb_artist_alias_alias ON mb_artist_alias(alias);
+
+CREATE TABLE mb_album (
+    "album_id" int PRIMARY KEY,
+    "mb_id" varchar,
+    "title" varchar,
+    "release_year" int,
+    "is_single" boolean
+);
+
+CREATE TABLE mb_song (
+    "id" int PRIMARY KEY,
+    "mb_id" varchar,
+    "title" varchar,
+    "album_id" int,
+    "is_single" boolean,
+    "score" int
+);
+
+CREATE TABLE mb_song_alias (
+    "song_id" int,
+    "alias" varchar,
+    UNIQUE ("song_id", "alias")
+);
+
+CREATE INDEX idx_mb_song_alias_song_id ON mb_song_alias(song_id);
+CREATE INDEX idx_mb_song_alias_alias ON mb_song_alias(alias);
+```
+
+Artist data:
+```postgresql
+WITH data AS (
+    SELECT
+      id, gid, name, country_id, (SELECT COUNT(*) FROM "l_artist_url" WHERE "entity0" = "artist"."id") as score
+    FROM "artist"
+    LEFT JOIN "stijn_area_country_id" ON "stijn_area_country_id"."area_id" = "artist"."area"
+)
+INSERT INTO mb_artist (id, mb_id, name, country_id, score)
+SELECT id, gid, name, country_id, score
+FROM data
+WHERE country_id = 'be' OR score > 8;
+
+
+WITH data AS (
+    SELECT id, "name"
+    FROM mb_artist
+
+    UNION
+
+    SELECT mb_artist.id, artist_alias."name"
+    FROM mb_artist
+             JOIN artist_alias ON artist_alias.artist = mb_artist.id
+
+    UNION
+
+    SELECT mb_artist.id, artist_credit_name."name"
+    FROM mb_artist
+             JOIN artist_credit_name ON artist_credit_name.artist = mb_artist.id
+
+    UNION
+
+    SELECT mb_artist.id, artist2.name
+    FROM mb_artist
+             JOIN l_artist_artist ON entity1 = mb_artist.id
+             JOIN "link" ON l_artist_artist.link = "link".id AND "link_type" = 103
+             JOIN artist AS artist2 ON artist2.id = l_artist_artist.entity0
+             JOIN link_attribute ON link_attribute."link" = "link".id AND link_attribute.attribute_type = 1094
+)
+INSERT INTO mb_artist_alias (artist_id, alias)
+SELECT
+    id,
+    LOWER(REGEXP_REPLACE(name, '\W', '', 'g'))
+FROM data
+ON CONFLICT ("artist_id", "alias") DO NOTHING;
 ```
 
 ## Query for creating tijdlozedb.csv dataset
