@@ -190,7 +190,7 @@ def process_artist(cursor, artist_id: int):
            release_group.gid as release_group_mb_id, 
            release_group.name as release_group_name,
            release_group.type as release_type,
-           (SELECT MIN(date_year) FROM "release_country" WHERE release_country.release = release.id) as release_year,
+           MIN((SELECT MIN(date_year) FROM "release_country" WHERE release_country.release = release.id)) as release_year,
            (SELECT array_agg(secondary_type) FROM release_group_secondary_type_join WHERE release_group_secondary_type_join.release_group = release_group.id) as secondary_types,
            "recording"."id" as recording_id,
            "recording"."gid" as recording_mb_id,
@@ -205,7 +205,9 @@ def process_artist(cursor, artist_id: int):
         JOIN "artist_credit_name" ON "artist_credit_name"."artist_credit" = artist_credit_rg."id"
         JOIN "artist_credit" ON "artist_credit".id = "recording"."artist_credit"
         WHERE "artist_credit_name"."artist" = {} AND "release"."status" = 1 -- official
+        GROUP BY recording.id, release_group.id
     """.format(artist_id)
+
     songs = {}
     for entry in query(cursor, recordingsQuery):
         if entry['release_year'] is None:
@@ -213,10 +215,7 @@ def process_artist(cursor, artist_id: int):
 
         title = entry['recording_name']
         release_group_mb_id = entry['release_group_mb_id']
-        print(title)
-        print(release_group_mb_id)
         is_single_from = title in single_from_relations and release_group_mb_id in single_from_relations[title]
-        print(is_single_from)
 
         song = Entry(
             title=title,
@@ -457,7 +456,7 @@ try:
             password="musicbrainz"
     ) as conn:
         with conn.cursor() as cursor:
-            for artist in query(cursor, "SELECT id, name FROM mb_artist WHERE id = 510 ORDER BY score DESC;"):
+            for artist in query(cursor, "SELECT id, name FROM mb_artist ORDER BY score DESC;"):
                 print(artist['name'])
                 process_artist(cursor, artist['id'])
                 conn.commit()
