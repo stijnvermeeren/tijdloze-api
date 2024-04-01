@@ -216,6 +216,48 @@ FROM data
 ON CONFLICT ("artist_id", "alias") DO NOTHING;
 ```
 
+Recording data (after running script):
+```postgresql
+-- TODO
+-- ERROR:  operator does not exist: uuid = character varying
+-- LINE 7:     JOIN recording ON recording.gid = mb_song.mb_id
+
+DELETE FROM mb_song_alias;
+
+WITH data AS (
+    SELECT mb_song.id, recording.name
+    FROM mb_song
+    JOIN recording ON recording.gid = mb_song.mb_id
+    
+    UNION
+
+    SELECT mb_song.id, recording_alias.name
+    FROM mb_song
+    JOIN recording ON recording.gid = mb_song.mb_id
+    JOIN "recording_alias" ON "recording_alias"."recording" = "recording"."id" 
+
+    UNION
+
+    SELECT mb_song.id, work.name
+    FROM mb_song
+    JOIN recording ON recording.gid = mb_song.mb_id
+    JOIN "l_recording_work" ON "l_recording_work"."entity0" = "recording"."id"
+    JOIN "work" ON "work"."id" = "l_recording_work"."entity1"
+
+    UNION
+
+    SELECT mb_song.id, work_alias.name
+    FROM mb_song
+    JOIN recording ON recording.gid = mb_song.mb_id
+    JOIN "l_recording_work" ON "l_recording_work"."entity0" = "recording"."id"
+    JOIN "work" ON "work"."id" = "l_recording_work"."entity1"
+    JOIN "work_alias" ON "work_alias"."work" = "work"."id"
+)
+INSERT INTO mb_song_alias
+SELECT id, LOWER(REGEXP_REPLACE(name, '\W', '', 'g'))
+FROM data;
+```
+
 ## Query for creating tijdlozedb.csv dataset
 
 ```postgresql
