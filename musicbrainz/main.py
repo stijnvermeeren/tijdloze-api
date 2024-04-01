@@ -212,15 +212,18 @@ def process_artist(cursor, artist_id: int):
             continue
 
         title = entry['recording_name']
-        release_group_id = entry['release_group_id']
-        is_single_from = title in single_from_relations and release_group_id in single_from_relations[title]
+        release_group_mb_id = entry['release_group_mb_id']
+        print(title)
+        print(release_group_mb_id)
+        is_single_from = title in single_from_relations and release_group_mb_id in single_from_relations[title]
+        print(is_single_from)
 
         song = Entry(
             title=title,
             recording_id=entry['recording_id'],
             recording_mb_id=entry['recording_mb_id'],
-            release_group_id=release_group_id,
-            release_group_mb_id=entry['release_group_mb_id'],
+            release_group_id=entry['release_group_id'],
+            release_group_mb_id=release_group_mb_id,
             release_group_name=entry['release_group_name'],
             release_type=entry['release_type'],
             release_secondary_types=entry['secondary_types'],
@@ -233,8 +236,8 @@ def process_artist(cursor, artist_id: int):
             songs[song.recording_id] = []
         songs[song.recording_id].append(song)
 
-    album_values = []
-    song_values = []
+    album_values = {}
+    song_values = {}
     for recording_id, songs in songs.items():
         best_match = min(songs, key=lambda song: song.sort_key())
 
@@ -243,15 +246,15 @@ def process_artist(cursor, artist_id: int):
         else:
             is_single = 'FALSE'
 
-        album_values.append("({}, '{}', '{}', {}, {})".format(
+        album_values[best_match.release_group_id] = "({}, '{}', '{}', {}, {})".format(
             best_match.release_group_id,
             best_match.release_group_mb_id,
             best_match.release_group_name.replace("'", "''"),
             best_match.release_year,
             is_single
-        ))
+        )
 
-        song_values.append("({}, '{}', '{}', {}, {}, {}, {})".format(
+        song_values[best_match.recording_id] = "({}, '{}', '{}', {}, {}, {}, {})".format(
             best_match.recording_id,
             best_match.recording_mb_id,
             best_match.title.replace("'", "''"),
@@ -259,22 +262,32 @@ def process_artist(cursor, artist_id: int):
             best_match.release_group_id,
             best_match.is_single_from,
             best_match.recording_score
-        ))
+        )
 
     if len(album_values):
         insert_album = """
             INSERT INTO mb_album (id, mb_id, title, release_year, is_single)
             VALUES {}
-            ON CONFLICT DO NOTHING;
-        """.format(", ".join(album_values))
+            ON CONFLICT(id) DO UPDATE SET
+             mb_id = EXCLUDED.mb_id, 
+             title = EXCLUDED.title, 
+             release_year = EXCLUDED.release_year,
+             is_single = EXCLUDED.is_single;
+        """.format(", ".join(album_values.values()))
         cursor.execute(insert_album)
 
     if len(song_values):
         insert_song = """
             INSERT INTO mb_song (id, mb_id, title, artist_id, album_id, is_single, score)
             VALUES {}
-            ON CONFLICT DO NOTHING;
-        """.format(", ".join(song_values))
+            ON CONFLICT(id) DO UPDATE SET
+             mb_id = EXCLUDED.mb_id,
+             title = EXCLUDED.title, 
+             artist_id = EXCLUDED.artist_id,
+             album_id = EXCLUDED.album_id,
+             is_single = EXCLUDED.is_single,
+             score = EXCLUDED.score;
+        """.format(", ".join(song_values.values()))
         cursor.execute(insert_song)
 
 
@@ -444,7 +457,7 @@ try:
             password="musicbrainz"
     ) as conn:
         with conn.cursor() as cursor:
-            for artist in query(cursor, "SELECT id, name FROM mb_artist ORDER BY score DESC;"):
+            for artist in query(cursor, "SELECT id, name FROM mb_artist WHERE id = 510 ORDER BY score DESC;"):
                 print(artist['name'])
                 process_artist(cursor, artist['id'])
                 conn.commit()
