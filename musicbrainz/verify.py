@@ -47,7 +47,7 @@ def search(cursor, search_artist: str, search_title: str) -> Song:
     ("mb_song"."title" LIKE '{}%' OR (
         LENGTH("mb_song_alias"."alias") < 255 AND levenshtein_less_equal("mb_song_alias"."alias", '{}', 1) < 2
     )) AND (
-        LENGTH("mb_artist"."name") < 255 
+        LENGTH("mb_artist_alias"."alias") < 255 
         AND levenshtein_less_equal("mb_artist_alias"."alias", LOWER(REGEXP_REPLACE('{}', '\W', '', 'g')), 1) < 2
     )
     """.format(search_key(search_title), search_key(search_title), search_key(search_artist))
@@ -57,7 +57,7 @@ def search(cursor, search_artist: str, search_title: str) -> Song:
            mb_song.mb_id as song_mb_id,
            mb_song.title,
            mb_song.is_single AS single_relationship,
-           mb_song.score,
+           mb_song.score AS recording_score,
            mb_album.title as album_title,
            mb_album.release_year,
            mb_album.is_single,
@@ -73,18 +73,17 @@ def search(cursor, search_artist: str, search_title: str) -> Song:
         WHERE {}
     """.format(where)
     songs = []
-    release_group_release = {}
     for entry in query(cursor, recordingsQuery):
-
         song = Song(
             title=entry['title'],
             song_mb_id=entry['song_mb_id'],
             artist=entry['name'],
-            artist_mb_id=entry['artist_md_id'],
+            artist_mb_id=entry['artist_mb_id'],
             country_id=entry['country_id'],
             album_title=entry['album_title'],
             album_mb_id=entry['album_mb_id'],
-            is_single_from=entry['is_single_relationship'],
+            release_year=entry['release_year'],
+            is_single_from=entry['single_relationship'],
             is_single=entry['is_single'],
             recording_score=entry['recording_score']
         )

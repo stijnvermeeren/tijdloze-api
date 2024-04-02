@@ -84,32 +84,38 @@ def process_artist(cursor, artist_id: int):
             single_from_relations[single_title] = set()
         single_from_relations[single_title].add(entry['album_id'])
 
-    recordingsQuery = """
+    recordings_query = """
         SELECT
-           release_group.id as release_group_id, 
-           release_group.gid as release_group_mb_id, 
-           release_group.name as release_group_name,
-           release_group.type as release_type,
-           MIN((SELECT MIN(date_year) FROM "release_country" WHERE release_country.release = release.id)) as release_year,
-           (SELECT array_agg(secondary_type) FROM release_group_secondary_type_join WHERE release_group_secondary_type_join.release_group = release_group.id) as secondary_types,
-           "recording"."id" as recording_id,
-           "recording"."gid" as recording_mb_id,
-           "recording"."name" as recording_name,
-           (SELECT COUNT(*) FROM "release" r2 JOIN "medium" m2 ON m2."release" = r2."id" JOIN "track" t2 ON t2."medium" = m2."id" WHERE t2."recording" = "recording"."id") as recording_score
+            release_group.id as release_group_id, 
+            release_group.gid as release_group_mb_id, 
+            release_group.name as release_group_name,
+            release_group.type as release_type,
+            (
+                SELECT MIN(date_year) 
+                FROM "release_country" 
+                JOIN "release" release2 ON release_country.release = release2.id 
+                WHERE release2."release_group" = "release_group".id
+            ) as release_year,
+            (SELECT array_agg(secondary_type) FROM release_group_secondary_type_join WHERE release_group_secondary_type_join.release_group = release_group.id) as secondary_types,
+            "recording"."id" as recording_id,
+            "recording"."gid" as recording_mb_id,
+            "recording"."name" as recording_name,
+            (SELECT COUNT(*) FROM "release" r2 JOIN "medium" m2 ON m2."release" = r2."id" JOIN "track" t2 ON t2."medium" = m2."id" WHERE t2."recording" = "recording"."id") as recording_score
         FROM "recording"
         JOIN "track" ON "recording"."id" = "track"."recording"
         JOIN "medium" ON "track"."medium" = "medium"."id" 
         JOIN "release" ON "medium"."release" = "release"."id"
         JOIN "release_group" ON "release"."release_group" = "release_group"."id"
         JOIN "artist_credit" AS artist_credit_rg ON artist_credit_rg.id = "release_group"."artist_credit"
-        JOIN "artist_credit_name" ON "artist_credit_name"."artist_credit" = artist_credit_rg."id"
+        JOIN "artist_credit_name" AS artist_credit_name_rg ON artist_credit_name_rg."artist_credit" = artist_credit_rg."id"
         JOIN "artist_credit" ON "artist_credit".id = "recording"."artist_credit"
-        WHERE "artist_credit_name"."artist" = {} AND "release"."status" = 1 -- official
+        JOIN "artist_credit_name" ON "artist_credit_name"."artist_credit" = "artist_credit"."id" AND "artist_credit_name"."position" = 0
+        WHERE "artist_credit_name"."artist" = {} AND "release"."status" = 1 AND artist_credit_name_rg.artist = artist_credit_name.artist -- official
         GROUP BY recording.id, release_group.id
     """.format(artist_id)
 
     songs = {}
-    for entry in query(cursor, recordingsQuery):
+    for entry in query(cursor, recordings_query):
         if entry['release_year'] is None:
             continue
 
@@ -137,8 +143,8 @@ def process_artist(cursor, artist_id: int):
 
     album_values = {}
     song_values = {}
-    for recording_id, songs in songs.items():
-        best_match = min(songs, key=lambda song: song.sort_key())
+    for recording_id, recording_songs in songs.items():
+        best_match = min(recording_songs, key=lambda song: song.sort_key())
 
         if best_match.release_type == 2:
             is_single = 'TRUE'

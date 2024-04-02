@@ -124,7 +124,7 @@ FROM data;
 ```postgresql
 CREATE TABLE mb_artist (
     "id" int PRIMARY KEY,
-    "mb_id" varchar,
+    "mb_id" uuid,
     "name" varchar,
     "country_id" varchar,
     "score" int
@@ -141,7 +141,7 @@ CREATE INDEX idx_mb_artist_alias_alias ON mb_artist_alias(alias);
 
 CREATE TABLE mb_album (
     "id" int PRIMARY KEY,
-    "mb_id" varchar,
+    "mb_id" uuid,
     "title" varchar,
     "release_year" int,
     "is_single" boolean
@@ -149,7 +149,7 @@ CREATE TABLE mb_album (
 
 CREATE TABLE mb_song (
     "id" int PRIMARY KEY,
-    "mb_id" varchar,
+    "mb_id" uuid,
     "title" varchar,
     "artist_id" int,
     "album_id" int,
@@ -218,10 +218,6 @@ ON CONFLICT ("artist_id", "alias") DO NOTHING;
 
 Recording data (after running script):
 ```postgresql
--- TODO
--- ERROR:  operator does not exist: uuid = character varying
--- LINE 7:     JOIN recording ON recording.gid = mb_song.mb_id
-
 DELETE FROM mb_song_alias;
 
 WITH data AS (
@@ -255,7 +251,8 @@ WITH data AS (
 )
 INSERT INTO mb_song_alias
 SELECT id, LOWER(REGEXP_REPLACE(name, '\W', '', 'g'))
-FROM data;
+FROM data
+ON CONFLICT ("song_id", "alias") DO NOTHING;
 ```
 
 ## Query for creating tijdlozedb.csv dataset
