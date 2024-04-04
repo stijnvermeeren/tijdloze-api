@@ -16,6 +16,7 @@ def clean(value: str) -> str:
 @dataclasses.dataclass
 class Song:
     title: str
+    matched_alias: str
     song_mb_id: str
     album_title: str
     album_mb_id: str
@@ -28,11 +29,11 @@ class Song:
     recording_score: int
 
     def is_exact_match(self, query):
-        return search_key(self.title) == search_key(query)
+        return search_key(self.matched_alias) == search_key(query)
 
     def relevance_for_query(self, query):
         if self.is_exact_match(query) and self.is_single_from:
-            return 1000 + self.recording_score
+            return 5 * self.recording_score
 
         if self.is_exact_match(query):
             # exact match
@@ -41,20 +42,44 @@ class Song:
             # e.g. "Hotellounge (Be the Death of Me)" instead of "Hotellounge"
             return self.recording_score / 10
 
+def song_from_result(entry):
+    return Song(
+        title=entry['title'],
+        matched_alias=entry['matched_alias'],
+        song_mb_id=entry['song_mb_id'],
+        artist=entry['name'],
+        artist_mb_id=entry['artist_mb_id'],
+        country_id=entry['country_id'],
+        album_title=entry['album_title'],
+        album_mb_id=entry['album_mb_id'],
+        release_year=entry['release_year'],
+        is_single_from=entry['single_relationship'],
+        is_single=entry['is_single'],
+        recording_score=entry['recording_score']
+    )
+
 
 def search(cursor, search_artist: str, search_title: str) -> Song:
     where = """
-    ("mb_song"."title" LIKE '{}%' OR (
-        LENGTH("mb_song_alias"."alias") < 255 AND levenshtein_less_equal("mb_song_alias"."alias", '{}', 1) < 2
-    )) AND (
+    ("mb_song_alias"."alias" LIKE '{}%') AND (
         LENGTH("mb_artist_alias"."alias") < 255 
         AND levenshtein_less_equal("mb_artist_alias"."alias", LOWER(REGEXP_REPLACE('{}', '\W', '', 'g')), 1) < 2
     )
-    """.format(search_key(search_title), search_key(search_title), search_key(search_artist))
+    """.format(search_key(search_title), search_key(search_artist))
 
-    recordingsQuery = """
+    where2 = """
+    (
+        LENGTH("mb_song_alias"."alias") < 255 AND levenshtein_less_equal("mb_song_alias"."alias", '{}', 1) < 2
+    ) AND (
+        LENGTH("mb_artist_alias"."alias") < 255 
+        AND levenshtein_less_equal("mb_artist_alias"."alias", LOWER(REGEXP_REPLACE('{}', '\W', '', 'g')), 1) < 2
+    )
+    """.format(search_key(search_title), search_key(search_artist))
+
+    recordings_query_template = """
         SELECT
            mb_song.mb_id as song_mb_id,
+           mb_song_alias.alias as matched_alias,
            mb_song.title,
            mb_song.is_single AS single_relationship,
            mb_song.score AS recording_score,
@@ -71,27 +96,21 @@ def search(cursor, search_artist: str, search_title: str) -> Song:
         JOIN "mb_artist" ON "mb_artist"."id" = "mb_song"."artist_id"
         JOIN "mb_artist_alias" ON "mb_artist"."id" = "mb_artist_alias"."artist_id"
         WHERE {}
-    """.format(where)
-    songs = []
-    for entry in query(cursor, recordingsQuery):
-        song = Song(
-            title=entry['title'],
-            song_mb_id=entry['song_mb_id'],
-            artist=entry['name'],
-            artist_mb_id=entry['artist_mb_id'],
-            country_id=entry['country_id'],
-            album_title=entry['album_title'],
-            album_mb_id=entry['album_mb_id'],
-            release_year=entry['release_year'],
-            is_single_from=entry['single_relationship'],
-            is_single=entry['is_single'],
-            recording_score=entry['recording_score']
-        )
+    """
 
-        songs.append(song)
+    recordings_query = recordings_query_template.format(where)
+    songs = [song_from_result(entry) for entry in query(cursor, recordings_query)]
+
+    if not len(songs):
+        recordings_query = recordings_query_template.format(where2)
+        songs = [song_from_result(entry) for entry in query(cursor, recordings_query)]
 
     if len(songs):
-        best_match = max(songs, key=lambda song: song.relevance_for_query(search_title))
+        min_relevance = max([song.relevance_for_query(search_title) for song in songs]) / 2
+        best_match = max(
+            [song for song in songs if song.relevance_for_query(search_title) >= min_relevance],
+            key=lambda song: (-song.release_year, song.relevance_for_query(search_title))
+        )
         return best_match
 
 def process_song(cursor, row):

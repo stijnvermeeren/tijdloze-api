@@ -77,9 +77,10 @@ def process_artist(cursor, artist_id: int):
         JOIN "release_group" AS release_group_album ON release_group_album.id = "l_release_group_release_group"."entity1"
         WHERE "artist_credit_name"."artist" = {} AND "link"."link_type" = 11  -- "single_from"
     """.format(artist_id)
+
     single_from_relations = {}
     for entry in query(cursor, singlesQuery):
-        single_title = entry["title"]
+        single_title = search_key(entry["title"])
         if single_title not in single_from_relations:
             single_from_relations[single_title] = set()
         single_from_relations[single_title].add(entry['album_id'])
@@ -121,7 +122,8 @@ def process_artist(cursor, artist_id: int):
 
         title = entry['recording_name']
         release_group_mb_id = entry['release_group_mb_id']
-        is_single_from = title in single_from_relations and release_group_mb_id in single_from_relations[title]
+        search_key_title = search_key(title)
+        is_single_from = search_key_title in single_from_relations and release_group_mb_id in single_from_relations[search_key_title]
 
         song = Entry(
             title=title,
