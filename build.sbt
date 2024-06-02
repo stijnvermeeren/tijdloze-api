@@ -8,7 +8,7 @@ scalaVersion := "2.13.10"
 
 libraryDependencies ++= Seq(evolutions, guice, ws, ehcache, filters)
 libraryDependencies ++= Seq(
-  "mysql" % "mysql-connector-java" % "8.0.33",
+  "org.postgresql" % "postgresql" % "42.5.1",
   "org.playframework" %% "play-slick" % "6.0.0",
   "org.playframework" %% "play-slick-evolutions" % "6.0.0",
   "com.typesafe.play" %% "play-json-joda" % "2.10.3",
