@@ -5,7 +5,7 @@ ENV MYSQL_DATABASE=tijdloze
 RUN apk add --no-cache bash
 
 ADD target/universal/de-tijdloze-website-api-1.0-SNAPSHOT.zip /
-ADD docker/stijnvermeeren-tijdloze-dev.pem /stijnvermeeren-tijdloze-dev.pem
+ADD dev/stijnvermeeren-tijdloze-dev.pem /stijnvermeeren-tijdloze-dev.pem
 
 RUN unzip /de-tijdloze-website-api-1.0-SNAPSHOT.zip
 RUN mv /de-tijdloze-website-api-1.0-SNAPSHOT /api

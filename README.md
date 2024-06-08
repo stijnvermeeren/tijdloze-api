@@ -22,22 +22,21 @@ The database structure will be automatically generated when the application is f
 
 Afterwards, application data can be loaded into the database:
 - A daily dump with all data about artists, albums, songs and lists from the Tijdloze can be downloaded from https://tijdloze.rocks/website/opendata and loaded into the database using a command such as `psql -U postgres -h 127.0.0.1 -d tijdloze < ~/Downloads/tijdloze-data.sql`.
-- Sample data for development purposes, that matches with the users from the `stijnvermeeren-tijdloze-dev.eu.auth0.com` Auth0 domain described below.
+- Sample data (dummy user and comments) for development purposes, that matches with the users from the `stijnvermeeren-tijdloze-dev.eu.auth0.com` Auth0 domain described below: [dev/insert-user-comment-data.sql](dev/insert-user-comment-data.sql)
 
-An SQL file to fill a database with the same structure and data as in the Docker image, can be found at [docker/db/init.sql](docker/db/init.sql).
 
 ### Auth0
 
 tijdloze.rocks is designed to work with [Auth0](https://auth0.com/) for authentication and authorization.
 
-An Auth0 domain `stijnvermeeren-tijdloze-dev.eu.auth0.com` has been set up that can be used for development purposes. The public key for this Auth0 domain can be found at [docker/stijnvermeeren-tijdloze-dev.pem](docker/stijnvermeeren-tijdloze-dev.pem). 
+An Auth0 domain `stijnvermeeren-tijdloze-dev.eu.auth0.com` has been set up that can be used for development purposes. The public key for this Auth0 domain can be found at [dev/stijnvermeeren-tijdloze-dev.pem](dev/stijnvermeeren-tijdloze-dev.pem). 
 
 This Auth0 domain comes with four preconfigured "dummy" users, all with password "_secret_":
 - `user1@example.com`
 - `user2@example.com`
 - `admin1@example.com`
 - `admin2@example.com`
-Sample data for these users is included in the `init.sql` database script. This SQL script also assigns the admin role to the two last users.
+Sample data for these users is included in the `dev/insert-user-comment-data.sql` database script. This SQL script also assigns the admin role to the two last users.
 
 To use your own Auth0 domain, the API must have access to the public key, so that it can verify the JWT that is sent with each authenticated request. You must point the `tijdloze.auth0.publickey.path` configuration value for Play to the `.pem` certificate file containing this public key (see _Configuration_ section below).
 
