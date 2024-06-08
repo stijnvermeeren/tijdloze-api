@@ -12,9 +12,9 @@ The Tijdloze Website API is built using Play Framework 2.8, which requires Java 
 
 ### Database setup
 
-The Tijdloze Website API uses a MySQL database.
+The Tijdloze Website API uses a PostgreSQL database.
 
-#### Using Docker image 
+#### Using Docker image (deprecated)
 
 The simplest way to set up the database is by using the Docker image [stijnvermeeren/tijdloze-db](https://hub.docker.com/repository/docker/stijnvermeeren/tijdloze-db).
 
@@ -34,6 +34,12 @@ The default database configuration for Play (see [conf/application.conf](conf/ap
 #### Manual database setup
 
 Alternatively, to use a different database server, adjust the `slick.dbs.default` configuration values for Play accordingly (see _Configuration_ section below). The database host can also be configured using the `DB_HOST` environment variable.
+
+The database needs to have a schema names `tijdloze`.
+
+The database structure will be automatically generated when the application is first started, using the concept of "[Play Evolutions](https://www.playframework.com/documentation/3.0.x/Evolutions)".
+
+Afterwards, application data can be 
 
 An SQL file to fill a database with the same structure and data as in the Docker image, can be found at [docker/db/init.sql](docker/db/init.sql).
 
@@ -55,6 +61,24 @@ Some admin endpoints call the Spotify API. In order for these endpoints to work,
 ## Building and deploying
 
 `sbt dist` produces a zip file in `target/universal`. To run the application, unzip this package and execute `bash bin/de-tijdloze-website-api`.
+
+## Generating the open data exports
+
+The script `export/export.sh` produces two files `tijdloze.sql` and `tijdloze.tsv`, that contain the open data exports that are also published on tijdloze.rocks. The script must be provided with the required Postgres connection parameters, e.g. `sh ./export.sh -U tijdloze_exporter -d tijdloze -h 127.0.0.1`.
+
+It is recommended to use a dedicated Postgres user with limited (read-only) privileges for this export script.
+```
+CREATE ROLE tijdloze_exporter WITH LOGIN PASSWORD 'secret';
+GRANT CONNECT ON DATABASE tijdloze TO tijdloze_exporter;
+GRANT USAGE ON SCHEMA tijdloze TO tijdloze_exporter;
+GRANT SELECT ON artist, artist_id_seq, album, album_id_seq, song, song_id_seq, year, list_entry, list_entry_id_seq TO tijdloze_exporter;
+```
+
+The password for this user can be stored in a `.pgpass` file, from where it will be read automatically, e.g.:
+```
+echo '127.0.0.1:*:*:tijdloze_exporter:secret' > ~/.pgpass
+chmod 600 ~/.pgpass
+```
 
 ## Configuration
 
