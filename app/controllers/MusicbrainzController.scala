@@ -43,7 +43,7 @@ class MusicbrainzController @Inject()(
                   album = album,
                   field = AlbumCrawlField.MusicbrainzId,
                   candidateValues = releaseGroups.map(_.id),
-                  comment = s"Musicbrainz search (${artist.musicbrainzId.getOrElse(artist.fullName)})",
+                  comment = s"Musicbrainz search (${artist.musicbrainzId.getOrElse(artist.name)})",
                   strategy = AutoIfUnique
                 )
               } yield Thread.sleep(1000)
@@ -79,8 +79,8 @@ class MusicbrainzController @Inject()(
           for {
             artist <- artistDAO.get(song.artistId)
             album <- albumDAO.get(song.albumId)
-            query = s"${artist.fullName} ${song.title}"
-            _ = println(s"${artist.fullName} - ${song.title}")
+            query = s"${artist.name} ${song.title}"
+            _ = println(s"${artist.name} - ${song.title}")
             matchingRow <- Future { awsAthena.search(query).headOption }
             _ <- matchingRow match {
               case Some(row) =>

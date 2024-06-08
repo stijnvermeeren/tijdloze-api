@@ -5,7 +5,6 @@ import play.api.libs.json._
 
 final case class CoreArtist(
   id: ArtistId,
-  namePrefix: Option[String],
   name: String,
   aliases: Option[String],
   countryId: Option[String]
@@ -15,7 +14,6 @@ object CoreArtist {
   def fromDb(artist: db.Artist): CoreArtist = {
     CoreArtist(
       id = artist.id,
-      namePrefix = artist.namePrefix,
       name = artist.name,
       aliases = artist.aliases,
       countryId = artist.countryId

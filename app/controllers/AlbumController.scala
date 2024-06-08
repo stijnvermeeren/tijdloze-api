@@ -95,7 +95,7 @@ class AlbumController @Inject()(
             album = album,
             field = AlbumCrawlField.MusicbrainzId,
             candidateValues = releaseGroups.map(_.id),
-            comment = s"Musicbrainz search (${artist.musicbrainzId.getOrElse(artist.fullName)})",
+            comment = s"Musicbrainz search (${artist.musicbrainzId.getOrElse(artist.name)})",
             strategy = AutoIfUnique
           )
         } yield ()

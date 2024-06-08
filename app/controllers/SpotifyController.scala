@@ -43,7 +43,7 @@ class SpotifyController @Inject()(
         case Some(uniqueSpotifyArtist) =>
           saveAuto(uniqueSpotifyArtist.id)
         case _ =>
-          spotifyArtists.find(_.name == artist.fullName) match {
+          spotifyArtists.find(_.name == artist.name) match {
             case Some(matchingArtist) =>
               saveAuto(matchingArtist.id)
             case None =>

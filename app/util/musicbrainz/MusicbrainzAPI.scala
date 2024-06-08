@@ -134,7 +134,7 @@ class MusicbrainzAPI @Inject()(ws: WSClient, config: Config) {
   def searchAlbum(album: Album, artist: Artist): Future[Seq[MusicbrainzReleaseGroup]] = {
     val artistQuery = artist.musicbrainzId match {
       case Some(musicbrainzId) => s"""arid:"$musicbrainzId""""
-      case None => s"""artist:"${artist.fullName}""""
+      case None => s"""artist:"${artist.name}""""
     }
 
     val singleSuffix = "(single)"

@@ -33,7 +33,6 @@ class ArtistDAO @Inject()(configProvider: DatabaseConfigProvider) {
   def create(data: ArtistSave): Future[ArtistId] = {
     import data._
     val newArtist = Artist(
-      namePrefix = namePrefix.map(_.trim).filter(_.nonEmpty),
       name = name,
       aliases = aliases.map(_.trim).filter(_.nonEmpty),
       countryId = countryId.map(_.trim).filter(_.nonEmpty),
@@ -59,7 +58,6 @@ class ArtistDAO @Inject()(configProvider: DatabaseConfigProvider) {
       artistTable
         .filter(_.id === artistId)
         .map(x => (
-          x.namePrefix,
           x.name,
           x.aliases,
           x.countryId,
@@ -74,7 +72,6 @@ class ArtistDAO @Inject()(configProvider: DatabaseConfigProvider) {
         )
         )
         .update((
-          namePrefix.map(_.trim).filter(_.nonEmpty),
           name,
           aliases.map(_.trim).filter(_.nonEmpty),
           countryId.map(_.trim).filter(_.nonEmpty),

@@ -6,7 +6,6 @@ import slick.jdbc.MySQLProfile.api._
 
 class ArtistTable(tag: Tag) extends Table[Artist](tag, "artist") {
   val id = column[ArtistId]("id", O.AutoInc, O.PrimaryKey)
-  val namePrefix = column[Option[String]]("name_prefix")
   val name = column[String]("name")
   val aliases = column[Option[String]]("aliases")
   val countryId = column[Option[String]]("country_id")
@@ -19,6 +18,6 @@ class ArtistTable(tag: Tag) extends Table[Artist](tag, "artist") {
   val wikidataId = column[Option[String]]("wikidata_id")
   val musicbrainzId = column[Option[String]]("musicbrainz_id")
 
-  def * = (id, namePrefix, name, aliases, countryId, notes, urlOfficial, urlWikiEn, urlWikiNl, urlAllMusic, spotifyId, wikidataId, musicbrainzId) <>
+  def * = (id, name, aliases, countryId, notes, urlOfficial, urlWikiEn, urlWikiNl, urlAllMusic, spotifyId, wikidataId, musicbrainzId) <>
     ((Artist.apply _).tupled, Artist.unapply)
 }
