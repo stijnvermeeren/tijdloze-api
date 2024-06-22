@@ -62,6 +62,8 @@ GET     /musicbrainz/crawl-songs         controllers.MusicbrainzController.crawl
 GET     /musicbrainz/find                controllers.MusicbrainzController.find()
 GET     /coverartarchive/crawl-albums    controllers.CoverArtArchiveController.crawlAlbums()
 
+GET     /mbdata/search                   controllers.MBDataController.search(artist: String, title: String)
+
 GET     /crawl-artist                    controllers.CrawlArtistController.getFirstPending()
 POST    /crawl-artist/:id                controllers.CrawlArtistController.accept(id: model.CrawlArtistId)
 DELETE  /crawl-artist/:id                controllers.CrawlArtistController.reject(id: model.CrawlArtistId)
