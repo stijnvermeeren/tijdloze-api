@@ -8,11 +8,13 @@ DELETE  /song/:id                        controllers.SongController.delete(id: m
 POST    /song                            controllers.SongController.post()
 
 GET     /artist/:id                      controllers.ArtistController.get(id: model.ArtistId)
+GET     /artist/musicbrainz/:id          controllers.ArtistController.getByMusicbrainzId(id: String)
 PUT     /artist/:id                      controllers.ArtistController.put(id: model.ArtistId)
 DELETE  /artist/:id                      controllers.ArtistController.delete(id: model.ArtistId)
 POST    /artist                          controllers.ArtistController.post()
 
 GET     /album/:id                       controllers.AlbumController.get(id: model.AlbumId)
+GET     /album/musicbrainz/:id           controllers.AlbumController.getByMusicbrainzId(id: String)
 PUT     /album/:id                       controllers.AlbumController.put(id: model.AlbumId)
 DELETE  /album/:id                       controllers.AlbumController.delete(id: model.AlbumId)
 POST    /album                           controllers.AlbumController.post()
@@ -50,7 +52,7 @@ DELETE  /user/:id/block                  controllers.UserController.unblock(id: 
 
 GET     /cache/invalidate                controllers.CacheController.invalidate()
 
-GET     /spotify/find                    controllers.SpotifyController.find()
+GET     /spotify/find                    controllers.SpotifyController.find(query: String)
 GET     /spotify/crawl-artists           controllers.SpotifyController.crawlArtistsFromSongs()
 
 GET     /wikidata/crawl-artists-spotify  controllers.WikidataController.crawlArtistsFromSpotify()
@@ -63,6 +65,7 @@ GET     /musicbrainz/find                controllers.MusicbrainzController.find(
 GET     /coverartarchive/crawl-albums    controllers.CoverArtArchiveController.crawlAlbums()
 
 GET     /mbdata/search                   controllers.MBDataController.search(artist: String, title: String)
+GET     /mbdata/search-query             controllers.MBDataController.searchQuery(query: String)
 
 GET     /crawl-artist                    controllers.CrawlArtistController.getFirstPending()
 POST    /crawl-artist/:id                controllers.CrawlArtistController.accept(id: model.CrawlArtistId)

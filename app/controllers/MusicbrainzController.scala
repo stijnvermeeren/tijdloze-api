@@ -2,7 +2,7 @@ package controllers
 
 import model.api.MusicbrainzResult
 import model.{AlbumCrawlField, ArtistCrawlField}
-import model.db.dao.{AlbumDAO, ArtistDAO, CrawlAlbumDAO, CrawlArtistDAO, SongDAO}
+import model.db.dao.{AlbumDAO, ArtistDAO, CrawlAlbumDAO, CrawlArtistDAO, MBDataDAO, SongDAO}
 import play.api.cache.AsyncCacheApi
 import play.api.libs.json.Json
 import play.api.mvc._
@@ -11,7 +11,6 @@ import util.coverartarchive.CoverArtArchiveAPI
 import util.crawl.{AutoIfUnique, AutoOnlyForExistingValue, CrawlHelper}
 import util.musicbrainz.{AWSAthena, MusicbrainzAPI}
 import util.spotify.SpotifyAPI
-import util.wikidata.WikidataAPI
 
 import javax.inject._
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -27,9 +26,9 @@ class MusicbrainzController @Inject()(
   albumDAO: AlbumDAO,
   artistDAO: ArtistDAO,
   songDAO: SongDAO,
-  crawlAlbumDAO: CrawlAlbumDAO,
   crawlHelper: CrawlHelper,
-  cache: AsyncCacheApi
+  cache: AsyncCacheApi,
+  mbDataDAO: MBDataDAO
 ) extends InjectedController {
 
   def crawlAlbums() = {
@@ -75,37 +74,34 @@ class MusicbrainzController @Inject()(
   def crawlSongs() = {
     Action.async { implicit request =>
       songDAO.getAll().flatMap { songs =>
-        FutureUtil.traverseSequentially(songs) { song =>
+        FutureUtil.traverseSequentially(songs.filter(_.id.value == 2709)) { song =>
           for {
             artist <- artistDAO.get(song.artistId)
             album <- albumDAO.get(song.albumId)
-            query = s"${artist.name} ${song.title}"
             _ = println(s"${artist.name} - ${song.title}")
-            matchingRow <- Future { awsAthena.search(query).headOption }
-            _ <- matchingRow match {
+            matchingRow <- mbDataDAO.searchArtistTitle(artist.name, song.title)
+          } yield {
+            matchingRow match {
               case Some(row) =>
-                musicbrainzAPI.getRelease(row.releaseId).map(release => {
-                  if (release.map(_.releaseGroupId) == album.musicbrainzId) {
-                    println(s"  OK (${album.musicbrainzId}, ${album.title}, ${album.releaseYear} / ${release.flatMap(_.releaseYear)})")
-                  } else {
-                    println(s"  MISMATCH!  Old: ${album.musicbrainzId}, ${album.title}.  New: ${release.map(_.releaseGroupId)}, ${release.map(_.title)})")
+                if (album.musicbrainzId.contains(row.albumMBId)) {
+                  println(s"  OK (${album.musicbrainzId}, ${album.title}, ${album.releaseYear} / ${row.releaseYear})")
+                } else {
+                  println(s"  MISMATCH!  Old: ${album.musicbrainzId}, ${album.title}.  New: ${row.releaseYear}, ${row.albumTitle})")
 
-                    if (album.musicbrainzId.isEmpty) {
-                      crawlHelper.processAlbum(
-                        album = album,
-                        field = AlbumCrawlField.MusicbrainzId,
-                        candidateValues = release.map(_.releaseGroupId).toSeq,
-                        comment = s"Musicbrainz search ($query)",
-                        strategy = AutoOnlyForExistingValue
-                      )
-                    }
+                  if (album.musicbrainzId.isEmpty) {
+                    crawlHelper.processAlbum(
+                      album = album,
+                      field = AlbumCrawlField.MusicbrainzId,
+                      candidateValues = Seq(row.albumMBId),
+                      comment = s"Musicbrainz search (${artist.name} - ${song.title})",
+                      strategy = AutoOnlyForExistingValue
+                    )
                   }
-                })
+                }
               case None =>
                 println("  no match")
-                Future.successful(())
             }
-          } yield ()
+          }
         }
       }.map(_ => Ok)
     }

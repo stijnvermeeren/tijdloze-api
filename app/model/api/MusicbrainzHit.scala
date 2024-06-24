@@ -4,7 +4,6 @@ import play.api.libs.json.Json
 import util.musicbrainz.{CanonicalMusicbrainzData, MusicbrainzArtist, MusicbrainzRecording, MusicbrainzRelease}
 
 
-
 final case class MusicbrainzHit(
   songTitle: String,
   spotifyId: Option[String],

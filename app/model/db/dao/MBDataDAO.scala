@@ -1,5 +1,6 @@
 package model.db.dao
 
+import model.api.MBDatasetHit
 import play.api.db.slick.DatabaseConfigProvider
 import slick.jdbc.JdbcProfile
 
@@ -13,7 +14,7 @@ class MBDataDAO @Inject()(configProvider: DatabaseConfigProvider) {
   private val db = dbConfig.db
   import dbConfig.profile.api._
 
-  def get(artistQuery: String, titleQuery: String): Future[String] = {
+  def searchArtistTitle(artistQuery: String, titleQuery: String): Future[Option[MBDatasetHit]] = {
     val query = sql"""
       SELECT
          mb_song.mb_id as song_mb_id,
@@ -42,21 +43,35 @@ class MBDataDAO @Inject()(configProvider: DatabaseConfigProvider) {
       query
     } map {_.map((MBResult.apply _).tupled)} map { results =>
       if (results.nonEmpty) {
-        val minRelevance = results.map(_.relevanceForQuery(titleQuery)).max / 2
-        val bestMatch = results
-          .filter(_.relevanceForQuery(titleQuery) >= minRelevance)
-          .maxBy(result => (-result.releaseYear, result.relevanceForQuery(titleQuery)))
-        bestMatch.toString
+        val scoredResults = results.map(_.score(titleQuery))
+        val minRelevance = scoredResults.map(_.score).max / 2
+        val bestMatch = scoredResults
+          .filter(_.score >= minRelevance)
+          .maxBy(result => (-result.releaseYear, result.score))
+        Some(bestMatch)
       } else {
-        ""
+        None
       }
+    }
+  }
+
+  def searchQuery(query: String): Future[Option[MBDatasetHit]] = {
+    val parts = query.split("\\s+").filter(_.nonEmpty)
+    Future.traverse((1 until parts.length).toList) { i =>
+      // TODO also try title first?
+      val artistQuery = parts.take(i).mkString(" ")
+      val titleQuery = parts.drop(i).mkString(" ")
+      print(artistQuery, titleQuery)
+      searchArtistTitle(artistQuery, titleQuery)
+    } map { allResults =>
+      allResults.flatten.maxByOption(_.score)
     }
   }
 }
 
 case class MBResult(
                     songMBId: String,
-                    matchesAlias: String,
+                    matchedAlias: String,
                     title: String,
                     singleRelationship: Boolean,
                     recordingScore: Int,
@@ -69,18 +84,22 @@ case class MBResult(
                     countryId: String
 ) {
   private def isExactMatch(titleQuery: String): Boolean = {
-    MBResult.searchKey(titleQuery) == MBResult.searchKey(matchesAlias)
+    MBResult.searchKey(titleQuery) == MBResult.searchKey(matchedAlias)
   }
 
-  def relevanceForQuery(titleQuery: String): Int = {
-    if (isExactMatch(titleQuery) && singleRelationship) {
+  def score(titleQuery: String): MBDatasetHit = {
+    val score = if (isExactMatch(titleQuery) && singleRelationship) {
       if (singleRelationship)
         5 * recordingScore
       else
         recordingScore
     } else {
-      recordingScore / 10  // e.g. "Hotellounge (Be the Death of Me)" instead of "Hotellounge"
+      recordingScore.toDouble / 10  // e.g. "Hotellounge (Be the Death of Me)" instead of "Hotellounge"
     }
+
+    MBDatasetHit(
+      songMBId, matchedAlias, title, albumTitle, releaseYear, isSingle, albumMBId, name, artistMBId, countryId, score
+    )
   }
 }
 

@@ -30,6 +30,14 @@ class ArtistController @Inject()(
     }
   }
 
+  def getByMusicbrainzId(musicbrainzId: String) = {
+    Action.async { implicit rs =>
+      for {
+        artist <- artistDAO.getByMusicbrainzId(musicbrainzId)
+      } yield Ok(Json.toJson(Artist.fromDb(artist)))
+    }
+  }
+
   def post() = {
     (Action andThen authenticateAdmin).async(parse.json) { implicit request =>
       val data = request.body.validate[ArtistSave]

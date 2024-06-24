@@ -90,19 +90,12 @@ class SpotifyController @Inject()(
     }
   }
 
-  def find() = {
+  def find(query: String) = {
     (Action andThen authenticateAdmin).async { implicit request =>
-      request.getQueryString("query") match {
-        case Some(query) =>
-          val limit = Integer.parseInt(request.getQueryString("limit").getOrElse("5"))
-
-          spotifyAPI.getToken() flatMap { token =>
-            spotifyAPI.findNewSong(token, query, limit) map { result =>
-              Ok(Json.toJson(result))
-            }
-          }
-        case None =>
-          Future.successful(BadRequest("No query specified."))
+      spotifyAPI.getToken() flatMap { token =>
+        spotifyAPI.findNewSong(token, query, limit=1) map { result =>
+          Ok(Json.toJson(result))
+        }
       }
     }
   }

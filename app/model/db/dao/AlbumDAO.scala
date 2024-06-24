@@ -24,6 +24,12 @@ class AlbumDAO @Inject()(configProvider: DatabaseConfigProvider) {
     }
   }
 
+  def getByMusicbrainzId(musicbrainzId: String): Future[Album] = {
+    db run {
+      albumTable.filter(_.musicbrainzId === musicbrainzId).result.head
+    }
+  }
+
   def getAll(): Future[Seq[Album]] = {
     db run {
       albumTable.result
