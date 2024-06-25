@@ -33,7 +33,7 @@ class ContactController @Inject() (optionallyAuthenticate: OptionallyAuthenticat
             fromEmail = form.email,
             fromName = form.name,
             to = recipients,
-            subject = "De Tijdloze Website: contact",
+            subject = "tijdloze.rocks: contact",
             message = s"${form.message}\n\n$footer"
           )
 
