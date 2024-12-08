@@ -36,9 +36,8 @@ class SongController @Inject()(
           for {
             newSongId <- songDAO.create(songSave)
             newSong <- songDAO.get(newSongId)
+            _ <- dataCache.reloadSong(newSongId)
           } yield {
-            dataCache.CoreDataCache.reload()
-            dataCache.SongDataCache.reload(newSongId)
             currentList.updateSong(Song.fromDb(newSong))
             Ok(Json.toJson(Song.fromDb(newSong)))
           }
@@ -58,9 +57,8 @@ class SongController @Inject()(
           for {
             _ <- songDAO.update(songId, songSave)
             song <- songDAO.get(songId)
+            _ <- dataCache.reloadSong(songId)
           } yield {
-            dataCache.CoreDataCache.reload()
-            dataCache.SongDataCache.reload(songId)
             currentList.updateSong(Song.fromDb(song))
             Ok(Json.toJson(Song.fromDb(song)))
           }
@@ -73,8 +71,8 @@ class SongController @Inject()(
     (Action andThen authenticateAdmin).async { implicit request =>
       for {
         _ <- songDAO.delete(songId)
+        _ <- dataCache.CoreDataCache.reload()
       } yield {
-        dataCache.CoreDataCache.reload()
         dataCache.SongDataCache.remove(songId)
         currentList.deleteSong(songId)
         Ok("")

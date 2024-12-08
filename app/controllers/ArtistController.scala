@@ -43,9 +43,8 @@ class ArtistController @Inject()(
           for {
             newArtistId <- artistDAO.create(artistSave)
             newArtist <- artistDAO.get(newArtistId)
+            _ <- dataCache.reloadArtist(newArtistId)
           } yield {
-            dataCache.CoreDataCache.reload()
-            dataCache.ArtistDataCache.reload(newArtistId)
             currentList.updateArtist(Artist.fromDb(newArtist))
             Ok(Json.toJson(Artist.fromDb(newArtist)))
           }
@@ -65,9 +64,8 @@ class ArtistController @Inject()(
           for {
             _ <- artistDAO.update(artistId, artistSave)
             artist <- artistDAO.get(artistId)
+            _ <- dataCache.reloadArtist(artistId)
           } yield {
-            dataCache.CoreDataCache.reload()
-            dataCache.ArtistDataCache.reload(artistId)
             currentList.updateArtist(Artist.fromDb(artist))
             Ok(Json.toJson(Artist.fromDb(artist)))
           }
@@ -80,8 +78,8 @@ class ArtistController @Inject()(
     (Action andThen authenticateAdmin).async { implicit request =>
       for {
         _ <- artistDAO.delete(artistId)
+        _ <- dataCache.CoreDataCache.reload()
       } yield {
-        dataCache.CoreDataCache.reload()
         dataCache.ArtistDataCache.remove(artistId)
         currentList.deleteArtist(artistId)
         Ok("")

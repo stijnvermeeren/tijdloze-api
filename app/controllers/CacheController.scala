@@ -10,7 +10,6 @@ class CacheController @Inject()(
 ) extends InjectedController {
   def invalidate() = {
     (Action andThen authenticateAdmin) { implicit rs =>
-      println("invalidate cache")
       dataCache.CoreDataCache.reload()
       dataCache.ArtistDataCache.removeAll()
       dataCache.AlbumDataCache.removeAll()

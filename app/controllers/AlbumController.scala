@@ -51,9 +51,8 @@ class AlbumController @Inject()(
           for {
             newAlbumId <- albumDAO.create(albumSave)
             newAlbum <- albumDAO.get(newAlbumId)
+            _ <- dataCache.reloadAlbum(newAlbumId)
           } yield {
-            dataCache.CoreDataCache.reload()
-            dataCache.AlbumDataCache.reload(newAlbumId)
             currentList.updateAlbum(Album.fromDb(newAlbum))
 
             checkMusicbrainz(newAlbum)
@@ -76,9 +75,8 @@ class AlbumController @Inject()(
           for {
             _ <- albumDAO.update(albumId, albumSave)
             album <- albumDAO.get(albumId)
+            _ <- dataCache.reloadAlbum(albumId)
           } yield {
-            dataCache.CoreDataCache.reload()
-            dataCache.AlbumDataCache.reload(albumId)
             currentList.updateAlbum(Album.fromDb(album))
 
             checkMusicbrainz(album)
@@ -124,9 +122,10 @@ class AlbumController @Inject()(
         }
       }
     } flatMap { _ =>
-      albumDAO.get(album.id) map { album =>
-        dataCache.CoreDataCache.reload()
-        dataCache.AlbumDataCache.reload(album.id)
+      for {
+        album <- albumDAO.get(album.id)
+        _ <- dataCache.reloadAlbum(album.id)
+      } yield {
         currentList.updateAlbum(Album.fromDb(album))
       }
     }
@@ -136,8 +135,8 @@ class AlbumController @Inject()(
     (Action andThen authenticateAdmin).async { implicit request =>
       for {
         _ <- albumDAO.delete(albumId)
+        _ <- dataCache.CoreDataCache.reload()
       } yield {
-        dataCache.CoreDataCache.reload()
         dataCache.AlbumDataCache.remove(albumId)
         currentList.deleteAlbum(albumId)
         Ok("")

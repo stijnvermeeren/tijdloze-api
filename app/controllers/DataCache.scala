@@ -8,11 +8,12 @@ import play.api.libs.json.Json
 import play.api.mvc.Result
 import play.api.mvc.Results.Ok
 
-import javax.inject.Inject
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.collection.concurrent
 import scala.util.{Failure, Success}
 
+@Singleton
 class DataCache @Inject() (
                             albumDAO: AlbumDAO,
                             artistDAO: ArtistDAO,
@@ -48,19 +49,20 @@ class DataCache @Inject() (
         case Some(_) =>
           // Already loaded: only replace value on success
           dataFuture onComplete {
-            case Success(_) =>
-              cacheMap.update(key(id), dataFuture)
+            case Success(result) =>
+              cacheMap.put(key(id), Future.successful(result))
             case Failure(e) =>
               logger.error(s"Failure when loading data for ${key(id)}", e)
           }
         case None =>
           // Not loaded yet: immediately set value to avoid parallel initialisation, remove again on error
-          cacheMap.update(key(id), dataFuture)
+          cacheMap.put(key(id), dataFuture)
           dataFuture onComplete {
             case Failure(e) =>
               logger.error(s"Failure when loading data for ${key(id)}", e)
               cacheMap.remove(key(id))
             case Success(_) =>
+
           }
       }
 
@@ -86,7 +88,6 @@ class DataCache @Inject() (
 
   object CoreDataCache extends SingleEntryCache("core-data") {
     protected def loadData(): Future[Result] = {
-      println("loading core-data")
       for {
         artists <- artistDAO.getAll()
         albums <- albumDAO.getAll()
@@ -123,7 +124,6 @@ class DataCache @Inject() (
 
   object ArtistDataCache extends Cache[ArtistId](artistId => s"artist/${artistId.value}") {
     protected def loadData(artistId: ArtistId): Future[Result] = {
-      println(s"loading artist $artistId")
       for {
         artist <- artistDAO.get(artistId)
       } yield Ok(Json.toJson(Artist.fromDb(artist)))
@@ -132,7 +132,6 @@ class DataCache @Inject() (
 
   object AlbumDataCache extends Cache[AlbumId](albumId => s"album/${albumId.value}") {
     protected def loadData(albumId: AlbumId): Future[Result] = {
-      println(s"loading album $albumId")
       for {
         album <- albumDAO.get(albumId)
       } yield Ok(Json.toJson(Album.fromDb(album)))
@@ -141,7 +140,6 @@ class DataCache @Inject() (
 
   object SongDataCache extends Cache[SongId](songId => s"song/${songId.value}") {
     protected def loadData(songId: SongId): Future[Result] = {
-      println(s"loading song $songId")
       for {
         song <- songDAO.get(songId)
       } yield Ok(Json.toJson(Song.fromDb(song)))
@@ -157,5 +155,26 @@ class DataCache @Inject() (
           Ok(Json.toJson(Text(key = key, value = "")))
       }
     }
+  }
+
+  def reloadArtist(artistId: ArtistId): Future[Unit] = {
+    Future.sequence(Seq(
+      CoreDataCache.reload(),
+      ArtistDataCache.reload(artistId)
+    )).map(_ => ())
+  }
+
+  def reloadAlbum(albumId: AlbumId): Future[Unit] = {
+    Future.sequence(Seq(
+      CoreDataCache.reload(),
+      AlbumDataCache.reload(albumId)
+    )).map(_ => ())
+  }
+
+  def reloadSong(songId: SongId): Future[Unit] = {
+    Future.sequence(Seq(
+      CoreDataCache.reload(),
+      SongDataCache.reload(songId)
+    )).map(_ => ())
   }
 }
