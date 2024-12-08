@@ -3,7 +3,6 @@ package controllers
 import javax.inject._
 import model.api.{SetDisplayName, UserInfo, UserInfoAdmin, UserSave}
 import model.db.dao.{LogUserDisplayNameDAO, UserDAO}
-import play.api.cache.AsyncCacheApi
 import play.api.libs.json.{JsError, Json}
 import play.api.mvc._
 
@@ -12,7 +11,6 @@ import scala.concurrent.Future
 
 @Singleton
 class UserController @Inject()(
-  cache: AsyncCacheApi,
   authenticate: Authenticate,
   authenticateAdmin: AuthenticateAdmin,
   optionallyAuthenticate: OptionallyAuthenticate,
@@ -33,13 +31,11 @@ class UserController @Inject()(
           request.userId match {
             case Some(userId) =>
               userDAO.save(userId, userSave) flatMap { _ =>
-                cache.remove("displayNames") flatMap { _ =>
-                  userDAO.get(userId) map {
-                    case Some(dbUser) =>
-                      Ok(Json.toJson(UserInfo.fromDb(dbUser)))
-                    case None =>
-                      InternalServerError("Error while saving user info to the database.")
-                  }
+                userDAO.get(userId) map {
+                  case Some(dbUser) =>
+                    Ok(Json.toJson(UserInfo.fromDb(dbUser)))
+                  case None =>
+                    InternalServerError("Error while saving user info to the database.")
                 }
               }
             case None =>
@@ -70,13 +66,11 @@ class UserController @Inject()(
         if (displayName.nonEmpty) {
           userDAO.setDisplayName(request.user.id, displayNameForm.displayName) flatMap { _ =>
             logUserDisplayNameDAO.save(request.user.id, displayNameForm.displayName) flatMap { _ =>
-              cache.remove("displayNames") flatMap { _ =>
-                userDAO.get(request.user.id) map {
-                  case Some(dbUser) =>
-                    Ok(Json.toJson(UserInfo.fromDb(dbUser)))
-                  case None =>
-                    InternalServerError("Error while saving user info to the database.")
-                }
+              userDAO.get(request.user.id) map {
+                case Some(dbUser) =>
+                  Ok(Json.toJson(UserInfo.fromDb(dbUser)))
+                case None =>
+                  InternalServerError("Error while saving user info to the database.")
               }
             }
           }

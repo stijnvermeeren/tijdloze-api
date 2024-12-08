@@ -2,7 +2,6 @@ package controllers
 
 import javax.inject._
 import model.db.dao.{ListEntryDAO, YearDAO}
-import play.api.cache.AsyncCacheApi
 import play.api.mvc._
 import util.currentlist.CurrentListUtil
 
@@ -11,7 +10,7 @@ import scala.concurrent.Future
 
 @Singleton
 class YearController @Inject()(
-  cache: AsyncCacheApi,
+  dataCache: DataCache,
   authenticateAdmin: AuthenticateAdmin,
   yearDAO: YearDAO,
   listEntryDAO: ListEntryDAO,
@@ -21,7 +20,7 @@ class YearController @Inject()(
   def post(year: Int) = {
     (Action andThen authenticateAdmin).async { request =>
       yearDAO.save(year) map { _ =>
-        cache.remove("coreData")
+        dataCache.CoreDataCache.reload()
         currentList.updateCurrentYear(year)
         Ok("")
       }
@@ -34,7 +33,7 @@ class YearController @Inject()(
       listEntryDAO.getByYear(year) flatMap { entries =>
         if (entries.isEmpty) {
           yearDAO.delete(year) flatMap { _ =>
-            cache.remove("coreData")
+            dataCache.CoreDataCache.reload()
             yearDAO.maxYear() map {
               case Some(maxYear) =>
                 currentList.updateCurrentYear(maxYear)

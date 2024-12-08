@@ -4,7 +4,6 @@ import javax.inject._
 import model.{AlbumCrawlField, AlbumId}
 import model.api.{Album, AlbumSave}
 import model.db.dao.{AlbumDAO, ArtistDAO}
-import play.api.cache.{AsyncCacheApi, Cached}
 import play.api.libs.json.{JsError, Json}
 import play.api.mvc._
 import util.coverartarchive.CoverArtArchiveAPI
@@ -18,8 +17,7 @@ import scala.concurrent.Future
 @Singleton
 class AlbumController @Inject()(
   authenticateAdmin: AuthenticateAdmin,
-  cache: AsyncCacheApi,
-  cached: Cached,
+  dataCache: DataCache,
   albumDAO: AlbumDAO,
   artistDAO: ArtistDAO,
   musicbrainzAPI: MusicbrainzAPI,
@@ -29,12 +27,8 @@ class AlbumController @Inject()(
 ) extends InjectedController {
 
   def get(albumId: AlbumId) = {
-    cached(s"album/${albumId.value}") {
-      Action.async { implicit rs =>
-        for {
-          album <- albumDAO.get(albumId)
-        } yield Ok(Json.toJson(Album.fromDb(album)))
-      }
+    Action.async { implicit rs =>
+      dataCache.AlbumDataCache.load(albumId)
     }
   }
 
@@ -58,7 +52,8 @@ class AlbumController @Inject()(
             newAlbumId <- albumDAO.create(albumSave)
             newAlbum <- albumDAO.get(newAlbumId)
           } yield {
-            cache.remove("coreData")
+            dataCache.CoreDataCache.reload()
+            dataCache.AlbumDataCache.reload(newAlbumId)
             currentList.updateAlbum(Album.fromDb(newAlbum))
 
             checkMusicbrainz(newAlbum)
@@ -82,9 +77,9 @@ class AlbumController @Inject()(
             _ <- albumDAO.update(albumId, albumSave)
             album <- albumDAO.get(albumId)
           } yield {
-            cache.remove("coreData")
+            dataCache.CoreDataCache.reload()
+            dataCache.AlbumDataCache.reload(albumId)
             currentList.updateAlbum(Album.fromDb(album))
-            cache.remove(s"album/${albumId.value}")
 
             checkMusicbrainz(album)
 
@@ -130,9 +125,9 @@ class AlbumController @Inject()(
       }
     } flatMap { _ =>
       albumDAO.get(album.id) map { album =>
-        cache.remove("coreData")
+        dataCache.CoreDataCache.reload()
+        dataCache.AlbumDataCache.reload(album.id)
         currentList.updateAlbum(Album.fromDb(album))
-        cache.remove(s"album/${album.id.value}")
       }
     }
   }
@@ -142,9 +137,9 @@ class AlbumController @Inject()(
       for {
         _ <- albumDAO.delete(albumId)
       } yield {
-        cache.remove("coreData")
+        dataCache.CoreDataCache.reload()
+        dataCache.AlbumDataCache.remove(albumId)
         currentList.deleteAlbum(albumId)
-        cache.remove(s"album/${albumId.value}")
         Ok("")
       }
     }

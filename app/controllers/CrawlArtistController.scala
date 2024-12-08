@@ -2,7 +2,6 @@ package controllers
 
 import model.CrawlArtistId
 import model.db.dao.{ArtistDAO, CrawlArtistDAO}
-import play.api.cache.AsyncCacheApi
 import play.api.libs.json.Json
 import play.api.mvc._
 
@@ -15,7 +14,7 @@ class CrawlArtistController @Inject()(
   authenticateAdmin: AuthenticateAdmin,
   crawlArtistDAO: CrawlArtistDAO,
   artistDAO: ArtistDAO,
-  cache: AsyncCacheApi
+  dataCache: DataCache
 ) extends InjectedController {
   def getFirstPending() = {
     (Action andThen authenticateAdmin).async { implicit rs =>
@@ -33,7 +32,7 @@ class CrawlArtistController @Inject()(
             _ <- crawl.field.save(artistDAO)(crawl.artistId, crawl.value)
             _ <- crawlArtistDAO.accept(crawlArtistId)
           } yield {
-            cache.remove(s"artist/${crawl.artistId.value}")
+            dataCache.ArtistDataCache.reload(crawl.artistId)
             Ok
           }
         case None => Future.successful(Ok)

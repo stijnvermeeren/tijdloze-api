@@ -4,7 +4,6 @@ import javax.inject._
 import model.SongId
 import model.api.{Song, SongSave}
 import model.db.dao.SongDAO
-import play.api.cache.{AsyncCacheApi, Cached}
 import play.api.libs.json.{JsError, Json}
 import play.api.mvc._
 import util.currentlist.CurrentListUtil
@@ -15,19 +14,14 @@ import scala.concurrent.Future
 @Singleton
 class SongController @Inject()(
   authenticateAdmin: AuthenticateAdmin,
-  cache: AsyncCacheApi,
-  cached: Cached,
+  dataCache: DataCache,
   songDAO: SongDAO,
   currentList: CurrentListUtil
 ) extends InjectedController {
 
   def get(songId: SongId) = {
-    cached(s"song/${songId.value}") {
-      Action.async { implicit rs =>
-        for {
-          song <- songDAO.get(songId)
-        } yield Ok(Json.toJson(Song.fromDb(song)))
-      }
+    Action.async { implicit rs =>
+      dataCache.SongDataCache.load(songId)
     }
   }
 
@@ -43,7 +37,8 @@ class SongController @Inject()(
             newSongId <- songDAO.create(songSave)
             newSong <- songDAO.get(newSongId)
           } yield {
-            cache.remove("coreData")
+            dataCache.CoreDataCache.reload()
+            dataCache.SongDataCache.reload(newSongId)
             currentList.updateSong(Song.fromDb(newSong))
             Ok(Json.toJson(Song.fromDb(newSong)))
           }
@@ -64,9 +59,9 @@ class SongController @Inject()(
             _ <- songDAO.update(songId, songSave)
             song <- songDAO.get(songId)
           } yield {
-            cache.remove("coreData")
+            dataCache.CoreDataCache.reload()
+            dataCache.SongDataCache.reload(songId)
             currentList.updateSong(Song.fromDb(song))
-            cache.remove(s"song/${songId.value}")
             Ok(Json.toJson(Song.fromDb(song)))
           }
         }
@@ -79,9 +74,9 @@ class SongController @Inject()(
       for {
         _ <- songDAO.delete(songId)
       } yield {
-        cache.remove("coreData")
+        dataCache.CoreDataCache.reload()
+        dataCache.SongDataCache.remove(songId)
         currentList.deleteSong(songId)
-        cache.remove(s"song/${songId.value}")
         Ok("")
       }
     }

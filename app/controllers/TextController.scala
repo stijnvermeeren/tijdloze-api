@@ -6,15 +6,13 @@ import model.db.dao.TextDAO
 import play.api.libs.json.JsError
 import play.api.mvc._
 import play.api.libs.json._
-import play.api.cache.{AsyncCacheApi, Cached}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 @Singleton
 class TextController @Inject()(
-  cache: AsyncCacheApi,
-  cached: Cached,
+  dataCache: DataCache,
   authenticateAdmin: AuthenticateAdmin,
   textDAO: TextDAO
 ) extends InjectedController {
@@ -28,7 +26,7 @@ class TextController @Inject()(
         },
         textSave => {
           textDAO.save(key, textSave.text) map { _ =>
-            cache.remove(s"text/$key")
+            dataCache.TextCache.reload(key)
             Ok("")
           }
         }
@@ -37,15 +35,8 @@ class TextController @Inject()(
   }
 
   def get(key: String) = {
-    cached(s"text/$key") {
-      Action.async { implicit request =>
-        textDAO.get(key) map {
-          case Some(text) =>
-            Ok(Json.toJson(Text.fromDb(text)))
-          case None =>
-            Ok(Json.toJson(Text(key = key, value = "")))
-        }
-      }
+    Action.async { implicit request =>
+      dataCache.TextCache.load(key)
     }
   }
 }

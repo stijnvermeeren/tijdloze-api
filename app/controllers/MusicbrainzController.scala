@@ -3,7 +3,6 @@ package controllers
 import model.api.MusicbrainzResult
 import model.{AlbumCrawlField, ArtistCrawlField}
 import model.db.dao.{AlbumDAO, ArtistDAO, CrawlAlbumDAO, CrawlArtistDAO, MBDataDAO, SongDAO}
-import play.api.cache.AsyncCacheApi
 import play.api.libs.json.Json
 import play.api.mvc._
 import util.FutureUtil
@@ -27,7 +26,6 @@ class MusicbrainzController @Inject()(
   artistDAO: ArtistDAO,
   songDAO: SongDAO,
   crawlHelper: CrawlHelper,
-  cache: AsyncCacheApi,
   mbDataDAO: MBDataDAO
 ) extends InjectedController {
 

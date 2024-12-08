@@ -1,13 +1,11 @@
 package controllers
 
 import model.AlbumCrawlField
-import model.db.dao.{AlbumDAO, ArtistDAO, CrawlAlbumDAO}
-import play.api.cache.AsyncCacheApi
+import model.db.dao.AlbumDAO
 import play.api.mvc._
 import util.FutureUtil
 import util.coverartarchive.CoverArtArchiveAPI
 import util.crawl.{AutoIfUnique, CrawlHelper}
-import util.musicbrainz.MusicbrainzAPI
 
 import javax.inject._
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -17,10 +15,8 @@ import scala.concurrent.Future
 class CoverArtArchiveController @Inject()(
   coverArtArchiveAPI: CoverArtArchiveAPI,
   albumDAO: AlbumDAO,
-  artistDAO: ArtistDAO,
-  crawlAlbumDAO: CrawlAlbumDAO,
   crawlHelper: CrawlHelper,
-  cache: AsyncCacheApi
+  dataCache: DataCache
 ) extends InjectedController {
 
   def crawlAlbums() = {
@@ -47,7 +43,7 @@ class CoverArtArchiveController @Inject()(
           }
         }
       } map { _ =>
-        cache.remove("coreData")
+        dataCache.CoreDataCache.reload()
         Ok
       }
     }

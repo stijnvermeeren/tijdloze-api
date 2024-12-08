@@ -3,7 +3,6 @@ package controllers
 import model.{ArtistCrawlField, CrawlField}
 import model.db.dao.{AlbumDAO, ArtistDAO, CrawlArtistDAO, SongDAO}
 import model.db.{Artist, Song}
-import play.api.cache.AsyncCacheApi
 import play.api.libs.json.Json
 import play.api.mvc._
 import util.FutureUtil
@@ -20,8 +19,7 @@ class WikidataController @Inject()(
   songDAO: SongDAO,
   artistDAO: ArtistDAO,
   crawlArtistDAO: CrawlArtistDAO,
-  crawlHelper: CrawlHelper,
-  cache: AsyncCacheApi
+  crawlHelper: CrawlHelper
 ) extends InjectedController {
 
   def crawlArtistsFromSpotify() = {

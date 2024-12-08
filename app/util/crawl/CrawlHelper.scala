@@ -1,9 +1,10 @@
 package util.crawl
 
+import controllers.DataCache
 import model.db.{Album, Artist}
 import model.{AlbumCrawlField, ArtistCrawlField, ArtistId, CrawlField}
 import model.db.dao.{AlbumDAO, ArtistDAO, CrawlAlbumDAO, CrawlArtistDAO}
-import play.api.cache.AsyncCacheApi
+import play.api.mvc.Result
 import util.FutureUtil
 
 import javax.inject.Inject
@@ -15,7 +16,7 @@ class CrawlHelper @Inject()(
                              artistDAO: ArtistDAO,
                              albumDAO: AlbumDAO,
                              crawlAlbumDAO: CrawlAlbumDAO,
-                             cache: AsyncCacheApi
+                             dataCache: DataCache
                            ) {
   def processAlbum(
     album: Album,
@@ -30,7 +31,7 @@ class CrawlHelper @Inject()(
       candidateValues,
       strategy,
       albumDAO,
-      cacheKey = s"album/${album.id.value}",
+      cacheReload = () => dataCache.AlbumDataCache.reload(album.id),
       saveAuto = (albumId, value) => crawlAlbumDAO.saveAuto(
         albumId,
         field = field,
@@ -60,7 +61,7 @@ class CrawlHelper @Inject()(
       candidateValues,
       strategy,
       artistDAO,
-      cacheKey = s"artist/${artist.id.value}",
+      cacheReload = () => dataCache.ArtistDataCache.reload(artist.id),
       saveAuto = (artistId, value) => crawlArtistDAO.saveAuto(
         artistId,
         field = field,
@@ -83,7 +84,7 @@ class CrawlHelper @Inject()(
                                                        candidateValues: Seq[String],
                                                        strategy: Strategy,
                                                        dao: DAO,
-                                                       cacheKey: String,
+                                                       cacheReload: () => Future[Result],
                                                        saveAuto: (Id, String) => Future[Int],
                                                        savePending: (Id, String) => Future[Int]
   ): Future[Unit] = {
@@ -102,7 +103,7 @@ class CrawlHelper @Inject()(
           saveAuto(model.id, candidateValue) flatMap { _ =>
             field.save(dao)(model.id, Some(candidateValue))
           } map { _ =>
-            cache.remove(cacheKey)
+            cacheReload()
           }
         case Pending =>
           savePending(model.id, candidateValue)

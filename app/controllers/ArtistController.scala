@@ -4,7 +4,6 @@ import javax.inject._
 import model.ArtistId
 import model.api.{Artist, ArtistSave}
 import model.db.dao.ArtistDAO
-import play.api.cache.{AsyncCacheApi, Cached}
 import play.api.libs.json.{JsError, Json}
 import play.api.mvc._
 import util.currentlist.CurrentListUtil
@@ -15,18 +14,13 @@ import scala.concurrent.Future
 @Singleton
 class ArtistController @Inject()(
   authenticateAdmin: AuthenticateAdmin,
-  cache: AsyncCacheApi,
-  cached: Cached,
+  dataCache: DataCache,
   artistDAO: ArtistDAO,
   currentList: CurrentListUtil
 ) extends InjectedController {
   def get(artistId: ArtistId) = {
-    cached(s"artist/${artistId.value}") {
-      Action.async { implicit rs =>
-        for {
-          artist <- artistDAO.get(artistId)
-        } yield Ok(Json.toJson(Artist.fromDb(artist)))
-      }
+    Action.async { implicit rs =>
+      dataCache.ArtistDataCache.load(artistId)
     }
   }
 
@@ -50,7 +44,8 @@ class ArtistController @Inject()(
             newArtistId <- artistDAO.create(artistSave)
             newArtist <- artistDAO.get(newArtistId)
           } yield {
-            cache.remove("coreData")
+            dataCache.CoreDataCache.reload()
+            dataCache.ArtistDataCache.reload(newArtistId)
             currentList.updateArtist(Artist.fromDb(newArtist))
             Ok(Json.toJson(Artist.fromDb(newArtist)))
           }
@@ -71,9 +66,9 @@ class ArtistController @Inject()(
             _ <- artistDAO.update(artistId, artistSave)
             artist <- artistDAO.get(artistId)
           } yield {
-            cache.remove("coreData")
+            dataCache.CoreDataCache.reload()
+            dataCache.ArtistDataCache.reload(artistId)
             currentList.updateArtist(Artist.fromDb(artist))
-            cache.remove(s"artist/${artistId.value}")
             Ok(Json.toJson(Artist.fromDb(artist)))
           }
         }
@@ -86,9 +81,9 @@ class ArtistController @Inject()(
       for {
         _ <- artistDAO.delete(artistId)
       } yield {
-        cache.remove("coreData")
+        dataCache.CoreDataCache.reload()
+        dataCache.ArtistDataCache.remove(artistId)
         currentList.deleteArtist(artistId)
-        cache.remove(s"artist/${artistId.value}")
         Ok("")
       }
     }
