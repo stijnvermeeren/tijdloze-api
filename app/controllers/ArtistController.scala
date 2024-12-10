@@ -27,8 +27,13 @@ class ArtistController @Inject()(
   def getByMusicbrainzId(musicbrainzId: String) = {
     Action.async { implicit rs =>
       for {
-        artist <- artistDAO.getByMusicbrainzId(musicbrainzId)
-      } yield Ok(Json.toJson(Artist.fromDb(artist)))
+        artistOption <- artistDAO.getByMusicbrainzId(musicbrainzId)
+      } yield {
+        artistOption match {
+          case Some(artist) => Ok(Json.toJson(Artist.fromDb(artist)))
+          case None => NotFound
+        }
+      }
     }
   }
 

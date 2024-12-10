@@ -24,9 +24,9 @@ class ArtistDAO @Inject()(configProvider: DatabaseConfigProvider) {
     }
   }
 
-  def getByMusicbrainzId(musicbrainzId: String): Future[Artist] = {
+  def getByMusicbrainzId(musicbrainzId: String): Future[Option[Artist]] = {
     db run {
-      artistTable.filter(_.musicbrainzId === musicbrainzId).result.head
+      artistTable.filter(_.musicbrainzId === musicbrainzId).result.headOption
     }
   }
 
