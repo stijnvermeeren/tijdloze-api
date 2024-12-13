@@ -30,7 +30,7 @@ class MusicbrainzController @Inject()(
 ) extends InjectedController {
 
   def crawlAlbums() = {
-    Action.async { implicit request =>
+    (Action andThen authenticateAdmin).async { implicit request =>
       albumDAO.getAll().flatMap{ albums =>
         FutureUtil.traverseSequentially(albums) { album =>
           artistDAO.get(album.artistId) flatMap { artist =>
@@ -70,9 +70,9 @@ class MusicbrainzController @Inject()(
   }
 
   def crawlSongs() = {
-    Action.async { implicit request =>
+    (Action andThen authenticateAdmin).async { implicit request =>
       songDAO.getAll().flatMap { songs =>
-        FutureUtil.traverseSequentially(songs.filter(_.id.value == 2709)) { song =>
+        FutureUtil.traverseSequentially(songs) { song =>
           for {
             artist <- artistDAO.get(song.artistId)
             album <- albumDAO.get(song.albumId)
@@ -107,7 +107,7 @@ class MusicbrainzController @Inject()(
 
 
   def find() = {
-    (Action).async { implicit request =>
+    Action.async { implicit request =>
       request.getQueryString("query") match {
         case Some(query) =>
 

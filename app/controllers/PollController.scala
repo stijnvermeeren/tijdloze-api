@@ -137,7 +137,7 @@ class PollController @Inject()(
         case Some((dbPoll, dbAnswers)) =>
           Ok(Json.toJson(Poll.fromDb(dbPoll, dbAnswers)))
         case None =>
-          InternalServerError(s"No polls found.")
+          NotFound
       }
     }
   }

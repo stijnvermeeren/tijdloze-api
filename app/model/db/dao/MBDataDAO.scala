@@ -61,7 +61,6 @@ class MBDataDAO @Inject()(configProvider: DatabaseConfigProvider) {
       // TODO also try title first?
       val artistQuery = parts.take(i).mkString(" ")
       val titleQuery = parts.drop(i).mkString(" ")
-      print(artistQuery, titleQuery)
       searchArtistTitle(artistQuery, titleQuery)
     } map { allResults =>
       allResults.flatten.maxByOption(_.score)
