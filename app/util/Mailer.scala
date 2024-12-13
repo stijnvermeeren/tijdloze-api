@@ -17,7 +17,7 @@ object Mailer {
 
     email
       .addTo(to:_*)
-      .setFrom("stijn@stijnvermeeren.be", "Tijdloze Website")
+      .setFrom("stijn@stijnvermeeren.be", s"$fromName (tijdloze.rocks)")
       .setSubject(subject)
       .setMsg(message)
       .send()
