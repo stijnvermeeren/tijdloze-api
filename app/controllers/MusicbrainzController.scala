@@ -6,10 +6,8 @@ import model.db.dao.{AlbumDAO, ArtistDAO, CrawlAlbumDAO, CrawlArtistDAO, MBDataD
 import play.api.libs.json.Json
 import play.api.mvc._
 import util.FutureUtil
-import util.coverartarchive.CoverArtArchiveAPI
 import util.crawl.{AutoIfUnique, AutoOnlyForExistingValue, CrawlHelper}
-import util.musicbrainz.{AWSAthena, MusicbrainzAPI}
-import util.spotify.SpotifyAPI
+import util.musicbrainz.MusicbrainzAPI
 
 import javax.inject._
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -18,10 +16,7 @@ import scala.concurrent.Future
 @Singleton
 class MusicbrainzController @Inject()(
   authenticateAdmin: AuthenticateAdmin,
-  spotifyAPI: SpotifyAPI,
   musicbrainzAPI: MusicbrainzAPI,
-  coverArtArchiveAPI: CoverArtArchiveAPI,
-  awsAthena: AWSAthena,
   albumDAO: AlbumDAO,
   artistDAO: ArtistDAO,
   songDAO: SongDAO,
@@ -49,22 +44,6 @@ class MusicbrainzController @Inject()(
         }
       } map { _ =>
         Ok
-      }
-    }
-  }
-
-  def searchReleaseGroup(query: String) = {
-    Action.async { implicit request =>
-      Future {
-        awsAthena.search(query).headOption
-      } flatMap {
-        case Some(row) =>
-          musicbrainzAPI.getRelease(row.releaseId).map(release => {
-            println(release)
-            Ok
-          })
-        case None =>
-          Future.successful(Ok)
       }
     }
   }
@@ -108,32 +87,16 @@ class MusicbrainzController @Inject()(
 
   def find() = {
     Action.async { implicit request =>
-      request.getQueryString("query") match {
-        case Some(query) =>
-
-          Future { awsAthena.search (query).headOption } flatMap {
-            case Some(matchingRow) =>
-              for {
-                release <- musicbrainzAPI.getRelease(matchingRow.releaseId)
-                recording <- musicbrainzAPI.getRecording(matchingRow.recordingId)
-                artist <- recording.flatMap(_.artistMusicbrainzId) match {
-                  case Some(artistId) => musicbrainzAPI.getArtist(artistId)
-                  case None => Future.successful(None)
-                }
-                cover <- release.map(_.releaseGroupId) match {
-                  case Some(releaseGroupId) => coverArtArchiveAPI.searchAlbum(releaseGroupId)
-                  case None => Future.successful(None)
-                }
-                spotifyToken <- spotifyAPI.getToken()
-                spotifyResult <- spotifyAPI.findNewSong(spotifyToken, query, limit = 1)
-              } yield {
-                Ok(Json.toJson(MusicbrainzResult.fromData(matchingRow, release, recording, artist, cover, spotifyResult.headOption)))
-              }
-            case None =>
-              Future.successful(Ok(Json.toJson(MusicbrainzResult.empty)))
+      (request.getQueryString("artist"), request.getQueryString("title")) match {
+        case (Some(artist), Some(title)) =>
+          for {
+            matchingRow <- mbDataDAO.searchArtistTitle(artist, title)
+          } yield {
+            println(matchingRow)
+            Ok(matchingRow.toString)
           }
-        case None =>
-          Future.successful(BadRequest("No query specified."))
+        case _ =>
+          Future.successful(BadRequest)
       }
     }
   }

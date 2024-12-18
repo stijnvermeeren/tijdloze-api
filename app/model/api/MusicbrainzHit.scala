@@ -1,7 +1,18 @@
 package model.api
 
 import play.api.libs.json.Json
-import util.musicbrainz.{CanonicalMusicbrainzData, MusicbrainzArtist, MusicbrainzRecording, MusicbrainzRelease}
+import util.musicbrainz.{MusicbrainzArtist, MusicbrainzRecording, MusicbrainzRelease}
+
+
+final case class CanonicalMusicbrainzData(
+  artistName: String,
+  releaseId: String,
+  releaseName: String,
+  recordingId: String,
+  recordingName: String,
+  score: Int,
+  year: String
+)
 
 
 final case class MusicbrainzHit(

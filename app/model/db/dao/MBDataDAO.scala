@@ -4,6 +4,7 @@ import model.api.MBDatasetHit
 import play.api.db.slick.DatabaseConfigProvider
 import slick.jdbc.JdbcProfile
 
+import java.text.Normalizer
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -104,6 +105,7 @@ case class MBResult(
 
 object MBResult {
   def searchKey(value: String, append: String = ""): String = {
-    value.toLowerCase.replace("(live)", "").filter(_.isLetterOrDigit) + append
+    val clean = Normalizer.normalize(value.toLowerCase, Normalizer.Form.NFKD)
+    clean.replace("(live)", "").filter(_.isLetterOrDigit) + append
   }
 }
