@@ -15,34 +15,74 @@ class MBDataDAO @Inject()(configProvider: DatabaseConfigProvider) {
   private val db = dbConfig.db
   import dbConfig.profile.api._
 
-  def searchArtistTitle(artistQuery: String, titleQuery: String): Future[Option[MBDatasetHit]] = {
-    val query = sql"""
-      SELECT
-         mb_song.mb_id as song_mb_id,
-         mb_song_alias.alias as matched_alias,
-         mb_song.title,
-         mb_song.is_single AS single_relationship,
-         mb_song.score AS recording_score,
-         mb_album.title as album_title,
-         mb_album.release_year,
-         mb_album.is_single,
-         mb_album.mb_id as album_mb_id,
-         mb_artist.name,
-         mb_artist.mb_id as artist_mb_id,
-         mb_artist.country_id
-      FROM "musicbrainz"."mb_song"
-      JOIN "musicbrainz"."mb_song_alias" ON "mb_song"."id" = "mb_song_alias"."song_id"
-      JOIN "musicbrainz"."mb_album" ON "mb_album"."id" = "mb_song"."album_id"
-      JOIN "musicbrainz"."mb_artist" ON "mb_artist"."id" = "mb_song"."artist_id"
-      JOIN "musicbrainz"."mb_artist_alias" ON "mb_artist"."id" = "mb_artist_alias"."artist_id"
-      WHERE ("mb_song_alias"."alias" LIKE ${MBResult.searchKey(titleQuery, "%")}) AND (
-        LENGTH("mb_artist_alias"."alias") < 255
-        AND levenshtein_less_equal("mb_artist_alias"."alias", LOWER(REGEXP_REPLACE(${MBResult.searchKey(artistQuery)}, '\\W', '', 'g')), 1) < 2
-      )
-  """.as[(String, String, String, Boolean, Int, String, Int, Boolean, String, String, String, String)]
+  private def runQuery(artistQuery: String, titleQuery: String, fuzzyTitleSearch: Boolean = false): Future[Seq[MBResult]] = {
+    val query = if (fuzzyTitleSearch) {
+      sql"""
+          SELECT
+             mb_song.mb_id as song_mb_id,
+             mb_song_alias.alias as matched_alias,
+             mb_song.title,
+             mb_song.is_single AS single_relationship,
+             mb_song.score AS recording_score,
+             mb_album.title as album_title,
+             mb_album.release_year,
+             mb_album.is_single,
+             mb_album.mb_id as album_mb_id,
+             mb_artist.name,
+             mb_artist.mb_id as artist_mb_id,
+             mb_artist.country_id
+          FROM "musicbrainz"."mb_song"
+          JOIN "musicbrainz"."mb_song_alias" ON "mb_song"."id" = "mb_song_alias"."song_id"
+          JOIN "musicbrainz"."mb_album" ON "mb_album"."id" = "mb_song"."album_id"
+          JOIN "musicbrainz"."mb_artist" ON "mb_artist"."id" = "mb_song"."artist_id"
+          JOIN "musicbrainz"."mb_artist_alias" ON "mb_artist"."id" = "mb_artist_alias"."artist_id"
+          WHERE ("mb_song_alias"."alias" LIKE ${MBResult.searchKey(titleQuery, "%")}) AND (
+            LENGTH("mb_artist_alias"."alias") < 255
+            AND levenshtein_less_equal("mb_artist_alias"."alias", ${MBResult.searchKey(artistQuery)}, 1) < 2
+          )
+      """.as[(String, String, String, Boolean, Int, String, Int, Boolean, String, String, String, String)]
+    } else {
+      sql"""
+          SELECT
+             mb_song.mb_id as song_mb_id,
+             mb_song_alias.alias as matched_alias,
+             mb_song.title,
+             mb_song.is_single AS single_relationship,
+             mb_song.score AS recording_score,
+             mb_album.title as album_title,
+             mb_album.release_year,
+             mb_album.is_single,
+             mb_album.mb_id as album_mb_id,
+             mb_artist.name,
+             mb_artist.mb_id as artist_mb_id,
+             mb_artist.country_id
+          FROM "musicbrainz"."mb_song"
+          JOIN "musicbrainz"."mb_song_alias" ON "mb_song"."id" = "mb_song_alias"."song_id"
+          JOIN "musicbrainz"."mb_album" ON "mb_album"."id" = "mb_song"."album_id"
+          JOIN "musicbrainz"."mb_artist" ON "mb_artist"."id" = "mb_song"."artist_id"
+          JOIN "musicbrainz"."mb_artist_alias" ON "mb_artist"."id" = "mb_artist_alias"."artist_id"
+          WHERE (
+            LENGTH("mb_song_alias"."alias") < 255 AND levenshtein_less_equal("mb_song_alias"."alias", ${MBResult.searchKey(titleQuery, "%")}, 1) < 2
+          ) AND (
+             LENGTH("mb_artist_alias"."alias") < 255
+             AND levenshtein_less_equal("mb_artist_alias"."alias", ${MBResult.searchKey(artistQuery)}, 1) < 2
+          )
+      """.as[(String, String, String, Boolean, Int, String, Int, Boolean, String, String, String, String)]
+    }
+
     db run {
       query
-    } map {_.map((MBResult.apply _).tupled)} map { results =>
+    } map {_.map((MBResult.apply _).tupled)}
+  }
+
+  def searchArtistTitle(artistQuery: String, titleQuery: String): Future[Option[MBDatasetHit]] = {
+    runQuery(artistQuery, titleQuery) flatMap { results =>
+      if (results.nonEmpty) {
+        Future.successful(results)
+      } else {
+        runQuery(artistQuery, titleQuery, fuzzyTitleSearch = true)
+      }
+    } map { results =>
       if (results.nonEmpty) {
         val scoredResults = results.map(_.score(titleQuery))
         val minRelevance = scoredResults.map(_.score).max / 2
@@ -88,7 +128,7 @@ case class MBResult(
   }
 
   def score(titleQuery: String): MBDatasetHit = {
-    val score = if (isExactMatch(titleQuery) && singleRelationship) {
+    val score = if (isExactMatch(titleQuery)) {
       if (singleRelationship)
         5 * recordingScore
       else
