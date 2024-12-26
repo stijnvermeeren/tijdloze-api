@@ -14,7 +14,6 @@ import scala.concurrent.duration._
 
 @Singleton
 class CurrentListUtil @Inject()(
-  listEntryDAO: ListEntryDAO,
   listExitDAO: ListExitDAO,
   pollDAO: PollDAO
 )(implicit mat: Materializer) {

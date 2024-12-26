@@ -5,6 +5,7 @@ import model.{PollAnswerId, PollId}
 import model.api.{PollAnswerUpdate, PollCreate, PollUpdate}
 import model.db.{Poll, PollAnswer, PollVote}
 import model.db.dao.table.{PollAnswerTable, PollTable, PollVoteTable}
+import play.api.cache.AsyncCacheApi
 import play.api.db.slick.DatabaseConfigProvider
 import slick.jdbc.JdbcProfile
 
@@ -12,7 +13,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 @Singleton
-class PollDAO @Inject()(configProvider: DatabaseConfigProvider) {
+class PollDAO @Inject()(configProvider: DatabaseConfigProvider, cache: AsyncCacheApi) {
   val dbConfig = configProvider.get[JdbcProfile]
   private val db = dbConfig.db
   import dbConfig.profile.api._
@@ -22,32 +23,37 @@ class PollDAO @Inject()(configProvider: DatabaseConfigProvider) {
   val pollVoteTable = TableQuery[PollVoteTable]
 
   def getPoll(pollId: PollId): Future[Option[(Poll, Seq[PollAnswer])]] = {
-    for {
-      pollOption <- db run {
-        pollTable.filter(_.id === pollId).result.headOption
-      }
-      answers <- db run {
-        pollAnswerTable.filter(_.pollId === pollId).result
-      }
-    } yield {
-      pollOption map { poll =>
-        (poll, answers)
+    cache.getOrElseUpdate(s"poll-${pollId.value}") {
+      for {
+        pollOption <- db run {
+          pollTable.filter(_.id === pollId).result.headOption
+        }
+        answers <- db run {
+          pollAnswerTable.filter(_.pollId === pollId).result
+        }
+      } yield {
+        pollOption map { poll =>
+          (poll, answers)
+        }
       }
     }
+
   }
 
   def getLatest(): Future[Option[(Poll, Seq[PollAnswer])]] = {
-    db run {
-      pollTable.sortBy(_.id.desc).filterNot(_.isDeleted).result.headOption
-    } flatMap {
-      case Some(poll) =>
-        db run {
-          pollAnswerTable.filter(_.pollId === poll.id).result
-        } map { answers =>
-          Some(poll, answers)
-        }
-      case None =>
-        Future.successful(None)
+    cache.getOrElseUpdate(s"poll-latest") {
+      db run {
+        pollTable.sortBy(_.id.desc).filterNot(_.isDeleted).result.headOption
+      } flatMap {
+        case Some(poll) =>
+          db run {
+            pollAnswerTable.filter(_.pollId === poll.id).result
+          } map { answers =>
+            Some(poll, answers)
+          }
+        case None =>
+          Future.successful(None)
+      }
     }
   }
 
@@ -84,6 +90,8 @@ class PollDAO @Inject()(configProvider: DatabaseConfigProvider) {
 
       db run {
         pollAnswerTable ++= answers
+      } flatMap { _ =>
+        cache.remove("poll-latest")
       } map (_ => pollId)
     }
   }
@@ -124,7 +132,18 @@ class PollDAO @Inject()(configProvider: DatabaseConfigProvider) {
           .map(_.voteCount)
           .update(voteCount)
       }
-    } map (_ => ())
+    } flatMap { _ =>
+      cleanCache(pollId)
+    }
+  }
+
+  private def cleanCache(pollId: PollId): Future[Unit] = {
+    getLatest() map { latest =>
+      if (latest.exists(_._1.id == pollId)) {
+        cache.remove(s"poll-latest")
+      }
+      cache.remove(s"poll-${pollId.value}")
+    }
   }
 
   def myVotes(userId: String): Future[Seq[PollVote]] = {
@@ -139,16 +158,20 @@ class PollDAO @Inject()(configProvider: DatabaseConfigProvider) {
         .filter(_.id === pollId)
         .map(_.question)
         .update(pollUpdate.question)
-    } map (_ => ())
+    } flatMap { _ =>
+      cleanCache(pollId)
+    }
   }
 
-  def updatePollAnswer(pollAnswerId: PollAnswerId, pollAnswerUpdate: PollAnswerUpdate): Future[Unit] = {
+  def updatePollAnswer(pollId: PollId, pollAnswerId: PollAnswerId, pollAnswerUpdate: PollAnswerUpdate): Future[Unit] = {
     db run {
       pollAnswerTable
         .filter(_.id === pollAnswerId)
         .map(_.answer)
         .update(pollAnswerUpdate.answer)
-    } map (_ => ())
+    } flatMap { _ =>
+      cleanCache(pollId)
+    }
   }
 
   def setDeleted(pollId: PollId, isDeleted: Boolean): Future[Unit] = {
@@ -157,6 +180,8 @@ class PollDAO @Inject()(configProvider: DatabaseConfigProvider) {
         .filter(_.id === pollId)
         .map(_.isDeleted)
         .update(isDeleted)
-    } map (_ => ())
+    } map (_ => ()) flatMap { _ =>
+      cleanCache(pollId)
+    }
   }
 }

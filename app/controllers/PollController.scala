@@ -71,7 +71,7 @@ class PollController @Inject()(
           Future.successful(BadRequest(JsError.toJson(errors)))
         },
         pollAnswerUpdate => {
-          pollDAO.updatePollAnswer(pollAnswerId, pollAnswerUpdate) flatMap { _ =>
+          pollDAO.updatePollAnswer(pollId, pollAnswerId, pollAnswerUpdate) flatMap { _ =>
             pollDAO.getPoll(pollId) map {
               case Some((dbPoll, dbAnswers)) =>
                 currentList.updateLatestPoll()
