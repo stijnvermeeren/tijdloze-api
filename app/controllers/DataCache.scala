@@ -101,11 +101,16 @@ class DataCache @Inject() (
       } yield {
         val songGroupedEntries = entries.groupBy(_.songId)
         val yearGroupedEntries = entries.groupBy(_.year).toSeq.map {
-          case (year, values) => CoreList(
-            year = year,
-            songIds = values.sortBy(_.position).map(_.songId),
-            top100SongCount = values.count(_.position <= 100)
-          )
+          case (year, values) =>
+            val maxPosition = values.map(_.position).max
+            val grouped = values.groupBy(_.position)
+            val songIds = (1 to maxPosition).map(position =>
+              grouped.get(position).flatMap(_.headOption.map(_.songId))
+            )
+            CoreList(
+              year = year,
+              songIds = songIds
+            )
         }
 
         Ok(Json.toJson(CoreData(

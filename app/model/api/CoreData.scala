@@ -72,7 +72,11 @@ object CoreSong {
       aliases = song.aliases,
       languageId = song.languageId,
       leadVocals = song.leadVocals,
-      positions = entries.map(entry => entry.year.toString.takeRight(2) -> entry.position).toMap
+      positions = entries
+        .groupBy(_.year)
+        .map {
+          case (year, entries) => year.toString.takeRight(2) -> entries.map(_.position).min
+        }
     )
   }
 
@@ -81,8 +85,7 @@ object CoreSong {
 
 final case class CoreList(
   year: Int,
-  songIds: Seq[SongId],
-  top100SongCount: Int
+  songIds: Seq[Option[SongId]]
 )
 
 object CoreList {
