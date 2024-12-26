@@ -10,8 +10,7 @@ import play.api.mvc._
 import util.FutureUtil
 import util.spotify.{SpotifyAPI, SpotifyArtist}
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.ExecutionContext
 
 @Singleton
 class SpotifyController @Inject()(
@@ -19,10 +18,9 @@ class SpotifyController @Inject()(
   spotifyAPI: SpotifyAPI,
   songDAO: SongDAO,
   artistDAO: ArtistDAO,
-  albumDAO: AlbumDAO,
   crawlArtistDAO: CrawlArtistDAO,
   dataCache: DataCache
-) extends InjectedController {
+)(implicit ec: ExecutionContext) extends InjectedController {
 
   def crawlArtistsFromSongs() = {
     def setArtistSpotifyId(song: Song, artist: Artist, spotifyArtists: Seq[SpotifyArtist]) = {

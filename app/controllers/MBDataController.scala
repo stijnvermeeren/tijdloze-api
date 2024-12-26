@@ -6,12 +6,12 @@ import play.api.libs.json.Json
 import play.api.mvc._
 
 import javax.inject._
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.ExecutionContext
 
 @Singleton
 class MBDataController @Inject()(
   mbDataDAO: MBDataDAO
-) extends InjectedController {
+)(implicit ec: ExecutionContext) extends InjectedController {
   def search(artistQuery: String, titleQuery: String) = {
     Action.async { implicit request =>
       mbDataDAO.searchArtistTitle(artistQuery, titleQuery) map { hit =>

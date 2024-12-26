@@ -7,8 +7,7 @@ import play.api.libs.json.JsError
 import play.api.mvc._
 import util.currentlist.CurrentListUtil
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class ListEntryController @Inject()(
@@ -16,7 +15,7 @@ class ListEntryController @Inject()(
   authenticateAdmin: AuthenticateAdmin,
   listEntryDAO: ListEntryDAO,
   currentList: CurrentListUtil
-) extends InjectedController {
+)(implicit ec: ExecutionContext) extends InjectedController {
   def post(year: Int, position: Int) = {
     (Action andThen authenticateAdmin).async(parse.json) { implicit request =>
       val data = request.body.validate[ListEntrySave]

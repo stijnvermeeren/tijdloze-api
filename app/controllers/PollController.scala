@@ -8,8 +8,7 @@ import play.api.libs.json.{JsError, Json}
 import play.api.mvc._
 import util.currentlist.CurrentListUtil
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class PollController @Inject()(
@@ -17,7 +16,7 @@ class PollController @Inject()(
   authenticateAdmin: AuthenticateAdmin,
   pollDAO: PollDAO,
   currentList: CurrentListUtil
-) extends InjectedController {
+)(implicit ec: ExecutionContext) extends InjectedController {
 
   def createPoll() = {
     (Action andThen authenticateAdmin).async(parse.json) { request =>

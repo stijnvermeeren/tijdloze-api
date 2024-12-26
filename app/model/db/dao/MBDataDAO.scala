@@ -27,6 +27,7 @@ class MBDataDAO @Inject()(configProvider: DatabaseConfigProvider) {
              mb_album.title as album_title,
              mb_album.release_year,
              mb_album.is_single,
+             false as is_soundtrack,
              mb_album.mb_id as album_mb_id,
              mb_artist.name,
              mb_artist.mb_id as artist_mb_id,
@@ -40,7 +41,7 @@ class MBDataDAO @Inject()(configProvider: DatabaseConfigProvider) {
             LENGTH("mb_artist_alias"."alias") < 255
             AND levenshtein_less_equal("mb_artist_alias"."alias", ${MBResult.searchKey(artistQuery)}, 1) < 2
           )
-      """.as[(String, String, String, Boolean, Int, String, Int, Boolean, String, String, String, String)]
+      """.as[(String, String, String, Boolean, Int, String, Int, Boolean, Boolean, String, String, String, String)]
     } else {
       sql"""
           SELECT
@@ -52,6 +53,7 @@ class MBDataDAO @Inject()(configProvider: DatabaseConfigProvider) {
              mb_album.title as album_title,
              mb_album.release_year,
              mb_album.is_single,
+             false as is_soundtrack,
              mb_album.mb_id as album_mb_id,
              mb_artist.name,
              mb_artist.mb_id as artist_mb_id,
@@ -67,7 +69,7 @@ class MBDataDAO @Inject()(configProvider: DatabaseConfigProvider) {
              LENGTH("mb_artist_alias"."alias") < 255
              AND levenshtein_less_equal("mb_artist_alias"."alias", ${MBResult.searchKey(artistQuery)}, 1) < 2
           )
-      """.as[(String, String, String, Boolean, Int, String, Int, Boolean, String, String, String, String)]
+      """.as[(String, String, String, Boolean, Int, String, Int, Boolean, Boolean, String, String, String, String)]
     }
 
     db run {
@@ -110,18 +112,19 @@ class MBDataDAO @Inject()(configProvider: DatabaseConfigProvider) {
 }
 
 case class MBResult(
-                    songMBId: String,
-                    matchedAlias: String,
-                    title: String,
-                    singleRelationship: Boolean,
-                    recordingScore: Int,
-                    albumTitle: String,
-                    releaseYear: Int,
-                    isSingle: Boolean,
-                    albumMBId: String,
-                    name: String,
-                    artistMBId: String,
-                    countryId: String
+  songMBId: String,
+  matchedAlias: String,
+  title: String,
+  singleRelationship: Boolean,
+  recordingScore: Int,
+  albumTitle: String,
+  releaseYear: Int,
+  isSingle: Boolean,
+  isSoundtrack: Boolean,
+  albumMBId: String,
+  name: String,
+  artistMBId: String,
+  countryId: String
 ) {
   private def isExactMatch(titleQuery: String): Boolean = {
     MBResult.searchKey(titleQuery) == MBResult.searchKey(matchedAlias)
@@ -138,7 +141,7 @@ case class MBResult(
     }
 
     MBDatasetHit(
-      songMBId, matchedAlias, title, albumTitle, releaseYear, isSingle, albumMBId, name, artistMBId, countryId, score
+      songMBId, matchedAlias, title, albumTitle, releaseYear, isSingle, isSoundtrack, albumMBId, name, artistMBId, countryId, score
     )
   }
 }

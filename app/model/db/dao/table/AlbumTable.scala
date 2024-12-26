@@ -16,7 +16,9 @@ class AlbumTable(tag: Tag) extends Table[Album](tag, "album") {
   val wikidataId = column[Option[String]]("wikidata_id")
   val musicbrainzId = column[Option[String]]("musicbrainz_id")
   val cover = column[Option[String]]("cover")
+  val isSingle = column[Boolean]("is_single")
+  val isSoundtrack = column[Boolean]("is_soundtrack")
 
-  def * = (id, artistId, title, releaseYear, urlWikiEn, urlWikiNl, urlAllMusic, spotifyId, wikidataId, musicbrainzId, cover) <>
+  def * = (id, artistId, title, releaseYear, urlWikiEn, urlWikiNl, urlAllMusic, spotifyId, wikidataId, musicbrainzId, cover, isSingle, isSoundtrack) <>
     ((Album.apply _).tupled, Album.unapply)
 }

@@ -12,5 +12,7 @@ final case class Album(
   spotifyId: Option[String],
   wikidataId: Option[String],
   musicbrainzId: Option[String],
-  cover: Option[String]
+  cover: Option[String],
+  isSingle: Boolean = false,
+  isSoundtrack: Boolean = false
 )

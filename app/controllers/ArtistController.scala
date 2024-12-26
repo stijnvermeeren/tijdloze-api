@@ -8,8 +8,7 @@ import play.api.libs.json.{JsError, Json}
 import play.api.mvc._
 import util.currentlist.CurrentListUtil
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class ArtistController @Inject()(
@@ -17,7 +16,7 @@ class ArtistController @Inject()(
   dataCache: DataCache,
   artistDAO: ArtistDAO,
   currentList: CurrentListUtil
-) extends InjectedController {
+)(implicit ec: ExecutionContext) extends InjectedController {
   def get(artistId: ArtistId) = {
     Action.async { implicit rs =>
       dataCache.ArtistDataCache.load(artistId)

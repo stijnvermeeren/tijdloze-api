@@ -48,7 +48,9 @@ class AlbumDAO @Inject()(configProvider: DatabaseConfigProvider) {
       spotifyId = spotifyId.map(_.trim).filter(_.nonEmpty),
       wikidataId = wikidataId.map(_.trim).filter(_.nonEmpty),
       musicbrainzId = musicbrainzId.map(_.trim).filter(_.nonEmpty),
-      cover = cover.map(_.trim).filter(_.nonEmpty)
+      cover = cover.map(_.trim).filter(_.nonEmpty),
+      isSingle = isSingle,
+      isSoundtrack = isSoundtrack
     )
 
     db run {
@@ -72,7 +74,9 @@ class AlbumDAO @Inject()(configProvider: DatabaseConfigProvider) {
           x.spotifyId,
           x.wikidataId,
           x.musicbrainzId,
-          x.cover
+          x.cover,
+          x.isSingle,
+          x.isSoundtrack
         ))
         .update((
           artistId,
@@ -84,7 +88,9 @@ class AlbumDAO @Inject()(configProvider: DatabaseConfigProvider) {
           spotifyId.map(_.trim).filter(_.nonEmpty),
           wikidataId.map(_.trim).filter(_.nonEmpty),
           musicbrainzId.map(_.trim).filter(_.nonEmpty),
-          cover.map(_.trim).filter(_.nonEmpty)
+          cover.map(_.trim).filter(_.nonEmpty),
+          isSingle,
+          isSoundtrack
         ))
     }
   }

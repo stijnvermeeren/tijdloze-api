@@ -5,8 +5,7 @@ import model.db.dao.{ListEntryDAO, YearDAO}
 import play.api.mvc._
 import util.currentlist.CurrentListUtil
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class YearController @Inject()(
@@ -15,7 +14,7 @@ class YearController @Inject()(
   yearDAO: YearDAO,
   listEntryDAO: ListEntryDAO,
   currentList: CurrentListUtil
-) extends InjectedController {
+)(implicit ec: ExecutionContext) extends InjectedController {
 
   def post(year: Int) = {
     (Action andThen authenticateAdmin).async { request =>

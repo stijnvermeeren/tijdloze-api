@@ -13,7 +13,9 @@ final case class AlbumSave(
   spotifyId: Option[String],
   wikidataId: Option[String],
   musicbrainzId: Option[String],
-  cover: Option[String]
+  cover: Option[String],
+  isSingle: Boolean,
+  isSoundtrack: Boolean
 )
 
 object AlbumSave {

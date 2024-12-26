@@ -8,15 +8,14 @@ import model.db.dao.ChatTicketDAO
 import play.api.libs.json._
 import play.api.mvc._
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class ChatController @Inject()(
   authenticate: Authenticate,
   chat: Chat,
   chatTicketDAO: ChatTicketDAO
-)(implicit mat: Materializer) extends InjectedController {
+)(implicit mat: Materializer, ec: ExecutionContext) extends InjectedController {
 
   def ticket() = (Action andThen authenticate).async { implicit request =>
     chatTicketDAO.create(request.user.id) map { ticket =>

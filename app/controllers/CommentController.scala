@@ -8,11 +8,14 @@ import model.db.dao.CommentDAO
 import play.api.libs.json._
 import play.api.mvc._
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class CommentController @Inject()(authenticate: Authenticate, authenticateAdmin: AuthenticateAdmin, commentDAO: CommentDAO) extends InjectedController {
+class CommentController @Inject()(
+  authenticate: Authenticate,
+  authenticateAdmin: AuthenticateAdmin,
+  commentDAO: CommentDAO
+)(implicit ec: ExecutionContext) extends InjectedController {
   def post() = (Action andThen authenticate).async(parse.json) { implicit request =>
     val data = request.body.validate[CommentSave]
     data.fold(

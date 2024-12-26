@@ -8,8 +8,7 @@ import util.coverartarchive.CoverArtArchiveAPI
 import util.crawl.{AutoIfUnique, CrawlHelper}
 
 import javax.inject._
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class CoverArtArchiveController @Inject()(
@@ -17,7 +16,7 @@ class CoverArtArchiveController @Inject()(
   albumDAO: AlbumDAO,
   crawlHelper: CrawlHelper,
   dataCache: DataCache
-) extends InjectedController {
+)(implicit ec: ExecutionContext) extends InjectedController {
 
   def crawlAlbums() = {
     Action.async { implicit request =>

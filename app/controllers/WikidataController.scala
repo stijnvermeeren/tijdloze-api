@@ -1,26 +1,21 @@
 package controllers
 
-import model.{ArtistCrawlField, CrawlField}
-import model.db.dao.{AlbumDAO, ArtistDAO, CrawlArtistDAO, SongDAO}
-import model.db.{Artist, Song}
-import play.api.libs.json.Json
+import model.ArtistCrawlField
+import model.db.dao.ArtistDAO
 import play.api.mvc._
 import util.FutureUtil
 import util.crawl.{AutoIfUnique, AutoOnlyForExistingValue, CrawlHelper}
 import util.wikidata.WikidataAPI
 
 import javax.inject._
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class WikidataController @Inject()(
   wikidataAPI: WikidataAPI,
-  songDAO: SongDAO,
   artistDAO: ArtistDAO,
-  crawlArtistDAO: CrawlArtistDAO,
   crawlHelper: CrawlHelper
-) extends InjectedController {
+)(implicit ec: ExecutionContext) extends InjectedController {
 
   def crawlArtistsFromSpotify() = {
     Action.async { implicit request =>

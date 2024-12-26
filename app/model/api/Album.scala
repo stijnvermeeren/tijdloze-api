@@ -14,7 +14,9 @@ final case class Album(
   spotifyId: Option[String],
   wikidataId: Option[String],
   musicbrainzId: Option[String],
-  cover: Option[String]
+  cover: Option[String],
+  isSingle: Boolean,
+  isSoundtrack: Boolean,
 )
 
 object Album {
@@ -30,7 +32,9 @@ object Album {
       spotifyId = dbAlbum.spotifyId,
       wikidataId = dbAlbum.wikidataId,
       musicbrainzId = dbAlbum.musicbrainzId,
-      cover = dbAlbum.cover
+      cover = dbAlbum.cover,
+      isSingle = dbAlbum.isSingle,
+      isSoundtrack = dbAlbum.isSoundtrack
     )
   }
 

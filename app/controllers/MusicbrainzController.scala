@@ -1,17 +1,14 @@
 package controllers
 
-import model.api.MusicbrainzResult
-import model.{AlbumCrawlField, ArtistCrawlField}
-import model.db.dao.{AlbumDAO, ArtistDAO, CrawlAlbumDAO, CrawlArtistDAO, MBDataDAO, SongDAO}
-import play.api.libs.json.Json
+import model.AlbumCrawlField
+import model.db.dao.{AlbumDAO, ArtistDAO, MBDataDAO, SongDAO}
 import play.api.mvc._
 import util.FutureUtil
 import util.crawl.{AutoIfUnique, AutoOnlyForExistingValue, CrawlHelper}
 import util.musicbrainz.MusicbrainzAPI
 
 import javax.inject._
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class MusicbrainzController @Inject()(
@@ -22,7 +19,7 @@ class MusicbrainzController @Inject()(
   songDAO: SongDAO,
   crawlHelper: CrawlHelper,
   mbDataDAO: MBDataDAO
-) extends InjectedController {
+)(implicit ec: ExecutionContext) extends InjectedController {
 
   def crawlAlbums() = {
     (Action andThen authenticateAdmin).async { implicit request =>
@@ -92,7 +89,6 @@ class MusicbrainzController @Inject()(
           for {
             matchingRow <- mbDataDAO.searchArtistTitle(artist, title)
           } yield {
-            println(matchingRow)
             Ok(matchingRow.toString)
           }
         case _ =>

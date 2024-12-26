@@ -28,7 +28,9 @@ final case class CoreAlbum(
   artistId: ArtistId,
   title: String,
   releaseYear: Int,
-  cover: Option[String]
+  cover: Option[String],
+  isSingle: Option[Boolean],
+  isSoundtrack: Option[Boolean],
 )
 
 object CoreAlbum {
@@ -38,7 +40,9 @@ object CoreAlbum {
       artistId = album.artistId,
       title = album.title,
       releaseYear = album.releaseYear,
-      cover = album.cover
+      cover = album.cover,
+      isSingle = Option(album.isSingle).filter(identity),
+      isSoundtrack = Option(album.isSoundtrack).filter(identity),
     )
   }
 

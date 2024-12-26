@@ -11,8 +11,7 @@ import util.crawl.{AutoIfUnique, CrawlHelper}
 import util.currentlist.CurrentListUtil
 import util.musicbrainz.MusicbrainzAPI
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class AlbumController @Inject()(
@@ -24,7 +23,7 @@ class AlbumController @Inject()(
   coverArtArchiveAPI: CoverArtArchiveAPI,
   crawlHelper: CrawlHelper,
   currentList: CurrentListUtil
-) extends InjectedController {
+)(implicit ec: ExecutionContext) extends InjectedController {
 
   def get(albumId: AlbumId) = {
     Action.async { implicit rs =>

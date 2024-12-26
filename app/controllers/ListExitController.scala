@@ -6,7 +6,7 @@ import model.db.dao.ListExitDAO
 import play.api.mvc._
 import util.currentlist.CurrentListUtil
 
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.ExecutionContext
 
 @Singleton
 class ListExitController @Inject()(
@@ -14,7 +14,7 @@ class ListExitController @Inject()(
   authenticateAdmin: AuthenticateAdmin,
   listExitDAO: ListExitDAO,
   currentList: CurrentListUtil
-) extends InjectedController {
+)(implicit ec: ExecutionContext) extends InjectedController {
 
   def post(year: Int, songId: SongId) = {
     (Action andThen authenticateAdmin).async { request =>

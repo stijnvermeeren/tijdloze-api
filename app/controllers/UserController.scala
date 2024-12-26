@@ -6,8 +6,7 @@ import model.db.dao.{LogUserDisplayNameDAO, UserDAO}
 import play.api.libs.json.{JsError, Json}
 import play.api.mvc._
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class UserController @Inject()(
@@ -16,7 +15,7 @@ class UserController @Inject()(
   optionallyAuthenticate: OptionallyAuthenticate,
   userDAO: UserDAO,
   logUserDisplayNameDAO: LogUserDisplayNameDAO
-) extends InjectedController {
+)(implicit ec: ExecutionContext) extends InjectedController {
 
   def post() = (Action andThen optionallyAuthenticate).async(parse.json) { implicit request =>
     val data = request.body.validate[UserSave]
