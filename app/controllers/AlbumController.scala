@@ -87,39 +87,14 @@ class AlbumController @Inject()(
     }
   }
 
-  private def checkMusicbrainz(album: model.db.Album): Unit = {
-    artistDAO.get(album.artistId) flatMap { artist =>
-      musicbrainzAPI.searchAlbum(album, artist) flatMap { releaseGroups =>
-        for {
-          _ <- crawlHelper.processAlbum(
-            album = album,
-            field = AlbumCrawlField.MusicbrainzId,
-            candidateValues = releaseGroups.map(_.id),
-            comment = s"Musicbrainz search (${artist.musicbrainzId.getOrElse(artist.name)})",
-            strategy = AutoIfUnique
-          )
-        } yield ()
-      } flatMap { _ =>
-        albumDAO.get(album.id).map(_.musicbrainzId) flatMap {
-          case Some(musicbrainzId) =>
-            coverArtArchiveAPI.searchAlbum(musicbrainzId) flatMap {
-              case Some(coverName) =>
-                for {
-                  _ <- crawlHelper.processAlbum(
-                    album = album,
-                    field = AlbumCrawlField.Cover,
-                    candidateValues = Seq(coverName),
-                    comment = s"CoverArtArchive search ($musicbrainzId)",
-                    strategy = AutoIfUnique
-                  )
-                } yield ()
-              case None =>
-                Future.successful(())
-            }
-          case None =>
-            Future.successful(())
+  private def checkMusicbrainz(album: model.db.Album): Future[Unit] = {
+    albumDAO.get(album.id).map(_.musicbrainzId) flatMap {
+      case Some(musicbrainzId) =>
+        coverArtArchiveAPI.searchAlbum(musicbrainzId) flatMap { cover =>
+          albumDAO.setCover(album.id, cover)
         }
-      }
+      case None =>
+        Future.successful(())
     } flatMap { _ =>
       for {
         album <- albumDAO.get(album.id)
