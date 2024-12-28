@@ -2,7 +2,7 @@ with subquery as (
     SELECT
         string_agg(DISTINCT
 	    CONCAT(
-	      'coalesce((SELECT position FROM list_entry WHERE song_id = s.id AND year = ',
+	      'coalesce((SELECT min(position) FROM list_entry WHERE song_id = s.id AND year = ',
 	      year,
 	      ')::text, '''') as position',
 	      year
