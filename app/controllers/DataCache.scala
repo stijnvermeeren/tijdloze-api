@@ -2,6 +2,7 @@ package controllers
 
 import model.{AlbumId, ArtistId, SongId}
 import model.api.{Album, Artist, CoreAlbum, CoreArtist, CoreData, CoreList, CoreSong, Song, Text}
+import model.db.ListEntry
 import model.db.dao.{AlbumDAO, ArtistDAO, ListEntryDAO, ListExitDAO, SongDAO, TextDAO, YearDAO}
 import play.api.Logger
 import play.api.libs.json.Json
@@ -107,9 +108,16 @@ class DataCache @Inject() (
             val songIds = (1 to maxPosition).map(position =>
               grouped.get(position).flatMap(_.headOption.map(_.songId))
             )
+            val attributions = values flatMap {
+              case ListEntry(_, _, _, position, Some(attribution)) =>
+                Some(position -> attribution)
+              case _ =>
+                None
+            }
             CoreList(
               year = year,
-              songIds = songIds
+              songIds = songIds,
+              attributions = attributions.toMap
             )
         }
 

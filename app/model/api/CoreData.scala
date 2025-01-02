@@ -85,7 +85,8 @@ object CoreSong {
 
 final case class CoreList(
   year: Int,
-  songIds: Seq[Option[SongId]]
+  songIds: Seq[Option[SongId]],
+  attributions: Map[Int, String]
 )
 
 object CoreList {
