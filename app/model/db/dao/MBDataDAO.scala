@@ -16,8 +16,10 @@ class MBDataDAO @Inject()(configProvider: DatabaseConfigProvider) {
   import dbConfig.profile.api._
 
   private def runQuery(artistQuery: String, titleQuery: String, fuzzyTitleSearch: Boolean = false): Future[Seq[MBResult]] = {
-    val query = if (fuzzyTitleSearch) {
-      sql"""
+    runArtistQuery(artistQuery) flatMap { artistIds =>
+      if (artistIds.nonEmpty) {
+        val query = if (fuzzyTitleSearch) {
+          sql"""
           SELECT
              mb_song.mb_id as song_mb_id,
              mb_song_alias.alias as matched_alias,
@@ -36,14 +38,12 @@ class MBDataDAO @Inject()(configProvider: DatabaseConfigProvider) {
           JOIN "musicbrainz"."mb_song_alias" ON "mb_song"."id" = "mb_song_alias"."song_id"
           JOIN "musicbrainz"."mb_album" ON "mb_album"."id" = "mb_song"."album_id"
           JOIN "musicbrainz"."mb_artist" ON "mb_artist"."id" = "mb_song"."artist_id"
-          JOIN "musicbrainz"."mb_artist_alias" ON "mb_artist"."id" = "mb_artist_alias"."artist_id"
           WHERE ("mb_song_alias"."alias" LIKE ${MBResult.searchKey(titleQuery, "%")}) AND (
-            LENGTH("mb_artist_alias"."alias") < 255
-            AND levenshtein_less_equal("mb_artist_alias"."alias", ${MBResult.searchKey(artistQuery)}, 1) < 2
+            mb_artist.id IN (#${artistIds.mkString(",")})
           )
       """.as[(String, String, String, Boolean, Int, String, Int, Boolean, Boolean, String, String, String, String)]
-    } else {
-      sql"""
+        } else {
+          sql"""
           SELECT
              mb_song.mb_id as song_mb_id,
              mb_song_alias.alias as matched_alias,
@@ -62,19 +62,37 @@ class MBDataDAO @Inject()(configProvider: DatabaseConfigProvider) {
           JOIN "musicbrainz"."mb_song_alias" ON "mb_song"."id" = "mb_song_alias"."song_id"
           JOIN "musicbrainz"."mb_album" ON "mb_album"."id" = "mb_song"."album_id"
           JOIN "musicbrainz"."mb_artist" ON "mb_artist"."id" = "mb_song"."artist_id"
-          JOIN "musicbrainz"."mb_artist_alias" ON "mb_artist"."id" = "mb_artist_alias"."artist_id"
           WHERE (
             LENGTH("mb_song_alias"."alias") < 255 AND levenshtein_less_equal("mb_song_alias"."alias", ${MBResult.searchKey(titleQuery, "%")}, 1) < 2
           ) AND (
-             LENGTH("mb_artist_alias"."alias") < 255
-             AND levenshtein_less_equal("mb_artist_alias"."alias", ${MBResult.searchKey(artistQuery)}, 1) < 2
+             mb_artist.id IN (#${artistIds.mkString(",")})
           )
       """.as[(String, String, String, Boolean, Int, String, Int, Boolean, Boolean, String, String, String, String)]
+        }
+
+        db run {
+          query
+        } map {_.map((MBResult.apply _).tupled)}
+      } else {
+        Future.successful(Seq.empty)
+      }
     }
+  }
+
+  private def runArtistQuery(artistQuery: String): Future[Seq[Int]] = {
+    val query = sql"""
+        SELECT
+           mb_artist.id
+        FROM "musicbrainz"."mb_artist"
+        JOIN "musicbrainz"."mb_artist_alias" ON "mb_artist"."id" = "mb_artist_alias"."artist_id"
+        WHERE
+          LENGTH("mb_artist_alias"."alias") < 255
+          AND levenshtein_less_equal("mb_artist_alias"."alias", ${MBResult.searchKey(artistQuery)}, 1) < 2
+    """.as[Int]
 
     db run {
       query
-    } map {_.map((MBResult.apply _).tupled)}
+    }
   }
 
   def searchArtistTitle(artistQuery: String, titleQuery: String): Future[Option[MBDatasetHit]] = {
