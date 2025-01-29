@@ -14,6 +14,9 @@ case class MBDatasetHit(
   name: String,
   artistMBId: String,
   countryId: String,
+  secondArtistName: Option[String],
+  secondArtistMBId: Option[String],
+  secondArtistCountryId: Option[String],
   score: Double,
 )
 

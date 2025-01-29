@@ -36,7 +36,7 @@ class SongDAO @Inject()(configProvider: DatabaseConfigProvider) {
     import data._
     val newSong = Song(
       artistId = artistId,
-      secondArtistId = None,
+      secondArtistId = secondArtistId,
       albumId = albumId,
       title = title,
       aliases = aliases.map(_.trim).filter(_.nonEmpty),
