@@ -81,7 +81,7 @@ class MBDataDAO @Inject()(configProvider: DatabaseConfigProvider) {
 
   private def runArtistQuery(artistQuery: String): Future[Seq[Int]] = {
     val query = sql"""
-        SELECT
+        SELECT DISTINCT
            mb_artist.id
         FROM "musicbrainz"."mb_artist"
         JOIN "musicbrainz"."mb_artist_alias" ON "mb_artist"."id" = "mb_artist_alias"."artist_id"
