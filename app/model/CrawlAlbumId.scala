@@ -13,7 +13,7 @@ object CrawlAlbumId {
   )
 
   implicit val jsonWrites = new Writes[CrawlAlbumId] {
-    def writes(crawlArtistId: CrawlAlbumId) = JsNumber(crawlArtistId.value)
+    def writes(crawlAlbumId: CrawlAlbumId) = JsNumber(crawlAlbumId.value)
   }
 
   implicit val jsonReads = new Reads[CrawlAlbumId] {
