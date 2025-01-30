@@ -16,34 +16,21 @@ class MBDataDAO @Inject()(configProvider: DatabaseConfigProvider) {
   import dbConfig.profile.api._
 
   private def runQuery(artistQuery: String, titleQuery: String, fuzzyTitleSearch: Boolean = false): Future[Seq[MBResult]] = {
-    runArtistQuery(artistQuery) flatMap { artistIds =>
+    findArtistAndSecondArtist(artistQuery) flatMap { case (artistIds, secondArtistIds) =>
       if (artistIds.nonEmpty) {
-        val query = if (fuzzyTitleSearch) {
-          sql"""
-          SELECT
-             mb_song.mb_id as song_mb_id,
-             mb_song_alias.alias as matched_alias,
-             mb_song.title,
-             mb_song.is_single AS single_relationship,
-             mb_song.score AS recording_score,
-             mb_album.title as album_title,
-             mb_album.release_year,
-             mb_album.is_single,
-             false as is_soundtrack,
-             mb_album.mb_id as album_mb_id,
-             mb_artist.name,
-             mb_artist.mb_id as artist_mb_id,
-             mb_artist.country_id
-          FROM "musicbrainz"."mb_song"
-          JOIN "musicbrainz"."mb_song_alias" ON "mb_song"."id" = "mb_song_alias"."song_id"
-          JOIN "musicbrainz"."mb_album" ON "mb_album"."id" = "mb_song"."album_id"
-          JOIN "musicbrainz"."mb_artist" ON "mb_artist"."id" = "mb_song"."artist_id"
-          WHERE ("mb_song_alias"."alias" LIKE ${MBResult.searchKey(titleQuery, "%")}) AND (
-            mb_artist.id IN (#${artistIds.mkString(",")})
-          )
-      """.as[(String, String, String, Boolean, Int, String, Int, Boolean, Boolean, String, String, String, String)]
+        val secondArtistQuery = if (secondArtistIds.nonEmpty) {
+          sql"""mb_song.second_artist_id IN (#${secondArtistIds.mkString(",")})"""
         } else {
-          sql"""
+          sql"""TRUE"""
+        }
+
+        val songWhere = if (fuzzyTitleSearch) {
+          sql""""mb_song_alias"."alias" LIKE ${MBResult.searchKey(titleQuery, "%")}"""
+        } else {
+          sql"""LENGTH("mb_song_alias"."alias") < 255 AND levenshtein_less_equal("mb_song_alias"."alias", ${MBResult.searchKey(titleQuery, "%")}, 1) < 2"""
+        }
+
+        val query = (sql"""
           SELECT
              mb_song.mb_id as song_mb_id,
              mb_song_alias.alias as matched_alias,
@@ -52,23 +39,23 @@ class MBDataDAO @Inject()(configProvider: DatabaseConfigProvider) {
              mb_song.score AS recording_score,
              mb_album.title as album_title,
              mb_album.release_year,
+             mb_album.is_main_album,
              mb_album.is_single,
-             false as is_soundtrack,
+             mb_album.is_soundtrack,
              mb_album.mb_id as album_mb_id,
              mb_artist.name,
              mb_artist.mb_id as artist_mb_id,
-             mb_artist.country_id
-          FROM "musicbrainz"."mb_song"
-          JOIN "musicbrainz"."mb_song_alias" ON "mb_song"."id" = "mb_song_alias"."song_id"
-          JOIN "musicbrainz"."mb_album" ON "mb_album"."id" = "mb_song"."album_id"
-          JOIN "musicbrainz"."mb_artist" ON "mb_artist"."id" = "mb_song"."artist_id"
-          WHERE (
-            LENGTH("mb_song_alias"."alias") < 255 AND levenshtein_less_equal("mb_song_alias"."alias", ${MBResult.searchKey(titleQuery, "%")}, 1) < 2
-          ) AND (
-             mb_artist.id IN (#${artistIds.mkString(",")})
-          )
-      """.as[(String, String, String, Boolean, Int, String, Int, Boolean, Boolean, String, String, String, String)]
-        }
+             mb_artist.country_id,
+             mb_artist2.name as second_artist_name,
+             mb_artist2.mb_id as second_artist_mb_id,
+             mb_artist2.country_id as second_artist_country_id
+          FROM "musicbrainz_export"."mb_song"
+          JOIN "musicbrainz_export"."mb_song_alias" ON "mb_song"."id" = "mb_song_alias"."song_id"
+          JOIN "musicbrainz_export"."mb_album" ON "mb_album"."id" = "mb_song"."album_id"
+          JOIN "musicbrainz_export"."mb_artist" ON "mb_artist"."id" = "mb_song"."artist_id"
+          LEFT JOIN "musicbrainz_export"."mb_artist" as "mb_artist2" ON "mb_artist2"."id" = "mb_song"."second_artist_id"
+          WHERE (""" concat songWhere concat sql""") AND (mb_song.artist_id IN (#${artistIds.mkString(",")})) AND (""" concat secondArtistQuery concat sql""")
+        """).as[(String, String, String, Boolean, Int, String, Int, Boolean, Boolean, Boolean, String, String, String, String, Option[String], Option[String], Option[String])]
 
         db run {
           query
@@ -79,12 +66,52 @@ class MBDataDAO @Inject()(configProvider: DatabaseConfigProvider) {
     }
   }
 
+  private def findArtistAndSecondArtist(artistQuery: String): Future[(Seq[Int], Seq[Int])] = {
+    runArtistQuery(artistQuery) flatMap {
+      case artistIds if artistIds.nonEmpty =>
+        Future.successful((artistIds, Seq.empty))
+      case _ =>
+        val regexes = List(
+          raw"\b\s*&\s*\b", // e.g. Queen & David Bowie
+          raw"\b\s*\+\s*\b",
+          raw"\b\s*\/\s*\b", // e.g. Elton John/kiki Dee
+          raw"(?i)\ben\b",
+          raw"(?i)\bfeat\.?\b", // e.g. ANGELE feat ROMEO ELVIS
+          raw"(?i)\bvs\.?\b", // e.g. ROBYN vs KLEERUP
+          raw"(?i)\bft\.?\b",
+          raw"(?i)\band\b" // e.g. Nick Cave and Kylie Minogue
+        )
+        regexes.foldLeft(Future.successful(Seq.empty[Int], Seq.empty[Int])) { case (result, newRegex) =>
+          result flatMap {
+            case (artistIds, _) if artistIds.nonEmpty =>
+              result
+            case _ =>
+              val split = artistQuery.split(newRegex, 2)
+              if (split.length == 2) {
+                for {
+                  artistIds <- runArtistQuery(split(0))
+                  secondArtistIds <- runArtistQuery(split(1))
+                } yield {
+                  if (artistIds.nonEmpty && secondArtistIds.nonEmpty) {
+                    (artistIds, secondArtistIds)
+                  } else {
+                    (Seq.empty, Seq.empty)
+                  }
+                }
+              } else {
+                result
+              }
+          }
+        }
+    }
+  }
+
   private def runArtistQuery(artistQuery: String): Future[Seq[Int]] = {
     val query = sql"""
         SELECT
            mb_artist.id
-        FROM "musicbrainz"."mb_artist"
-        JOIN "musicbrainz"."mb_artist_alias" ON "mb_artist"."id" = "mb_artist_alias"."artist_id"
+        FROM "musicbrainz_export"."mb_artist"
+        JOIN "musicbrainz_export"."mb_artist_alias" ON "mb_artist"."id" = "mb_artist_alias"."artist_id"
         WHERE
           LENGTH("mb_artist_alias"."alias") < 255
           AND levenshtein_less_equal("mb_artist_alias"."alias", ${MBResult.searchKey(artistQuery)}, 1) < 2
@@ -137,29 +164,45 @@ case class MBResult(
   recordingScore: Int,
   albumTitle: String,
   releaseYear: Int,
+  isMainAlbum: Boolean,
   isSingle: Boolean,
   isSoundtrack: Boolean,
   albumMBId: String,
   name: String,
   artistMBId: String,
-  countryId: String
+  countryId: String,
+  secondArtistName: Option[String],
+  secondArtistMBId: Option[String],
+  secondArtistCountryId: Option[String]
 ) {
   private def isExactMatch(titleQuery: String): Boolean = {
     MBResult.searchKey(titleQuery) == MBResult.searchKey(matchedAlias)
   }
 
   def score(titleQuery: String): MBDatasetHit = {
-    val score = if (isExactMatch(titleQuery)) {
-      if (singleRelationship)
-        5 * recordingScore
-      else
-        recordingScore
-    } else {
-      recordingScore.toDouble / 10  // e.g. "Hotellounge (Be the Death of Me)" instead of "Hotellounge"
-    }
+    val isSingleFromFactor = if (singleRelationship) 10 else 1
+    val isMainAlbumFactor = if (isMainAlbum) 10 else 1
 
+    // e.g. "Hotellounge (Be the Death of Me)" instead of "Hotellounge"
+    val exactMatchFactor = if (isExactMatch(titleQuery)) 10 else 1
+
+    val score = recordingScore.toDouble * isSingleFromFactor * isMainAlbumFactor * exactMatchFactor
     MBDatasetHit(
-      songMBId, matchedAlias, title, albumTitle, releaseYear, isSingle, isSoundtrack, albumMBId, name, artistMBId, countryId, score
+      songMBId,
+      matchedAlias,
+      title,
+      albumTitle,
+      releaseYear,
+      isSingle,
+      isSoundtrack,
+      albumMBId,
+      name,
+      artistMBId,
+      countryId,
+      secondArtistName,
+      secondArtistMBId,
+      secondArtistCountryId,
+      score
     )
   }
 }
