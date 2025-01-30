@@ -1,5 +1,12 @@
 package model
 
-import slick.lifted.MappedTo
+import slick.jdbc.H2Profile.api._
 
-final case class ListExitId(value: Int) extends MappedTo[Int]
+final case class ListExitId(value: Int)
+
+object ListExitId {
+  implicit val columnMapper: BaseColumnType[ListExitId] = MappedColumnType.base[ListExitId, Int](
+    _.value,
+    ListExitId.apply
+  )
+}

@@ -1,6 +1,12 @@
 package model
 
-import slick.lifted.MappedTo
+import slick.jdbc.H2Profile.api._
 
-final case class PollVoteId(value: Int) extends MappedTo[Int]
+final case class PollVoteId(value: Int)
 
+object PollVoteId {
+  implicit val columnMapper: BaseColumnType[PollVoteId] = MappedColumnType.base[PollVoteId, Int](
+    _.value,
+    PollVoteId.apply
+  )
+}
