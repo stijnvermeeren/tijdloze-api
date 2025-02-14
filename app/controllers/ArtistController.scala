@@ -7,6 +7,7 @@ import model.db.dao.ArtistDAO
 import play.api.libs.json.{JsError, Json}
 import play.api.mvc._
 import util.currentlist.CurrentListUtil
+import util.wikipedia.WikipediaAPI
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -15,7 +16,8 @@ class ArtistController @Inject()(
   authenticateAdmin: AuthenticateAdmin,
   dataCache: DataCache,
   artistDAO: ArtistDAO,
-  currentList: CurrentListUtil
+  currentList: CurrentListUtil,
+  wikipediaAPI: WikipediaAPI
 )(implicit ec: ExecutionContext) extends InjectedController {
   def get(artistId: ArtistId) = {
     Action.async { implicit rs =>
@@ -48,10 +50,7 @@ class ArtistController @Inject()(
             newArtistId <- artistDAO.create(artistSave)
             newArtist <- artistDAO.get(newArtistId)
             _ <- dataCache.reloadArtist(newArtistId)
-          } yield {
-            currentList.updateArtist(Artist.fromDb(newArtist))
-            Ok(Json.toJson(Artist.fromDb(newArtist)))
-          }
+          } yield postUpdate(newArtist)
         }
       )
     }
@@ -69,14 +68,21 @@ class ArtistController @Inject()(
             _ <- artistDAO.update(artistId, artistSave)
             artist <- artistDAO.get(artistId)
             _ <- dataCache.reloadArtist(artistId)
-          } yield {
-            currentList.updateArtist(Artist.fromDb(artist))
-            Ok(Json.toJson(Artist.fromDb(artist)))
-          }
+          } yield postUpdate(artist)
         }
       )
     }
   }
+
+  private def postUpdate(artist: model.db.Artist) = {
+    // don't block, but TODO log error
+    artist.urlWikiEn.foreach(wikipediaAPI.reload)
+    artist.urlWikiNl.foreach(wikipediaAPI.reload)
+
+    currentList.updateArtist(Artist.fromDb(artist))
+    Ok(Json.toJson(Artist.fromDb(artist)))
+  }
+
 
   def delete(artistId: ArtistId) = {
     (Action andThen authenticateAdmin).async { implicit request =>
