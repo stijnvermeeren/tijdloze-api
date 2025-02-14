@@ -60,6 +60,7 @@ GET     /wikidata/crawl-artist-details   controllers.WikidataController.crawlArt
 
 GET     /wikipedia/find                  controllers.WikipediaController.find(url: String)
 GET     /wikipedia/reload                controllers.WikipediaController.reload(url: String)
+GET     /wikipedia/crawl                 controllers.WikipediaController.crawl()
 
 GET     /musicbrainz/crawl-albums        controllers.MusicbrainzController.crawlAlbums()
 GET     /musicbrainz/crawl-songs         controllers.MusicbrainzController.crawlSongs()
