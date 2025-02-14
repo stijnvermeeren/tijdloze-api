@@ -58,6 +58,10 @@ GET     /spotify/crawl-artists           controllers.SpotifyController.crawlArti
 GET     /wikidata/crawl-artists-spotify  controllers.WikidataController.crawlArtistsFromSpotify()
 GET     /wikidata/crawl-artist-details   controllers.WikidataController.crawlArtistDetails()
 
+GET     /wikipedia/find                  controllers.WikipediaController.find(url: String)
+GET     /wikipedia/reload                controllers.WikipediaController.reload(url: String)
+GET     /wikipedia/crawl                 controllers.WikipediaController.crawl()
+
 GET     /musicbrainz/crawl-albums        controllers.MusicbrainzController.crawlAlbums()
 GET     /musicbrainz/crawl-songs         controllers.MusicbrainzController.crawlSongs()
 GET     /musicbrainz/find                controllers.MusicbrainzController.find()

@@ -10,6 +10,7 @@ import util.coverartarchive.CoverArtArchiveAPI
 import util.crawl.{AutoIfUnique, CrawlHelper}
 import util.currentlist.CurrentListUtil
 import util.musicbrainz.MusicbrainzAPI
+import util.wikipedia.WikipediaAPI
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -22,7 +23,8 @@ class AlbumController @Inject()(
   musicbrainzAPI: MusicbrainzAPI,
   coverArtArchiveAPI: CoverArtArchiveAPI,
   crawlHelper: CrawlHelper,
-  currentList: CurrentListUtil
+  currentList: CurrentListUtil,
+  wikipediaAPI: WikipediaAPI
 )(implicit ec: ExecutionContext) extends InjectedController {
 
   def get(albumId: AlbumId) = {
@@ -51,13 +53,7 @@ class AlbumController @Inject()(
             newAlbumId <- albumDAO.create(albumSave)
             newAlbum <- albumDAO.get(newAlbumId)
             _ <- dataCache.reloadAlbum(newAlbumId)
-          } yield {
-            currentList.updateAlbum(Album.fromDb(newAlbum))
-
-            checkMusicbrainz(newAlbum)
-
-            Ok(Json.toJson(Album.fromDb(newAlbum)))
-          }
+          } yield postUpdate(newAlbum)
         }
       )
     }
@@ -75,16 +71,20 @@ class AlbumController @Inject()(
             _ <- albumDAO.update(albumId, albumSave)
             album <- albumDAO.get(albumId)
             _ <- dataCache.reloadAlbum(albumId)
-          } yield {
-            currentList.updateAlbum(Album.fromDb(album))
-
-            checkMusicbrainz(album)
-
-            Ok(Json.toJson(Album.fromDb(album)))
-          }
+          } yield postUpdate(album)
         }
       )
     }
+  }
+
+  private def postUpdate(album: model.db.Album) = {
+    // don't block, but TODO log error
+    album.urlWikiEn.foreach(wikipediaAPI.reload)
+    album.urlWikiNl.foreach(wikipediaAPI.reload)
+
+    currentList.updateAlbum(Album.fromDb(album))
+    checkMusicbrainz(album)
+    Ok(Json.toJson(Album.fromDb(album)))
   }
 
   private def checkMusicbrainz(album: model.db.Album): Future[Unit] = {
