@@ -1,17 +1,19 @@
 package util.wikipedia
 
 import model.db.dao.WikipediaContentDAO
+import play.api.Logging
 import play.api.libs.json.{JsObject, JsString}
 import play.api.libs.ws.{WSClient, WSRequest}
 
 import javax.inject.Inject
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import scala.util.control.NonFatal
 
 class WikipediaAPI @Inject()(
   ws: WSClient,
   wikipediaContentDAO: WikipediaContentDAO
-) {
+) extends Logging {
   private def request(language: String, title: String): WSRequest = {
     ws
       .url(s"https://${language}.wikipedia.org/w/api.php")
@@ -31,7 +33,7 @@ class WikipediaAPI @Inject()(
     val pattern = """https://([a-z]+)\.wikipedia\.org/wiki/(.+)""".r
     url match {
       case pattern(language, title) =>
-        request(language, title).get().map { response =>
+        request(language, java.net.URLDecoder.decode(title, "UTF-8")).get().map { response =>
           val items = (response.json \ "query" \ "pages").as[JsObject]
           items.values.headOption.map(_.as[JsObject]) flatMap { value =>
             (value \ "extract").toOption map { extract =>
@@ -50,6 +52,9 @@ class WikipediaAPI @Inject()(
         wikipediaContentDAO.insertOrUpdate(url, content)
       case None =>
         wikipediaContentDAO.delete(url)
-    } map (_ => ())
+    } map (_ => ()) recover {
+      case NonFatal(t) =>
+        logger.error("Error while loading Wikipedia content.", t)
+    }
   }
 }
