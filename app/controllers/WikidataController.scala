@@ -6,6 +6,7 @@ import play.api.mvc._
 import util.FutureUtil
 import util.crawl.{AutoIfUnique, AutoOnlyForExistingValue, CrawlHelper}
 import util.wikidata.WikidataAPI
+import util.wikipedia.WikipediaAPI
 
 import javax.inject._
 import scala.concurrent.{ExecutionContext, Future}
@@ -14,6 +15,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class WikidataController @Inject()(
   authenticateAdmin: AuthenticateAdmin,
   wikidataAPI: WikidataAPI,
+  wikipediaAPI: WikipediaAPI,
   artistDAO: ArtistDAO,
   albumDAO: AlbumDAO,
   crawlHelper: CrawlHelper
@@ -54,6 +56,10 @@ class WikidataController @Inject()(
           wikidataAPI.getDetailsById(wikidataId) flatMap { wikidataDetails =>
             println(wikidataDetails)
             val comment = s"Wikidata (${artist.wikidataId.getOrElse("")})"
+
+            wikidataDetails.urlWikiEn.foreach(wikipediaAPI.reload)
+            wikidataDetails.urlWikiNl.foreach(wikipediaAPI.reload)
+
             for {
               _ <- crawlHelper.processArtist(
                 artist = artist,
@@ -116,6 +122,10 @@ class WikidataController @Inject()(
           wikidataAPI.getDetailsById(wikidataId) flatMap { wikidataDetails =>
             println(wikidataDetails)
             val comment = s"Wikidata (${album.wikidataId.getOrElse("")})"
+
+            wikidataDetails.urlWikiEn.foreach(wikipediaAPI.reload)
+            wikidataDetails.urlWikiNl.foreach(wikipediaAPI.reload)
+
             for {
               _ <- crawlHelper.processAlbum(
                 album = album,
