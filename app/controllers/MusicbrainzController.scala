@@ -1,6 +1,6 @@
 package controllers
 
-import model.AlbumCrawlField
+import model.{AlbumCrawlField, ArtistCrawlField}
 import model.db.dao.{AlbumDAO, ArtistDAO, MBDataDAO, SongDAO}
 import play.api.mvc._
 import util.FutureUtil
@@ -20,6 +20,73 @@ class MusicbrainzController @Inject()(
   crawlHelper: CrawlHelper,
   mbDataDAO: MBDataDAO
 )(implicit ec: ExecutionContext) extends InjectedController {
+  def crawlArtistDetails() = {
+    (Action andThen authenticateAdmin).async { implicit request =>
+      artistDAO.getAll().flatMap{ artists =>
+        FutureUtil.traverseSequentially(artists) { artist =>
+          artist.musicbrainzId match {
+            case Some(musicbrainzId) =>
+              musicbrainzAPI.getArtist(musicbrainzId).flatMap {
+                case Some(mbArtist) =>
+                  mbArtist.wikidataId match {
+                    case Some(wikidataId) =>
+                      println(mbArtist)
+                      crawlHelper.processArtist(
+                        artist = artist,
+                        field = ArtistCrawlField.WikidataId,
+                        candidateValues = Seq(wikidataId),
+                        comment = s"Musicbrainz search ($musicbrainzId)",
+                        strategy = AutoIfUnique
+                      )
+                    case None =>
+                      Future.successful(())
+                  }
+                case None =>
+                  Future.successful(())
+              }
+            case None =>
+              Future.successful(())
+          }
+        }
+      } map { _ =>
+        Ok
+      }
+    }
+  }
+
+  def crawlAlbumDetails() = {
+    (Action andThen authenticateAdmin).async { implicit request =>
+      albumDAO.getAll().flatMap{ albums =>
+        FutureUtil.traverseSequentially(albums) { album =>
+          album.musicbrainzId match {
+            case Some(musicbrainzId) =>
+              musicbrainzAPI.getReleaseGroup(musicbrainzId).flatMap {
+                case Some(mbAlbum) =>
+                  mbAlbum.wikidataId match {
+                    case Some(wikidataId) =>
+                      println(mbAlbum)
+                      crawlHelper.processAlbum(
+                        album = album,
+                        field = AlbumCrawlField.WikidataId,
+                        candidateValues = Seq(wikidataId),
+                        comment = s"Musicbrainz search ($musicbrainzId)",
+                        strategy = AutoIfUnique
+                      )
+                    case None =>
+                      Future.successful(())
+                  }
+                case None =>
+                  Future.successful(())
+              }
+            case None =>
+              Future.successful(())
+          }
+        }
+      } map { _ =>
+        Ok
+      }
+    }
+  }
 
   def crawlAlbums() = {
     (Action andThen authenticateAdmin).async { implicit request =>

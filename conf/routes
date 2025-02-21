@@ -62,10 +62,12 @@ GET     /wikipedia/find                  controllers.WikipediaController.find(ur
 GET     /wikipedia/reload                controllers.WikipediaController.reload(url: String)
 GET     /wikipedia/crawl                 controllers.WikipediaController.crawl()
 
-GET     /musicbrainz/crawl-albums        controllers.MusicbrainzController.crawlAlbums()
-GET     /musicbrainz/crawl-songs         controllers.MusicbrainzController.crawlSongs()
-GET     /musicbrainz/find                controllers.MusicbrainzController.find()
-GET     /coverartarchive/crawl-albums    controllers.CoverArtArchiveController.crawlAlbums()
+GET     /musicbrainz/crawl-artist-details  controllers.MusicbrainzController.crawlArtistDetails()
+GET     /musicbrainz/crawl-album-details   controllers.MusicbrainzController.crawlAlbumDetails()
+GET     /musicbrainz/crawl-albums          controllers.MusicbrainzController.crawlAlbums()
+GET     /musicbrainz/crawl-songs           controllers.MusicbrainzController.crawlSongs()
+GET     /musicbrainz/find                  controllers.MusicbrainzController.find()
+GET     /coverartarchive/crawl-albums      controllers.CoverArtArchiveController.crawlAlbums()
 
 GET     /mbdata/search                   controllers.MBDataController.search(artist: String, title: String)
 GET     /mbdata/search-query             controllers.MBDataController.searchQuery(query: String)

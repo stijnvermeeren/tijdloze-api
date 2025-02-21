@@ -10,6 +10,7 @@ import javax.inject.Inject
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.Try
+import scala.util.matching.Regex
 
 class MusicbrainzAPI @Inject()(ws: WSClient, config: Config) {
   private def sendSearchRequest(
@@ -199,34 +200,46 @@ class MusicbrainzAPI @Inject()(ws: WSClient, config: Config) {
     }
   }
 
+  val wikidataRegex: Regex = """https://www\.wikidata\.org/wiki/(Q[0-9]+)""".r
+
   def getArtist(id: String): Future[Option[MusicbrainzArtist]] = {
-    sendSearchRequest("artist", id = Some(id)).get().map { response =>
+    sendSearchRequest("artist", id = Some(id), query = Seq("inc" -> "url-rels")).get().map { response =>
       val value = response.json
       for {
         id <- (value \ "id").toOption
         name <- (value \ "name").toOption
         countryId = (value \ "area" \ "iso-3166-1-codes" \  0).toOption
+        urls = (value \ "relations").toOption.toSeq.flatMap(
+          _.as[JsArray].value.flatMap(entry => (entry \ "url" \ "resource").toOption)
+        )
       } yield MusicbrainzArtist(
         id = id.as[JsString].value,
         name = name.as[JsString].value,
-        countryId = countryId.map(_.as[JsString].value.toLowerCase)
+        countryId = countryId.map(_.as[JsString].value.toLowerCase),
+        wikidataId = (urls.map(_.as[JsString].value) flatMap {
+          case wikidataRegex(wikidataId) => Some(wikidataId)
+          case _ => None
+        }).headOption
       )
     }
   }
 
-  def getRelease(id: String): Future[Option[MusicbrainzRelease]] = {
-    sendSearchRequest("release", id = Some(id), query = Seq("inc" -> "release-groups")).get().map { response =>
+  def getReleaseGroup(id: String): Future[Option[MusicbrainzReleaseGroup2]] = {
+    sendSearchRequest("release-group", id = Some(id), query = Seq("inc" -> "url-rels")).get().map { response =>
       val value = response.json
       for {
         id <- (value \ "id").toOption
         title <- (value \ "title").toOption
-        releaseGroupId <- (value \ "release-group" \ "id").toOption
-        firstReleaseDate = (value \ "release-group" \ "first-release-date").toOption
-      } yield MusicbrainzRelease(
+        urls = (value \ "relations").toOption.toSeq.flatMap(
+          _.as[JsArray].value.flatMap(entry => (entry \ "url" \ "resource").toOption)
+        )
+      } yield MusicbrainzReleaseGroup2(
         id = id.as[JsString].value,
         title = title.as[JsString].value,
-        releaseYear = firstReleaseDate.flatMap(value => Try(Integer.parseInt(value.as[JsString].value.take(4))).toOption),
-        releaseGroupId = releaseGroupId.as[JsString].value
+        wikidataId = (urls.map(_.as[JsString].value) flatMap {
+          case wikidataRegex(wikidataId) => Some(wikidataId)
+          case _ => None
+        }).headOption
       )
     }
   }
