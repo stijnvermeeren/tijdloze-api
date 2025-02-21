@@ -75,7 +75,6 @@ class ArtistController @Inject()(
   }
 
   private def postUpdate(artist: model.db.Artist) = {
-    // don't block, but TODO log error
     artist.urlWikiEn.foreach(wikipediaAPI.reload)
     artist.urlWikiNl.foreach(wikipediaAPI.reload)
 
