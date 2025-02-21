@@ -1,19 +1,23 @@
 package controllers
 
-import model.ArtistCrawlField
-import model.db.dao.ArtistDAO
+import model.{AlbumCrawlField, ArtistCrawlField}
+import model.db.dao.{AlbumDAO, ArtistDAO}
 import play.api.mvc._
 import util.FutureUtil
 import util.crawl.{AutoIfUnique, AutoOnlyForExistingValue, CrawlHelper}
 import util.wikidata.WikidataAPI
+import util.wikipedia.WikipediaAPI
 
 import javax.inject._
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class WikidataController @Inject()(
+  authenticateAdmin: AuthenticateAdmin,
   wikidataAPI: WikidataAPI,
+  wikipediaAPI: WikipediaAPI,
   artistDAO: ArtistDAO,
+  albumDAO: AlbumDAO,
   crawlHelper: CrawlHelper
 )(implicit ec: ExecutionContext) extends InjectedController {
 
@@ -43,14 +47,19 @@ class WikidataController @Inject()(
   }
 
   def crawlArtistDetails() = {
-    Action.async { implicit request =>
+    (Action andThen authenticateAdmin).async { implicit request =>
       artistDAO.getAll().flatMap{ artists =>
         val artistsWithWikidataId = artists.flatMap { artist =>
           artist.wikidataId.map(wikidataId => (artist, wikidataId))
         }
-        FutureUtil.traverseSequentially(artistsWithWikidataId) { case (artist, spotifyId) =>
-          wikidataAPI.getDetailsById(spotifyId) flatMap { wikidataDetails =>
+        FutureUtil.traverseSequentially(artistsWithWikidataId) { case (artist, wikidataId) =>
+          wikidataAPI.getDetailsById(wikidataId) flatMap { wikidataDetails =>
+            println(wikidataDetails)
             val comment = s"Wikidata (${artist.wikidataId.getOrElse("")})"
+
+            wikidataDetails.urlWikiEn.foreach(wikipediaAPI.reload)
+            wikidataDetails.urlWikiNl.foreach(wikipediaAPI.reload)
+
             for {
               _ <- crawlHelper.processArtist(
                 artist = artist,
@@ -91,6 +100,58 @@ class WikidataController @Inject()(
                 artist = artist,
                 field = ArtistCrawlField.MusicbrainzId,
                 candidateValues = wikidataDetails.musicbrainzId,
+                comment = comment,
+                strategy = AutoIfUnique
+              )
+            } yield Thread.sleep(1000)
+          }
+        }
+      } map { _ =>
+        Ok
+      }
+    }
+  }
+
+  def crawlAlbumDetails() = {
+    (Action andThen authenticateAdmin).async { implicit request =>
+      albumDAO.getAll().flatMap{ albums =>
+        val albumsWithWikidataId = albums.flatMap { album =>
+          album.wikidataId.map(wikidataId => (album, wikidataId))
+        }
+        FutureUtil.traverseSequentially(albumsWithWikidataId) { case (album, wikidataId) =>
+          wikidataAPI.getDetailsById(wikidataId) flatMap { wikidataDetails =>
+            println(wikidataDetails)
+            val comment = s"Wikidata (${album.wikidataId.getOrElse("")})"
+
+            wikidataDetails.urlWikiEn.foreach(wikipediaAPI.reload)
+            wikidataDetails.urlWikiNl.foreach(wikipediaAPI.reload)
+
+            for {
+              _ <- crawlHelper.processAlbum(
+                album = album,
+                field = AlbumCrawlField.UrlWikiEn,
+                candidateValues = wikidataDetails.urlWikiEn,
+                comment = comment,
+                strategy = AutoIfUnique
+              )
+              _ <- crawlHelper.processAlbum(
+                album = album,
+                field = AlbumCrawlField.UrlWikiNl,
+                candidateValues = wikidataDetails.urlWikiNl,
+                comment = comment,
+                strategy = AutoIfUnique
+              )
+              _ <- crawlHelper.processAlbum(
+                album = album,
+                field = AlbumCrawlField.UrlAllMusic,
+                candidateValues = wikidataDetails.allMusicAlbumId.map(id => s"https://www.allmusic.com/album/$id"),
+                comment = comment,
+                strategy = AutoIfUnique
+              )
+              _ <- crawlHelper.processAlbum(
+                album = album,
+                field = AlbumCrawlField.MusicbrainzId,
+                candidateValues = wikidataDetails.musicbrainzReleaseGroupId,
                 comment = comment,
                 strategy = AutoIfUnique
               )

@@ -2,7 +2,7 @@ package controllers
 
 import model.api.WikipediaContent
 import model.db.dao.{AlbumDAO, ArtistDAO, SongDAO, WikipediaContentDAO}
-import play.api.{Logger, Logging}
+import play.api.Logging
 import play.api.libs.json.Json
 import play.api.mvc._
 import util.FutureUtil

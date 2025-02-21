@@ -57,15 +57,18 @@ GET     /spotify/crawl-artists           controllers.SpotifyController.crawlArti
 
 GET     /wikidata/crawl-artists-spotify  controllers.WikidataController.crawlArtistsFromSpotify()
 GET     /wikidata/crawl-artist-details   controllers.WikidataController.crawlArtistDetails()
+GET     /wikidata/crawl-album-details    controllers.WikidataController.crawlAlbumDetails()
 
 GET     /wikipedia/find                  controllers.WikipediaController.find(url: String)
 GET     /wikipedia/reload                controllers.WikipediaController.reload(url: String)
 GET     /wikipedia/crawl                 controllers.WikipediaController.crawl()
 
-GET     /musicbrainz/crawl-albums        controllers.MusicbrainzController.crawlAlbums()
-GET     /musicbrainz/crawl-songs         controllers.MusicbrainzController.crawlSongs()
-GET     /musicbrainz/find                controllers.MusicbrainzController.find()
-GET     /coverartarchive/crawl-albums    controllers.CoverArtArchiveController.crawlAlbums()
+GET     /musicbrainz/crawl-artist-details  controllers.MusicbrainzController.crawlArtistDetails()
+GET     /musicbrainz/crawl-album-details   controllers.MusicbrainzController.crawlAlbumDetails()
+GET     /musicbrainz/crawl-albums          controllers.MusicbrainzController.crawlAlbums()
+GET     /musicbrainz/crawl-songs           controllers.MusicbrainzController.crawlSongs()
+GET     /musicbrainz/find                  controllers.MusicbrainzController.find()
+GET     /coverartarchive/crawl-albums      controllers.CoverArtArchiveController.crawlAlbums()
 
 GET     /mbdata/search                   controllers.MBDataController.search(artist: String, title: String)
 GET     /mbdata/search-query             controllers.MBDataController.searchQuery(query: String)
