@@ -62,6 +62,10 @@ class WikidataAPI @Inject()(ws: WSClient, config: Config) {
          |    BIND("musicbrainz_id" AS ?key)
          |  }
          |  UNION {
+         |    ?id wdt:P436 ?value
+         |    BIND("musicbrainz_release_group_id" AS ?key)
+         |  }
+         |  UNION {
          |    ?id wdt:P495 ?country .
          |    ?country wdt:P297 ?value .
          |    BIND("country_id" AS ?key)
@@ -69,6 +73,10 @@ class WikidataAPI @Inject()(ws: WSClient, config: Config) {
          |  UNION {
          |    ?id wdt:P1728 ?value
          |    BIND("allmusic_id" AS ?key)
+         |  }
+         |  UNION {
+         |    ?id wdt:P1729 ?value
+         |    BIND("allmusic_album_id" AS ?key)
          |  }
          |}
          |""".stripMargin
@@ -90,7 +98,9 @@ class WikidataAPI @Inject()(ws: WSClient, config: Config) {
         urlWikiEn = valuesForKey("url_wikien"),
         urlWikiNl = valuesForKey("url_wikinl"),
         musicbrainzId = valuesForKey("musicbrainz_id"),
-        allMusicId = valuesForKey("allmusic_id")
+        allMusicId = valuesForKey("allmusic_id"),
+        musicbrainzReleaseGroupId = valuesForKey("musicbrainz_release_group_id"),
+        allMusicAlbumId = valuesForKey("allmusic_album_id")
       )
     }
   }
