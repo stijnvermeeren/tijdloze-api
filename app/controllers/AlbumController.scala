@@ -9,7 +9,8 @@ import play.api.mvc._
 import util.coverartarchive.CoverArtArchiveAPI
 import util.crawl.{AutoIfUnique, CrawlHelper}
 import util.currentlist.CurrentListUtil
-import util.musicbrainz.MusicbrainzAPI
+import util.musicbrainz.{MusicbrainzAPI, MusicbrainzCrawler}
+import util.wikidata.WikidataCrawler
 import util.wikipedia.WikipediaAPI
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -19,12 +20,11 @@ class AlbumController @Inject()(
   authenticateAdmin: AuthenticateAdmin,
   dataCache: DataCache,
   albumDAO: AlbumDAO,
-  artistDAO: ArtistDAO,
-  musicbrainzAPI: MusicbrainzAPI,
   coverArtArchiveAPI: CoverArtArchiveAPI,
-  crawlHelper: CrawlHelper,
   currentList: CurrentListUtil,
-  wikipediaAPI: WikipediaAPI
+  wikipediaAPI: WikipediaAPI,
+  musicbrainzCrawler: MusicbrainzCrawler,
+  wikidataCrawler: WikidataCrawler
 )(implicit ec: ExecutionContext) extends InjectedController {
 
   def get(albumId: AlbumId) = {
@@ -81,6 +81,12 @@ class AlbumController @Inject()(
     // don't block, but TODO log error
     album.urlWikiEn.foreach(wikipediaAPI.reload)
     album.urlWikiNl.foreach(wikipediaAPI.reload)
+
+    for {
+      _ <- musicbrainzCrawler.crawlAlbumDetails(album)
+      updatedAlbum <- albumDAO.get(album.id)
+      _ <- wikidataCrawler.crawlAlbumDetails(updatedAlbum)
+    } yield ()
 
     currentList.updateAlbum(Album.fromDb(album))
     checkMusicbrainz(album)
