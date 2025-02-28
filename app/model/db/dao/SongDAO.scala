@@ -44,6 +44,9 @@ class SongDAO @Inject()(configProvider: DatabaseConfigProvider) {
       languageId = languageId.map(_.trim).filter(_.nonEmpty),
       leadVocals = leadVocals.map(_.trim).filter(_.nonEmpty),
       notes = notes.map(_.trim).filter(_.nonEmpty),
+      musicbrainzRecordingId = musicbrainzRecordingId.map(_.trim).filter(_.nonEmpty),
+      musicbrainzWorkId = musicbrainzWorkId.map(_.trim).filter(_.nonEmpty),
+      wikidataId = wikidataId.map(_.trim).filter(_.nonEmpty),
       urlWikiEn = urlWikiEn.map(_.trim).filter(_.nonEmpty),
       urlWikiNl = urlWikiNl.map(_.trim).filter(_.nonEmpty),
       spotifyId = spotifyId.map(_.trim).filter(_.nonEmpty)
@@ -70,6 +73,9 @@ class SongDAO @Inject()(configProvider: DatabaseConfigProvider) {
           x.languageId,
           x.leadVocals,
           x.notes,
+          x.musicbrainzRecordingId,
+          x.musicbrainzWorkId,
+          x.wikidataId,
           x.urlWikiEn,
           x.urlWikiNl,
           x.spotifyId,
@@ -85,6 +91,9 @@ class SongDAO @Inject()(configProvider: DatabaseConfigProvider) {
           languageId.map(_.trim).filter(_.nonEmpty),
           leadVocals.map(_.trim).filter(_.nonEmpty),
           notes.map(_.trim).filter(_.nonEmpty),
+          musicbrainzRecordingId.map(_.trim).filter(_.nonEmpty),
+          musicbrainzWorkId.map(_.trim).filter(_.nonEmpty),
+          wikidataId.map(_.trim).filter(_.nonEmpty),
           urlWikiEn.map(_.trim).filter(_.nonEmpty),
           urlWikiNl.map(_.trim).filter(_.nonEmpty),
           spotifyId.map(_.trim).filter(_.nonEmpty),
@@ -96,6 +105,48 @@ class SongDAO @Inject()(configProvider: DatabaseConfigProvider) {
   def delete(songId: SongId): Future[Int] = {
     db run {
       songTable.filter(_.id === songId).delete
+    }
+  }
+
+  def setUrlWikiEn(songId: SongId, url: Option[String]): Future[Int] = {
+    db run {
+      songTable.filter(_.id === songId).map(_.urlWikiEn).update(url)
+    }
+  }
+
+  def setUrlWikiNl(songId: SongId, url: Option[String]): Future[Int] = {
+    db run {
+      songTable.filter(_.id === songId).map(_.urlWikiNl).update(url)
+    }
+  }
+
+  def setLanguageId(songId: SongId, languageId: Option[String]): Future[Int] = {
+    db run {
+      songTable.filter(_.id === songId).map(_.languageId).update(languageId)
+    }
+  }
+
+  def setSpotifyId(songId: SongId, spotifyId: Option[String]): Future[Int] = {
+    db run {
+      songTable.filter(_.id === songId).map(_.spotifyId).update(spotifyId)
+    }
+  }
+
+  def setWikidataId(songId: SongId, wikidataId: Option[String]): Future[Int] = {
+    db run {
+      songTable.filter(_.id === songId).map(_.wikidataId).update(wikidataId)
+    }
+  }
+
+  def setMusicbrainzRecordingId(songId: SongId, musicbrainzRecordingId: Option[String]): Future[Int] = {
+    db run {
+      songTable.filter(_.id === songId).map(_.musicbrainzRecordingId).update(musicbrainzRecordingId)
+    }
+  }
+
+  def setMusicbrainzWorkId(songId: SongId, musicbrainzWorkId: Option[String]): Future[Int] = {
+    db run {
+      songTable.filter(_.id === songId).map(_.musicbrainzWorkId).update(musicbrainzWorkId)
     }
   }
 }

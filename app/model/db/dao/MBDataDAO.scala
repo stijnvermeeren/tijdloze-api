@@ -32,10 +32,12 @@ class MBDataDAO @Inject()(configProvider: DatabaseConfigProvider) {
 
         val query = (sql"""
           SELECT
-             mb_song.mb_id as song_mb_id,
+             mb_song.mb_id AS recording_mb_id,
              mb_song_alias.alias as matched_alias,
              mb_song.title,
+             mb_song.mb_work_id AS work_mb_id,
              mb_song.is_single AS single_relationship,
+             mb_song.language,
              mb_song.score AS recording_score,
              mb_album.title as album_title,
              mb_album.release_year,
@@ -55,7 +57,7 @@ class MBDataDAO @Inject()(configProvider: DatabaseConfigProvider) {
           JOIN "musicbrainz_export"."mb_artist" ON "mb_artist"."id" = "mb_song"."artist_id"
           LEFT JOIN "musicbrainz_export"."mb_artist" as "mb_artist2" ON "mb_artist2"."id" = "mb_song"."second_artist_id"
           WHERE (""" concat songWhere concat sql""") AND (mb_song.artist_id IN (#${artistIds.mkString(",")})) AND (""" concat secondArtistQuery concat sql""")
-        """).as[(String, String, String, Boolean, Int, String, Int, Boolean, Boolean, Boolean, String, String, String, String, Option[String], Option[String], Option[String])]
+        """).as[(String, String, String, Option[String], Boolean, Option[String], Int, String, Int, Boolean, Boolean, Boolean, String, String, String, String, Option[String], Option[String], Option[String])]
 
         db run {
           query
@@ -157,10 +159,12 @@ class MBDataDAO @Inject()(configProvider: DatabaseConfigProvider) {
 }
 
 case class MBResult(
-  songMBId: String,
+  recordingMBId: String,
   matchedAlias: String,
   title: String,
+  workMBId: Option[String],
   singleRelationship: Boolean,
+  language: Option[String],
   recordingScore: Int,
   albumTitle: String,
   releaseYear: Int,
@@ -188,9 +192,11 @@ case class MBResult(
 
     val score = recordingScore.toDouble * isSingleFromFactor * isMainAlbumFactor * exactMatchFactor
     MBDatasetHit(
-      songMBId,
+      recordingMBId,
+      workMBId,
       matchedAlias,
       title,
+      language,
       albumTitle,
       releaseYear,
       isSingle,

@@ -1,12 +1,11 @@
 package controllers
 
-import model.{AlbumCrawlField, ArtistCrawlField}
-import model.db.dao.{AlbumDAO, ArtistDAO}
+import model.ArtistCrawlField
+import model.db.dao.{AlbumDAO, ArtistDAO, SongDAO}
 import play.api.mvc._
 import util.FutureUtil
-import util.crawl.{AutoIfUnique, AutoOnlyForExistingValue, CrawlHelper}
-import util.wikidata.WikidataAPI
-import util.wikipedia.WikipediaAPI
+import util.crawl.{AutoIfUnique, CrawlHelper}
+import util.wikidata.{WikidataAPI, WikidataCrawler}
 
 import javax.inject._
 import scala.concurrent.{ExecutionContext, Future}
@@ -15,10 +14,11 @@ import scala.concurrent.{ExecutionContext, Future}
 class WikidataController @Inject()(
   authenticateAdmin: AuthenticateAdmin,
   wikidataAPI: WikidataAPI,
-  wikipediaAPI: WikipediaAPI,
   artistDAO: ArtistDAO,
   albumDAO: AlbumDAO,
-  crawlHelper: CrawlHelper
+  songDAO: SongDAO,
+  crawlHelper: CrawlHelper,
+  wikidataCrawler: WikidataCrawler
 )(implicit ec: ExecutionContext) extends InjectedController {
 
   def crawlArtistsFromSpotify() = {
@@ -49,63 +49,7 @@ class WikidataController @Inject()(
   def crawlArtistDetails() = {
     (Action andThen authenticateAdmin).async { implicit request =>
       artistDAO.getAll().flatMap{ artists =>
-        val artistsWithWikidataId = artists.flatMap { artist =>
-          artist.wikidataId.map(wikidataId => (artist, wikidataId))
-        }
-        FutureUtil.traverseSequentially(artistsWithWikidataId) { case (artist, wikidataId) =>
-          wikidataAPI.getDetailsById(wikidataId) flatMap { wikidataDetails =>
-            println(wikidataDetails)
-            val comment = s"Wikidata (${artist.wikidataId.getOrElse("")})"
-
-            wikidataDetails.urlWikiEn.foreach(wikipediaAPI.reload)
-            wikidataDetails.urlWikiNl.foreach(wikipediaAPI.reload)
-
-            for {
-              _ <- crawlHelper.processArtist(
-                artist = artist,
-                field = ArtistCrawlField.CountryId,
-                candidateValues = wikidataDetails.countryId,
-                comment = comment,
-                strategy = AutoOnlyForExistingValue
-              )
-              _ <- crawlHelper.processArtist(
-                artist = artist,
-                field = ArtistCrawlField.UrlWikiEn,
-                candidateValues = wikidataDetails.urlWikiEn,
-                comment = comment,
-                strategy = AutoIfUnique
-              )
-              _ <- crawlHelper.processArtist(
-                artist = artist,
-                field = ArtistCrawlField.UrlWikiNl,
-                candidateValues = wikidataDetails.urlWikiNl,
-                comment = comment,
-                strategy = AutoIfUnique
-              )
-              _ <- crawlHelper.processArtist(
-                artist = artist,
-                field = ArtistCrawlField.UrlOfficial,
-                candidateValues = wikidataDetails.urlOfficial,
-                comment = comment,
-                strategy = AutoOnlyForExistingValue
-              )
-              _ <- crawlHelper.processArtist(
-                artist = artist,
-                field = ArtistCrawlField.UrlAllMusic,
-                candidateValues = wikidataDetails.allMusicId.map(id => s"https://www.allmusic.com/artist/$id"),
-                comment = comment,
-                strategy = AutoIfUnique
-              )
-              _ <- crawlHelper.processArtist(
-                artist = artist,
-                field = ArtistCrawlField.MusicbrainzId,
-                candidateValues = wikidataDetails.musicbrainzId,
-                comment = comment,
-                strategy = AutoIfUnique
-              )
-            } yield Thread.sleep(1000)
-          }
-        }
+        FutureUtil.traverseSequentially(artists)(wikidataCrawler.crawlArtistDetails)
       } map { _ =>
         Ok
       }
@@ -115,49 +59,17 @@ class WikidataController @Inject()(
   def crawlAlbumDetails() = {
     (Action andThen authenticateAdmin).async { implicit request =>
       albumDAO.getAll().flatMap{ albums =>
-        val albumsWithWikidataId = albums.flatMap { album =>
-          album.wikidataId.map(wikidataId => (album, wikidataId))
-        }
-        FutureUtil.traverseSequentially(albumsWithWikidataId) { case (album, wikidataId) =>
-          wikidataAPI.getDetailsById(wikidataId) flatMap { wikidataDetails =>
-            println(wikidataDetails)
-            val comment = s"Wikidata (${album.wikidataId.getOrElse("")})"
-
-            wikidataDetails.urlWikiEn.foreach(wikipediaAPI.reload)
-            wikidataDetails.urlWikiNl.foreach(wikipediaAPI.reload)
-
-            for {
-              _ <- crawlHelper.processAlbum(
-                album = album,
-                field = AlbumCrawlField.UrlWikiEn,
-                candidateValues = wikidataDetails.urlWikiEn,
-                comment = comment,
-                strategy = AutoIfUnique
-              )
-              _ <- crawlHelper.processAlbum(
-                album = album,
-                field = AlbumCrawlField.UrlWikiNl,
-                candidateValues = wikidataDetails.urlWikiNl,
-                comment = comment,
-                strategy = AutoIfUnique
-              )
-              _ <- crawlHelper.processAlbum(
-                album = album,
-                field = AlbumCrawlField.UrlAllMusic,
-                candidateValues = wikidataDetails.allMusicAlbumId.map(id => s"https://www.allmusic.com/album/$id"),
-                comment = comment,
-                strategy = AutoIfUnique
-              )
-              _ <- crawlHelper.processAlbum(
-                album = album,
-                field = AlbumCrawlField.MusicbrainzId,
-                candidateValues = wikidataDetails.musicbrainzReleaseGroupId,
-                comment = comment,
-                strategy = AutoIfUnique
-              )
-            } yield Thread.sleep(1000)
-          }
-        }
+        FutureUtil.traverseSequentially(albums)(wikidataCrawler.crawlAlbumDetails)
+      } map { _ =>
+        Ok
+      }
+    }
+  }
+  
+  def crawlSongDetails() = {
+    (Action andThen authenticateAdmin).async { implicit request =>
+      songDAO.getAll().flatMap{ songs =>
+        FutureUtil.traverseSequentially(songs)(wikidataCrawler.crawlSongDetails)
       } map { _ =>
         Ok
       }
