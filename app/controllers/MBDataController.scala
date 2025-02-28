@@ -40,7 +40,7 @@ class MBDataController @Inject()(
   def crawlSongs() = {
     (Action andThen authenticateAdmin).async { implicit request =>
       songDAO.getAll().flatMap { songs =>
-        FutureUtil.traverseSequentially(songs.filter(_.id.value == 1407)) { song =>
+        FutureUtil.traverseSequentially(songs) { song =>
           println(song.title)
           for {
             artist <- artistDAO.get(song.artistId)
