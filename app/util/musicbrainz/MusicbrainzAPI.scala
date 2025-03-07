@@ -243,4 +243,24 @@ class MusicbrainzAPI @Inject()(ws: WSClient, config: Config) {
       )
     }
   }
+
+  def getWork(id: String): Future[Option[MusicbrainzWork]] = {
+    sendSearchRequest("work", id = Some(id), query = Seq("inc" -> "url-rels")).get().map { response =>
+      val value = response.json
+      for {
+        id <- (value \ "id").toOption
+        title <- (value \ "title").toOption
+        urls = (value \ "relations").toOption.toSeq.flatMap(
+          _.as[JsArray].value.flatMap(entry => (entry \ "url" \ "resource").toOption)
+        )
+      } yield MusicbrainzWork(
+        id = id.as[JsString].value,
+        title = title.as[JsString].value,
+        wikidataId = (urls.map(_.as[JsString].value) flatMap {
+          case wikidataRegex(wikidataId) => Some(wikidataId)
+          case _ => None
+        }).headOption
+      )
+    }
+  }
 }

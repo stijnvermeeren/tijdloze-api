@@ -7,6 +7,8 @@ import model.db.dao.SongDAO
 import play.api.libs.json.{JsError, Json}
 import play.api.mvc._
 import util.currentlist.CurrentListUtil
+import util.musicbrainz.MusicbrainzCrawler
+import util.wikidata.WikidataCrawler
 import util.wikipedia.WikipediaAPI
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -17,7 +19,9 @@ class SongController @Inject()(
   dataCache: DataCache,
   songDAO: SongDAO,
   currentList: CurrentListUtil,
-  wikipediaAPI: WikipediaAPI
+  wikipediaAPI: WikipediaAPI,
+  musicbrainzCrawler: MusicbrainzCrawler,
+  wikidataCrawler: WikidataCrawler
 )(implicit ec: ExecutionContext) extends InjectedController {
 
   def get(songId: SongId) = {
@@ -66,6 +70,12 @@ class SongController @Inject()(
     // don't block, but TODO log error
     song.urlWikiEn.foreach(wikipediaAPI.reload)
     song.urlWikiNl.foreach(wikipediaAPI.reload)
+
+    for {
+      _ <- musicbrainzCrawler.crawlSongDetails(song)
+      updatedSong <- songDAO.get(song.id)
+      _ <- wikidataCrawler.crawlSongDetails(updatedSong)
+    } yield ()
 
     currentList.updateSong(Song.fromDb(song))
     Ok(Json.toJson(Song.fromDb(song)))

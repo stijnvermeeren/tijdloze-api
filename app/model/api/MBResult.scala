@@ -3,9 +3,11 @@ package model.api
 import play.api.libs.json.Json
 
 case class MBDatasetHit(
-  songMBId: String,
+  recordingMBId: String,
+  workMBId: Option[String],
   matchedAlias: String,
   title: String,
+  language: Option[String],
   albumTitle: String,
   releaseYear: Int,
   isSingle: Boolean,

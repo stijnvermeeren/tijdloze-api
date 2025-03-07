@@ -1,11 +1,11 @@
 package controllers
 
-import model.{AlbumCrawlField, ArtistCrawlField}
+import model.AlbumCrawlField
 import model.db.dao.{AlbumDAO, ArtistDAO, MBDataDAO, SongDAO}
 import play.api.mvc._
 import util.FutureUtil
-import util.crawl.{AutoIfUnique, AutoOnlyForExistingValue, CrawlHelper}
-import util.musicbrainz.MusicbrainzAPI
+import util.crawl.{AutoIfUnique, CrawlHelper}
+import util.musicbrainz.{MusicbrainzAPI, MusicbrainzCrawler}
 
 import javax.inject._
 import scala.concurrent.{ExecutionContext, Future}
@@ -18,36 +18,13 @@ class MusicbrainzController @Inject()(
   artistDAO: ArtistDAO,
   songDAO: SongDAO,
   crawlHelper: CrawlHelper,
-  mbDataDAO: MBDataDAO
+  mbDataDAO: MBDataDAO,
+  musicbrainzCrawler: MusicbrainzCrawler
 )(implicit ec: ExecutionContext) extends InjectedController {
   def crawlArtistDetails() = {
     (Action andThen authenticateAdmin).async { implicit request =>
       artistDAO.getAll().flatMap{ artists =>
-        FutureUtil.traverseSequentially(artists) { artist =>
-          artist.musicbrainzId match {
-            case Some(musicbrainzId) =>
-              musicbrainzAPI.getArtist(musicbrainzId).flatMap {
-                case Some(mbArtist) =>
-                  mbArtist.wikidataId match {
-                    case Some(wikidataId) =>
-                      println(mbArtist)
-                      crawlHelper.processArtist(
-                        artist = artist,
-                        field = ArtistCrawlField.WikidataId,
-                        candidateValues = Seq(wikidataId),
-                        comment = s"Musicbrainz search ($musicbrainzId)",
-                        strategy = AutoIfUnique
-                      )
-                    case None =>
-                      Future.successful(())
-                  }
-                case None =>
-                  Future.successful(())
-              }
-            case None =>
-              Future.successful(())
-          }
-        }
+        FutureUtil.traverseSequentially(artists)(musicbrainzCrawler.crawlArtistDetails)
       } map { _ =>
         Ok
       }
@@ -57,31 +34,17 @@ class MusicbrainzController @Inject()(
   def crawlAlbumDetails() = {
     (Action andThen authenticateAdmin).async { implicit request =>
       albumDAO.getAll().flatMap{ albums =>
-        FutureUtil.traverseSequentially(albums) { album =>
-          album.musicbrainzId match {
-            case Some(musicbrainzId) =>
-              musicbrainzAPI.getReleaseGroup(musicbrainzId).flatMap {
-                case Some(mbAlbum) =>
-                  mbAlbum.wikidataId match {
-                    case Some(wikidataId) =>
-                      println(mbAlbum)
-                      crawlHelper.processAlbum(
-                        album = album,
-                        field = AlbumCrawlField.WikidataId,
-                        candidateValues = Seq(wikidataId),
-                        comment = s"Musicbrainz search ($musicbrainzId)",
-                        strategy = AutoIfUnique
-                      )
-                    case None =>
-                      Future.successful(())
-                  }
-                case None =>
-                  Future.successful(())
-              }
-            case None =>
-              Future.successful(())
-          }
-        }
+        FutureUtil.traverseSequentially(albums)(musicbrainzCrawler.crawlAlbumDetails)
+      } map { _ =>
+        Ok
+      }
+    }
+  }
+
+  def crawlSongDetails() = {
+    (Action andThen authenticateAdmin).async { implicit request =>
+      songDAO.getAll().flatMap{ songs =>
+        FutureUtil.traverseSequentially(songs)(musicbrainzCrawler.crawlSongDetails)
       } map { _ =>
         Ok
       }
@@ -109,42 +72,6 @@ class MusicbrainzController @Inject()(
       } map { _ =>
         Ok
       }
-    }
-  }
-
-  def crawlSongs() = {
-    (Action andThen authenticateAdmin).async { implicit request =>
-      songDAO.getAll().flatMap { songs =>
-        FutureUtil.traverseSequentially(songs) { song =>
-          for {
-            artist <- artistDAO.get(song.artistId)
-            album <- albumDAO.get(song.albumId)
-            _ = println(s"${artist.name} - ${song.title}")
-            matchingRow <- mbDataDAO.searchArtistTitle(artist.name, song.title)
-          } yield {
-            matchingRow match {
-              case Some(row) =>
-                if (album.musicbrainzId.contains(row.albumMBId)) {
-                  println(s"  OK (${album.musicbrainzId}, ${album.title}, ${album.releaseYear} / ${row.releaseYear})")
-                } else {
-                  println(s"  MISMATCH!  Old: ${album.musicbrainzId}, ${album.title}.  New: ${row.releaseYear}, ${row.albumTitle})")
-
-                  if (album.musicbrainzId.isEmpty) {
-                    crawlHelper.processAlbum(
-                      album = album,
-                      field = AlbumCrawlField.MusicbrainzId,
-                      candidateValues = Seq(row.albumMBId),
-                      comment = s"Musicbrainz search (${artist.name} - ${song.title})",
-                      strategy = AutoOnlyForExistingValue
-                    )
-                  }
-                }
-              case None =>
-                println("  no match")
-            }
-          }
-        }
-      }.map(_ => Ok)
     }
   }
 
