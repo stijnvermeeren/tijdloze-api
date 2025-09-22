@@ -1,5 +1,11 @@
 logs
 target
+.bsp/
+.metals/
+.bloop/
+.scala-build/
+metals.sbt
+/.vscode
 /.idea
 /.idea_modules
 /.classpath
