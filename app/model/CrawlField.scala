@@ -90,12 +90,12 @@ object AlbumCrawlField {
 sealed abstract class SongCrawlField(
   val name: String,
   val extractValue: Song => Option[String],
-  val save: SongDAO => (SongId, Option[String]) => Future[Int]
+  val save: SongDAO => (SongId, Option[String]) => Future[Int],
+  val reloadCoreData: Boolean = false
 ) extends CrawlField[Song, SongId, SongDAO]
 
 object SongCrawlField {
-  // TODO clear cache and update currentList websocket
-  case object LanguageId extends SongCrawlField("languageId", _.languageId, _.setLanguageId)
+  case object LanguageId extends SongCrawlField("languageId", _.languageId, _.setLanguageId, reloadCoreData=true)
 
   case object UrlWikiEn extends SongCrawlField("urlWikiEn", _.urlWikiEn, _.setUrlWikiEn)
   case object UrlWikiNl extends SongCrawlField("urlWikiNl", _.urlWikiNl, _.setUrlWikiNl)
