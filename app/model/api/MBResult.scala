@@ -8,6 +8,7 @@ case class MBDatasetHit(
   matchedAlias: String,
   title: String,
   language: Option[String],
+  leadVocals: Option[String],
   albumTitle: String,
   releaseYear: Int,
   isSingle: Boolean,
