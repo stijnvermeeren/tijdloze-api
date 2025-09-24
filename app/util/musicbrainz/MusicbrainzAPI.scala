@@ -225,7 +225,7 @@ class MusicbrainzAPI @Inject()(ws: WSClient, config: Config) {
   }
 
   def getReleaseGroup(id: String): Future[Option[MusicbrainzReleaseGroup2]] = {
-    sendSearchRequest("release-group", id = Some(id), query = Seq("inc" -> "url-rels")).get().map { response =>
+    sendSearchRequest("release-group", id = Some(id), query = Seq("inc" -> "url-rels+artists")).get().map { response =>
       val value = response.json
       for {
         id <- (value \ "id").toOption
@@ -233,13 +233,22 @@ class MusicbrainzAPI @Inject()(ws: WSClient, config: Config) {
         urls = (value \ "relations").toOption.toSeq.flatMap(
           _.as[JsArray].value.flatMap(entry => (entry \ "url" \ "resource").toOption)
         )
+        artists = (value \ "artist-credit").toOption.toSeq.flatMap(
+          _.as[JsArray].value.flatMap(entry => {
+            for {
+              name <- (entry \ "artist" \ "name").toOption
+              id <- (entry \ "artist" \ "id").toOption
+            } yield MusicbrainzArtistAndId(name.as[JsString].value, id.as[JsString].value)
+          })
+        )
       } yield MusicbrainzReleaseGroup2(
         id = id.as[JsString].value,
         title = title.as[JsString].value,
         wikidataId = (urls.map(_.as[JsString].value) flatMap {
           case wikidataRegex(wikidataId) => Some(wikidataId)
           case _ => None
-        }).headOption
+        }).headOption,
+        artists = artists
       )
     }
   }
