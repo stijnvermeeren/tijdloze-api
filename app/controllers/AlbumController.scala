@@ -20,6 +20,7 @@ class AlbumController @Inject()(
   authenticateAdmin: AuthenticateAdmin,
   dataCache: DataCache,
   albumDAO: AlbumDAO,
+  artistDAO: ArtistDAO,
   coverArtArchiveAPI: CoverArtArchiveAPI,
   currentList: CurrentListUtil,
   wikipediaAPI: WikipediaAPI,
@@ -83,7 +84,8 @@ class AlbumController @Inject()(
     album.urlWikiNl.foreach(wikipediaAPI.reload)
 
     for {
-      _ <- musicbrainzCrawler.crawlAlbumDetails(album)
+      artist <- artistDAO.get(album.artistId)
+      _ <- musicbrainzCrawler.crawlAlbumDetails(album, artist)
       updatedAlbum <- albumDAO.get(album.id)
       _ <- wikidataCrawler.crawlAlbumDetails(updatedAlbum)
     } yield ()

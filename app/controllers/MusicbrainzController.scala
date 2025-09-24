@@ -34,7 +34,11 @@ class MusicbrainzController @Inject()(
   def crawlAlbumDetails() = {
     (Action andThen authenticateAdmin).async { implicit request =>
       albumDAO.getAll().flatMap{ albums =>
-        FutureUtil.traverseSequentially(albums)(musicbrainzCrawler.crawlAlbumDetails)
+        FutureUtil.traverseSequentially(albums) { album =>
+          artistDAO.get(album.artistId) flatMap { artist =>
+            musicbrainzCrawler.crawlAlbumDetails(album, artist)
+          }
+        }
       } map { _ =>
         Ok
       }
