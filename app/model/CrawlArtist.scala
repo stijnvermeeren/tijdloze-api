@@ -2,7 +2,7 @@ package model
 
 import org.joda.time.DateTime
 import play.api.libs.json.Json
-import JsonWrites.dateTimeWriter
+import play.api.libs.json.JodaWrites.JodaDateTimeWrites
 
 final case class CrawlArtist(
   id: CrawlArtistId = CrawlArtistId(0),
