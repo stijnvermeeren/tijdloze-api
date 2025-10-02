@@ -3,7 +3,7 @@ package model.api
 import model.db
 import org.joda.time.DateTime
 import play.api.libs.json.Json
-import model.JsonWrites.dateTimeWriter
+import play.api.libs.json.JodaWrites.JodaDateTimeWrites
 
 final case class WikipediaContent(
   url: String,
