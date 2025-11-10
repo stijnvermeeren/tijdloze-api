@@ -21,7 +21,7 @@ The database needs to have a schema names `tijdloze`.
 The database structure will be automatically generated when the application is first started, using the concept of "[Play Evolutions](https://www.playframework.com/documentation/3.0.x/Evolutions)".
 
 Afterwards, application data can be loaded into the database:
-- A daily dump with all data about artists, albums, songs and lists from the Tijdloze can be downloaded from https://tijdloze.rocks/website/opendata and loaded into the database using a command such as `psql -U postgres -h 127.0.0.1 -d tijdloze < ~/Downloads/tijdloze-data.sql`.
+- A daily dump with all data about artists, albums, songs and lists from the Tijdloze can be downloaded from https://tijdloze.rocks/website/opendata (`tijdloze.zip`) and loaded into the database using the `postgres-import.sql` script contained in the ZIP file. The ZIP file also contains a README with more detailed information.
 - Sample data (dummy user and comments) for development purposes, that matches with the users from the `stijnvermeeren-tijdloze-dev.eu.auth0.com` Auth0 domain described below: [dev/insert-user-comment-data.sql](dev/insert-user-comment-data.sql)
 
 
