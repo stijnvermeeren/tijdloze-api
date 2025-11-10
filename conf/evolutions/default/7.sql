@@ -1,23 +1,15 @@
 -- !Ups
-ALTER TABLE tijdloze.comment
-    ADD COLUMN "parent_id" integer NULL REFERENCES tijdloze.comment (id) ON DELETE CASCADE,
-    ADD COLUMN "last_reply_1_id" integer NULL REFERENCES tijdloze.comment (id) ON DELETE CASCADE,
-    ADD COLUMN "last_reply_2_id" integer NULL REFERENCES tijdloze.comment (id) ON DELETE CASCADE,
-    ADD COLUMN "last_reply_3_id" integer NULL REFERENCES tijdloze.comment (id) ON DELETE CASCADE,
-    ADD COLUMN "sort_date" timestamptz DEFAULT CURRENT_TIMESTAMP NOT NULL;
 
-CREATE INDEX "idx_comment_parent_id" ON "tijdloze"."comment" USING btree ("parent_id");
-CREATE INDEX "idx_comment_sort_date" ON "tijdloze"."comment" USING btree ("sort_date" DESC);
+CREATE TABLE "tijdloze"."wikipedia_content" (
+    "url" character varying(255) NOT NULL,
+    "content" text,
+    "last_update" timestamptz DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    CONSTRAINT "idx_wikipedia_content_primary" PRIMARY KEY ("url")
+) WITH (oids = false);
 
-UPDATE tijdloze.comment SET sort_date = tijdstip;
+ALTER TABLE "tijdloze"."song" ADD "wikidata_id" character varying(255) NULL;
 
 -- !Downs
-ALTER TABLE tijdloze.comment
-    DROP COLUMN "parent_id",
-    DROP COLUMN "last_reply_1_id",
-    DROP COLUMN "last_reply_2_id",
-    DROP COLUMN "last_reply_3_id",
-    DROP COLUMN "sort_date";
+DROP TABLE "tijdloze"."wikipedia_content";
 
-DROP INDEX "idx_comment_parent_id" ON "tijdloze"."comment";
-DROP INDEX "idx_comment_sort_date" ON "tijdloze"."comment";
+ALTER TABLE "tijdloze"."song" DROP COLUMN "wikidata_id";

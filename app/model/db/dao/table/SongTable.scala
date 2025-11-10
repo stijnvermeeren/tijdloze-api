@@ -18,11 +18,14 @@ class SongTable(tag: Tag) extends Table[Song](tag, "song") {
   val languageId = column[Option[String]]("language_id")
   val leadVocals = column[Option[String]]("lead_vocals_id")
   val notes = column[Option[String]]("notes")
+  val musicbrainzRecordingId = column[Option[String]]("musicbrainz_recording_id")
+  val musicbrainzWorkId = column[Option[String]]("musicbrainz_work_id")
+  val wikidataId = column[Option[String]]("wikidata_id")
   val urlWikiEn = column[Option[String]]("url_wikien")
   val urlWikiNl = column[Option[String]]("url_wikinl")
   val spotifyId = column[Option[String]]("spotify_id")
   val lastUpdate = column[DateTime]("last_update")
 
-  def * = (id, artistId, secondArtistId, albumId, title, aliases, lyrics, languageId, leadVocals, notes, urlWikiEn, urlWikiNl, spotifyId, lastUpdate) <>
+  def * = (id, artistId, secondArtistId, albumId, title, aliases, lyrics, languageId, leadVocals, notes, musicbrainzRecordingId, musicbrainzWorkId, wikidataId, urlWikiEn, urlWikiNl, spotifyId, lastUpdate) <>
     ((Song.apply _).tupled, Song.unapply)
 }

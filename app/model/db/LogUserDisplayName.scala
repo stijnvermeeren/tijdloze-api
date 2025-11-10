@@ -1,7 +1,7 @@
 package model.db
 
 import org.joda.time.DateTime
-import slick.lifted.MappedTo
+import slick.jdbc.H2Profile.api._
 
 final case class LogUserDisplayName(
   id: LogUserDisplayNameId = LogUserDisplayNameId(0),
@@ -10,4 +10,11 @@ final case class LogUserDisplayName(
   created: DateTime = DateTime.now()
 )
 
-final case class LogUserDisplayNameId(value: Int) extends MappedTo[Int]
+final case class LogUserDisplayNameId(value: Int)
+
+object LogUserDisplayNameId {
+  implicit val columnMapper: BaseColumnType[LogUserDisplayNameId] = MappedColumnType.base[LogUserDisplayNameId, Int](
+    _.value,
+    LogUserDisplayNameId.apply
+  )
+}

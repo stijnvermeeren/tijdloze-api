@@ -2,11 +2,16 @@ package model
 
 import play.api.libs.json._
 import play.api.mvc.PathBindable
-import slick.lifted.MappedTo
+import slick.jdbc.H2Profile.api._
 
-final case class AlbumId(value: Int) extends MappedTo[Int]
+final case class AlbumId(value: Int)
 
 object AlbumId {
+  implicit val columnMapper: BaseColumnType[AlbumId] = MappedColumnType.base[AlbumId, Int](
+    _.value,
+    AlbumId.apply
+  )
+
   implicit val jsonWrites = new Writes[AlbumId] {
     def writes(albumId: AlbumId) = JsNumber(albumId.value)
   }

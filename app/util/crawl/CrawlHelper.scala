@@ -1,9 +1,9 @@
 package util.crawl
 
 import controllers.DataCache
-import model.db.{Album, Artist}
-import model.{AlbumCrawlField, ArtistCrawlField, ArtistId, CrawlField}
-import model.db.dao.{AlbumDAO, ArtistDAO, CrawlAlbumDAO, CrawlArtistDAO}
+import model.db.{Album, Artist, Song}
+import model.{AlbumCrawlField, ArtistCrawlField, CrawlField, SongCrawlField}
+import model.db.dao.{AlbumDAO, ArtistDAO, CrawlAlbumDAO, CrawlArtistDAO, CrawlSongDAO, SongDAO}
 import play.api.mvc.Result
 import util.FutureUtil
 
@@ -15,7 +15,9 @@ class CrawlHelper @Inject()(
                              crawlArtistDAO: CrawlArtistDAO,
                              artistDAO: ArtistDAO,
                              albumDAO: AlbumDAO,
+                             songDAO: SongDAO,
                              crawlAlbumDAO: CrawlAlbumDAO,
+                             crawlSongDAO: CrawlSongDAO,
                              dataCache: DataCache
                            ) {
   def processAlbum(
@@ -71,6 +73,36 @@ class CrawlHelper @Inject()(
       ),
       savePending = (artistId, value) => crawlArtistDAO.savePending(
         artistId,
+        field = field,
+        value = Some(value),
+        comment = Some(comment)
+      )
+    )
+  }
+
+  def processSong(
+    song: Song,
+    field: SongCrawlField,
+    candidateValues: Seq[String],
+    comment: String,
+    strategy: Strategy
+  ): Future[Unit] = {
+    process(
+      song,
+      field,
+      candidateValues,
+      strategy,
+      songDAO,
+      cacheReload = () => dataCache.SongDataCache.reload(song.id),
+      saveAuto = (songId, value) => crawlSongDAO.saveAuto(
+        songId,
+        field = field,
+        value = Some(value),
+        comment = Some(comment),
+        isAccepted = true
+      ),
+      savePending = (songId, value) => crawlSongDAO.savePending(
+        songId,
         field = field,
         value = Some(value),
         comment = Some(comment)
