@@ -68,7 +68,14 @@ class CommentController @Inject()(
   def restore(commentId: CommentId) = (Action andThen authenticate).async { implicit request =>
     commentDAO.get(commentId) flatMap { commentOption =>
       if (request.user.isAdmin || commentOption.exists(_.userId.contains(request.user.id))) {
-        commentDAO.restore(commentId).map(_ => Ok(""))
+        commentDAO.restore(commentId)
+          .flatMap { _ =>
+            commentOption.flatMap(_.parentId) match {
+              case Some(parentId) => commentDAO.updateParent(parentId)
+              case None => Future.successful(())
+            }
+          }
+          .map(_ => Ok(""))
       } else {
         Future.successful(Unauthorized("Not permitted to restore comment."))
       }

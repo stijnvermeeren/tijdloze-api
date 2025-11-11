@@ -19,5 +19,5 @@ ALTER TABLE tijdloze.comment
     DROP COLUMN "last_reply_3_id",
     DROP COLUMN "sort_date";
 
-DROP INDEX "idx_comment_parent_id" ON "tijdloze"."comment";
-DROP INDEX "idx_comment_sort_date" ON "tijdloze"."comment";
+DROP INDEX "tijdloze"."idx_comment_parent_id";
+DROP INDEX "tijdloze"."idx_comment_sort_date";

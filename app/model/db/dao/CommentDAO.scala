@@ -180,7 +180,7 @@ class CommentDAO @Inject()(configProvider: DatabaseConfigProvider) {
           case ((((mainComment, replyCount, reply1), reply), replyVersion), replyUser) =>
             (mainComment, replyCount, reply1, (reply, replyVersion, replyUser))
         }
-        .joinLeft(commentTable).on(_._1._1.lastReply2Id === _.id)
+        .joinLeft(commentTable).on(_._1._1.lastReply3Id === _.id)
         .joinLeft(commentVersionTable).on(_._2.flatMap(_.versionId) === _.id)
         .joinLeft(userTable).on(_._1._2.flatMap(_.userId) === _.id)
         .map{
