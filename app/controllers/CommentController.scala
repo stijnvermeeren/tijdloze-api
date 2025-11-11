@@ -23,7 +23,7 @@ class CommentController @Inject()(
         Future.successful(BadRequest(JsError.toJson(errors)))
       },
       commentSave => {
-        commentDAO.create(request.user.id, commentSave.message) map { _ =>
+        commentDAO.create(request.user.id, commentSave.message, commentSave.parentId) map { _ =>
           Ok("")
         }
       }
@@ -51,7 +51,14 @@ class CommentController @Inject()(
   def delete(commentId: CommentId) = (Action andThen authenticate).async { implicit request =>
     commentDAO.get(commentId) flatMap { commentOption =>
       if (request.user.isAdmin || commentOption.exists(_.userId.contains(request.user.id))) {
-        commentDAO.delete(commentId).map(_ => Ok(""))
+        commentDAO.delete(commentId)
+          .flatMap{ _ =>
+            commentOption.flatMap(_.parentId) match {
+              case Some(parentId) => commentDAO.updateParent(parentId)
+              case None => Future.successful(())
+            }
+          }
+          .map(_ => Ok(""))
       } else {
         Future.successful(Unauthorized("Not permitted to delete comment."))
       }
@@ -61,20 +68,33 @@ class CommentController @Inject()(
   def restore(commentId: CommentId) = (Action andThen authenticate).async { implicit request =>
     commentDAO.get(commentId) flatMap { commentOption =>
       if (request.user.isAdmin || commentOption.exists(_.userId.contains(request.user.id))) {
-        commentDAO.restore(commentId).map(_ => Ok(""))
+        commentDAO.restore(commentId)
+          .flatMap { _ =>
+            commentOption.flatMap(_.parentId) match {
+              case Some(parentId) => commentDAO.updateParent(parentId)
+              case None => Future.successful(())
+            }
+          }
+          .map(_ => Ok(""))
       } else {
         Future.successful(Unauthorized("Not permitted to restore comment."))
       }
     }
   }
 
+  def fullComment(commentId: CommentId) = Action.async { implicit rs =>
+    for {
+      fullThread <- commentDAO.fullThread(commentId)
+    } yield {
+      Ok(Json.toJson(fullThread))
+    }
+  }
+
   def listPage(page: Int) = Action.async { implicit rs =>
     for {
-      commentsWithUser <- commentDAO.listPage(page)
+      comments <- commentDAO.listPage(page)
     } yield {
-      Ok(Json.toJson(
-        commentsWithUser map (Comment.fromDb _).tupled
-      ))
+      Ok(Json.toJson(comments))
     }
   }
 
