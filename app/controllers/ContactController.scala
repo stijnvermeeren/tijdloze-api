@@ -24,7 +24,8 @@ class ContactController @Inject() (optionallyAuthenticate: OptionallyAuthenticat
           }
           val footer = Seq(footer1, footer2).mkString("\n")
 
-          val recipients: Seq[String] = config.getString("tijdloze.contact.recipients")
+          val recipientsKey = if (form.debug) "recipientsDebug" else "recipients"
+          val recipients: Seq[String] = config.getString(s"tijdloze.contact.${recipientsKey}")
             .split(';')
             .map(_.trim)
             .filter(_.nonEmpty)
@@ -33,7 +34,7 @@ class ContactController @Inject() (optionallyAuthenticate: OptionallyAuthenticat
             fromEmail = form.email,
             fromName = form.name,
             to = recipients,
-            subject = "tijdloze.rocks: contact",
+            subject = s"tijdloze.rocks: bericht van ${form.name}",
             message = s"${form.message}\n\n$footer"
           )
 
