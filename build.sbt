@@ -16,6 +16,5 @@ libraryDependencies ++= Seq(
   "org.apache.commons" % "commons-email" % "1.5",
   "com.pauldijou" %% "jwt-play-json" % "5.0.0",
   "ch.qos.logback" % "logback-classic" % "1.5.6",
-  "io.burt" % "athena-jdbc" % "0.4.0",
   "org.apache.commons" % "commons-text" % "1.11.0"
 )
