@@ -189,37 +189,3 @@ Build Docker image:
 docker build --tag stijnvermeeren/tijdloze-api .
 ```
 
-## MusicBrainz data
-
-More information to follow...
-
-AWS Athena queries:
-```
-CREATE EXTERNAL TABLE `parquet` (
-  `id` bigint, 
-  `artist_credit_id` bigint, 
-  `artist_mbids` string, 
-  `artist_credit_name` string, 
-  `release_mbid` string, 
-  `release_name` string, 
-  `recording_mbid` string, 
-  `recording_name` string, 
-  `combined_lookup` string, 
-  `score` bigint, 
-  `year` string)
-STORED AS PARQUET
-LOCATION
-  's3://tijdloze-musicbrainz/musicbrainz-dump/canonical/parquet/'
-tblproperties ("parquet.compression"="SNAPPY");
-```
-
-```
-CREATE TABLE parquet 
-WITH (format = 'PARQUET') 
-AS SELECT 
-  *,
-  regexp_replace(lower("recording_name"), '[^a-zA-Z0-9 ]') as norm_title,
-  regexp_replace(lower("artist_credit_name"), '[^a-zA-Z0-9 ]') as norm_artist,
-  split(regexp_replace(lower("artist_credit_name" || ' ' || "recording_name"), '[^a-zA-Z0-9 ]'), ' ') as norm_words
-  FROM data;
-```
