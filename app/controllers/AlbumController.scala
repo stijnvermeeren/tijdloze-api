@@ -37,8 +37,13 @@ class AlbumController @Inject()(
   def getByMusicbrainzId(musicbrainzId: String) = {
     Action.async { implicit rs =>
       for {
-        album <- albumDAO.getByMusicbrainzId(musicbrainzId)
-      } yield Ok(Json.toJson(Album.fromDb(album)))
+        albumOption <- albumDAO.findByMusicbrainzId(musicbrainzId)
+      } yield {
+        albumOption match {
+          case Some(album) => Ok(Json.toJson(Album.fromDb(album)))
+          case None => NotFound
+        }
+      }
     }
   }
 

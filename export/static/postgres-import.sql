@@ -7,7 +7,7 @@ TRUNCATE TABLE "tijdloze"."year" CASCADE;
 \copy "tijdloze"."year" FROM 'year.tsv' DELIMITER E'\t' CSV HEADER
 \copy "tijdloze"."list_entry" FROM 'list_entry.tsv' DELIMITER E'\t' CSV HEADER
 
-SELECT setval(pg_get_serial_sequence('"tijdloze"."artist"', 'id'), (SELECT MAX("id") + 1 FROM "tijdloze"."artist"));
-SELECT setval(pg_get_serial_sequence('"tijdloze"."album"', 'id'), (SELECT MAX("id") + 1 FROM "tijdloze"."album"));
-SELECT setval(pg_get_serial_sequence('"tijdloze"."song"', 'id'), (SELECT MAX("id") + 1 FROM "tijdloze"."song"));
-SELECT setval(pg_get_serial_sequence('"tijdloze"."list_entry"', 'id'), (SELECT MAX("id") + 1 FROM "tijdloze"."list_entry"));
+SELECT setval('artist_id_seq', (SELECT MAX("id") + 1 FROM "tijdloze"."artist"));
+SELECT setval('album_id_seq', (SELECT MAX("id") + 1 FROM "tijdloze"."album"));
+SELECT setval('song_id_seq', (SELECT MAX("id") + 1 FROM "tijdloze"."song"));
+SELECT setval('list_entry_id_seq', (SELECT MAX("id") + 1 FROM "tijdloze"."list_entry"));
