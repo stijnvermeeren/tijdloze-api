@@ -18,3 +18,5 @@ libraryDependencies ++= Seq(
   "ch.qos.logback" % "logback-classic" % "1.5.6",
   "org.apache.commons" % "commons-text" % "1.11.0"
 )
+
+PlayKeys.devSettings += "play.server.websocket.periodic-keep-alive-max-idle" -> "50 seconds"
