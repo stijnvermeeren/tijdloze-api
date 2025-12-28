@@ -20,6 +20,7 @@ DELETE  /album/:id                       controllers.AlbumController.delete(id: 
 POST    /album                           controllers.AlbumController.post()
 
 GET     /core-data                       controllers.CoreDataController.get()
+GET     /core-data/id                    controllers.CoreDataController.getId()
 
 GET     /ws/current-list                 controllers.CurrentListController.ws()
 

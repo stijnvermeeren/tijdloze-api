@@ -1,7 +1,7 @@
 package controllers
 
 import model.{AlbumId, ArtistId, SongId}
-import model.api.{Album, Artist, CoreAlbum, CoreArtist, CoreData, CoreList, CoreSong, Song, Text}
+import model.api.{Album, Artist, CoreAlbum, CoreArtist, CoreData, CoreDataId, CoreList, CoreSong, Song, Text}
 import model.db.ListEntry
 import model.db.dao.{AlbumDAO, ArtistDAO, ListEntryDAO, ListExitDAO, SongDAO, TextDAO, YearDAO}
 import play.api.Logger
@@ -9,6 +9,7 @@ import play.api.libs.json.Json
 import play.api.mvc.Result
 import play.api.mvc.Results.Ok
 
+import java.util.UUID
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.collection.concurrent
@@ -71,24 +72,42 @@ class DataCache @Inject() (
     }
   }
 
-  abstract class SingleEntryCache(key: String) extends Cache[Unit](_ => key) {
-    protected def loadData(): Future[Result]
+  abstract class SingleEntryCache extends Cache[SingleEntryCacheKey](_.key) {
+    protected def loadDataWithId(id: String): Future[Result]
 
-    protected def loadData(id: Unit): Future[Result] = {
-      loadData()
+    protected def loadData(id: SingleEntryCacheKey): Future[Result] = {
+      val id = UUID.randomUUID().toString
+      loadDataWithId(id).map(result => {
+        cacheMap.put(Id.key, Future.successful(Ok(Json.toJson(CoreDataId(id)))))
+        result
+      })
     }
 
     def load(): Future[Result] = {
-      load(())
+      load(Value)
+    }
+
+    def loadId(): Future[Result] = {
+      load(Id)
     }
 
     def reload(): Future[Result] = {
-      reload(())
+      reload(Value)
     }
   }
 
-  object CoreDataCache extends SingleEntryCache("core-data") {
-    protected def loadData(): Future[Result] = {
+  sealed trait SingleEntryCacheKey {
+    val key: String
+  }
+  case object Value extends SingleEntryCacheKey {
+    val key: String = "value"
+  }
+  case object Id extends SingleEntryCacheKey {
+    val key: String = "id"
+  }
+
+  object CoreDataCache extends SingleEntryCache {
+    protected def loadDataWithId(id: String): Future[Result] = {
       for {
         artists <- artistDAO.getAll()
         albums <- albumDAO.getAll()
@@ -122,6 +141,7 @@ class DataCache @Inject() (
         }
 
         Ok(Json.toJson(CoreData(
+          id = id,
           artists = artists.map(CoreArtist.fromDb),
           albums = albums.map(CoreAlbum.fromDb),
           songs = songs map { song =>
