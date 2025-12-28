@@ -15,4 +15,10 @@ class CoreDataController @Inject()(
       dataCache.CoreDataCache.load()
     }
   }
+
+  def getId() = {
+    Action.async { implicit rs =>
+      dataCache.CoreDataCache.loadId()
+    }
+  }
 }

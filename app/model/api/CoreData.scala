@@ -94,6 +94,7 @@ object CoreList {
 }
 
 final case class CoreData(
+  id: String,
   artists: Seq[CoreArtist],
   albums: Seq[CoreAlbum],
   songs: Seq[CoreSong],
@@ -104,4 +105,12 @@ final case class CoreData(
 
 object CoreData {
   implicit val jsonWrites = Json.writes[CoreData]
+}
+
+final case class CoreDataId(
+  id: String
+)
+
+object CoreDataId {
+  implicit val jsonWrites = Json.writes[CoreDataId]
 }
