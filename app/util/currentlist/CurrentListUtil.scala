@@ -23,6 +23,9 @@ class CurrentListUtil @Inject()(
 
   private val (currentListQueue, source) = currentListSource.toMat(BroadcastHub.sink[JsValue])(Keep.both).run()
 
+  // Keep draining the source so that it never backpressures.
+  source.runWith(Sink.ignore)
+
   def currentListFlow() = Flow[JsValue]
     .via(Flow.fromSinkAndSource(
       Sink.ignore,
