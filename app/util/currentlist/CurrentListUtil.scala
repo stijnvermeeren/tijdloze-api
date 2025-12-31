@@ -1,7 +1,7 @@
 package util.currentlist
 
 import org.apache.pekko.stream.scaladsl.{BroadcastHub, Flow, Keep, Sink, Source}
-import org.apache.pekko.stream.Materializer
+import org.apache.pekko.stream.{Materializer, OverflowStrategy}
 import model.{AlbumId, ArtistId, SongId}
 import model.api.{Album, Artist, Poll, Song}
 import model.db.dao._
@@ -10,7 +10,6 @@ import play.api.libs.json._
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration._
 
 @Singleton
 class CurrentListUtil @Inject()(
@@ -23,15 +22,16 @@ class CurrentListUtil @Inject()(
 
   private val (currentListQueue, source) = currentListSource.toMat(BroadcastHub.sink[JsValue])(Keep.both).run()
 
-  // Keep draining the source so that it never backpressures.
-  source.runWith(Sink.ignore)
+  // Buffersize of 4 allows for creating new artist, album, song + adding entry at the same time, without immediately
+  // dropping any of those messages.
+  private val bufferedSource = source.buffer(4, OverflowStrategy.dropHead)
 
   def currentListFlow() = Flow[JsValue]
     .via(Flow.fromSinkAndSource(
       Sink.ignore,
-      source
+      bufferedSource
     ))
-    .log("chatFlow")
+    .log("currentListFlow")
 
 
   def updateSong(song: Song): Unit = {
