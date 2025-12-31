@@ -22,7 +22,9 @@ class CurrentListUtil @Inject()(
 
   private val (currentListQueue, source) = currentListSource.toMat(BroadcastHub.sink[JsValue])(Keep.both).run()
 
-  private val bufferedSource = source.buffer(1, OverflowStrategy.dropHead)
+  // Buffersize of 4 allows for creating new artist, album, song + adding entry at the same time, without immediately
+  // dropping any of those messages.
+  private val bufferedSource = source.buffer(4, OverflowStrategy.dropHead)
 
   def currentListFlow() = Flow[JsValue]
     .via(Flow.fromSinkAndSource(
