@@ -6,7 +6,7 @@ import play.api.libs.json.{JsArray, JsNull, JsNumber, JsString, JsValue}
 import play.api.libs.ws.{WSClient, WSRequest}
 import util.FutureUtil
 
-import javax.inject.Inject
+import jakarta.inject.Inject
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.Try
@@ -21,7 +21,7 @@ class MusicbrainzAPI @Inject()(ws: WSClient, config: Config) {
     Thread.sleep(1000)
     ws
       .url(s"http://musicbrainz.org/ws/2/$endpoint/${id.getOrElse("")}")
-      .withQueryStringParameters(query:_*)
+      .withQueryStringParameters(query*)
       .addHttpHeaders(
         "User-Agent" -> s"tijdloze.rocks crawler (https://tijdloze.rocks)",
         "Accept" -> "application/json"

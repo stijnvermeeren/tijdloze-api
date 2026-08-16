@@ -3,7 +3,7 @@ package controllers
 import java.io.FileInputStream
 
 import com.typesafe.config.Config
-import javax.inject.Inject
+import jakarta.inject.Inject
 import pdi.jwt.{JwtAlgorithm, JwtJson}
 import play.api.mvc.Results._
 import play.api.mvc._

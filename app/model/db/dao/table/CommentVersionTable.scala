@@ -13,5 +13,5 @@ class CommentVersionTable(tag: Tag) extends Table[CommentVersion](tag, "comment_
   val created = column[DateTime]("created")
 
   def * = (id, commentId, message, created) <>
-    ((CommentVersion.apply _).tupled, CommentVersion.unapply)
+    (CommentVersion.apply.tupled, CommentVersion.unapply)
 }

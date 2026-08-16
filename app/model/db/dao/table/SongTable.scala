@@ -27,5 +27,5 @@ class SongTable(tag: Tag) extends Table[Song](tag, "song") {
   val lastUpdate = column[DateTime]("last_update")
 
   def * = (id, artistId, secondArtistId, albumId, title, aliases, lyrics, languageId, leadVocals, notes, musicbrainzRecordingId, musicbrainzWorkId, wikidataId, urlWikiEn, urlWikiNl, spotifyId, lastUpdate) <>
-    ((Song.apply _).tupled, Song.unapply)
+    (Song.apply.tupled, Song.unapply)
 }

@@ -1,6 +1,6 @@
 package model.api
 
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, Reads}
 
 final case class ContactForm(
   name: String,
@@ -10,5 +10,5 @@ final case class ContactForm(
 )
 
 object ContactForm {
-  implicit val jsonReads = Json.reads[ContactForm]
+  implicit val jsonReads: Reads[ContactForm] = Json.reads[ContactForm]
 }

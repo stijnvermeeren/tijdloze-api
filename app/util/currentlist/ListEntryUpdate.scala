@@ -1,7 +1,7 @@
 package util.currentlist
 
 import model.SongId
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OWrites}
 
 final case class ListEntryUpdate(
   year: Int,
@@ -10,5 +10,5 @@ final case class ListEntryUpdate(
 )
 
 object ListEntryUpdate {
-  implicit val jsonWrites = Json.writes[ListEntryUpdate]
+  implicit val jsonWrites: OWrites[ListEntryUpdate] = Json.writes[ListEntryUpdate]
 }

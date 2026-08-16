@@ -1,6 +1,6 @@
 package model.api
 
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OWrites}
 
 final case class CommentThreadFull(
   mainComment: Comment,
@@ -8,5 +8,5 @@ final case class CommentThreadFull(
 )
 
 object CommentThreadFull {
-  implicit val jsonWrites = Json.writes[CommentThreadFull]
+  implicit val jsonWrites: OWrites[CommentThreadFull] = Json.writes[CommentThreadFull]
 }

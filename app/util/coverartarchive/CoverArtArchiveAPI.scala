@@ -3,7 +3,7 @@ package util.coverartarchive
 import com.typesafe.config.Config
 import play.api.libs.ws.{WSClient, WSRequest}
 
-import javax.inject.Inject
+import jakarta.inject.Inject
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import java.nio.file.{Files, Path}

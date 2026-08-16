@@ -20,7 +20,7 @@ object CoreArtist {
     )
   }
 
-  implicit val jsonWrites = Json.writes[CoreArtist]
+  implicit val jsonWrites: OWrites[CoreArtist] = Json.writes[CoreArtist]
 }
 
 final case class CoreAlbum(
@@ -46,7 +46,7 @@ object CoreAlbum {
     )
   }
 
-  implicit val jsonWrites = Json.writes[CoreAlbum]
+  implicit val jsonWrites: OWrites[CoreAlbum] = Json.writes[CoreAlbum]
 }
 
 final case class CoreSong(
@@ -80,7 +80,7 @@ object CoreSong {
     )
   }
 
-  implicit val jsonWrites = Json.writes[CoreSong]
+  implicit val jsonWrites: OWrites[CoreSong] = Json.writes[CoreSong]
 }
 
 final case class CoreList(
@@ -90,7 +90,7 @@ final case class CoreList(
 )
 
 object CoreList {
-  implicit val jsonWrites = Json.writes[CoreList]
+  implicit val jsonWrites: OWrites[CoreList] = Json.writes[CoreList]
 }
 
 final case class CoreData(
@@ -104,7 +104,7 @@ final case class CoreData(
 )
 
 object CoreData {
-  implicit val jsonWrites = Json.writes[CoreData]
+  implicit val jsonWrites: OWrites[CoreData] = Json.writes[CoreData]
 }
 
 final case class CoreDataId(
@@ -112,5 +112,5 @@ final case class CoreDataId(
 )
 
 object CoreDataId {
-  implicit val jsonWrites = Json.writes[CoreDataId]
+  implicit val jsonWrites: OWrites[CoreDataId] = Json.writes[CoreDataId]
 }

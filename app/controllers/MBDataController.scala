@@ -9,7 +9,7 @@ import play.api.mvc._
 import util.FutureUtil
 import util.crawl.{AutoIfUnique, AutoOnlyForExistingValue, CrawlHelper}
 
-import javax.inject._
+import jakarta.inject._
 import scala.concurrent.ExecutionContext
 
 @Singleton
@@ -38,7 +38,7 @@ class MBDataController @Inject()(
   }
 
   def crawlSongs() = {
-    (Action andThen authenticateAdmin).async { implicit request =>
+    Action.andThen(authenticateAdmin).async { implicit request =>
       songDAO.getAll().flatMap { songs =>
         FutureUtil.traverseSequentially(songs) { song =>
           println(song.title)

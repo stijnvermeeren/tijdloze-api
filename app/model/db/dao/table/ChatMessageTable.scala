@@ -13,5 +13,5 @@ class ChatMessageTable(tag: Tag) extends Table[ChatMessage](tag, "chat_message")
   val created = column[DateTime]("created")
 
   def * = (id, userId, message, created) <>
-    ((ChatMessage.apply _).tupled, ChatMessage.unapply)
+    (ChatMessage.apply.tupled, ChatMessage.unapply)
 }

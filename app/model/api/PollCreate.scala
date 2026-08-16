@@ -1,6 +1,6 @@
 package model.api
 
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, Reads}
 
 final case class PollCreate(
   question: String,
@@ -9,5 +9,5 @@ final case class PollCreate(
 )
 
 object PollCreate {
-  implicit val jsonReads = Json.reads[PollCreate]
+  implicit val jsonReads: Reads[PollCreate] = Json.reads[PollCreate]
 }

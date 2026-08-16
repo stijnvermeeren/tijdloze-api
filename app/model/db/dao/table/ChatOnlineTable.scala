@@ -11,5 +11,5 @@ class ChatOnlineTable(tag: Tag) extends Table[ChatOnline](tag, "chat_online") {
   val lastSeen = column[DateTime]("last_seen")
 
   def * = (userId, lastSeen) <>
-    ((ChatOnline.apply _).tupled, ChatOnline.unapply)
+    (ChatOnline.apply.tupled, ChatOnline.unapply)
 }

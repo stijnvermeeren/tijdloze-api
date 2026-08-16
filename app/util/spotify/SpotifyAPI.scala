@@ -4,8 +4,9 @@ import com.typesafe.config.Config
 import model.api.SpotifyHit
 import play.api.libs.json.JsArray
 import play.api.libs.ws.{WSAuthScheme, WSClient, WSResponse}
+import play.api.libs.ws.writeableOf_urlEncodedSimpleForm
 
-import javax.inject.Inject
+import jakarta.inject.Inject
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 

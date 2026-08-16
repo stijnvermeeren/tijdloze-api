@@ -1,6 +1,6 @@
 package model.api
 
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OWrites}
 
 final case class SpotifyHit(
   spotifyId: String,
@@ -11,6 +11,6 @@ final case class SpotifyHit(
 )
 
 object SpotifyHit {
-  implicit val jsonWrites = Json.writes[SpotifyHit]
+  implicit val jsonWrites: OWrites[SpotifyHit] = Json.writes[SpotifyHit]
 }
 

@@ -1,6 +1,6 @@
 package model.db.dao
 
-import javax.inject.{Inject, Singleton}
+import jakarta.inject.{Inject, Singleton}
 import model.db.{ChatOnline, User}
 import model.db.dao.table.{ChatOnlineTable, UserTable}
 import org.joda.time.DateTime

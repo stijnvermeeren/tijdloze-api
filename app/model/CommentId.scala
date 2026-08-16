@@ -12,11 +12,11 @@ object CommentId {
     CommentId.apply
   )
 
-  implicit val jsonWrites = new Writes[CommentId] {
+  implicit val jsonWrites: Writes[CommentId] = new Writes[CommentId] {
     def writes(commentId: CommentId) = JsNumber(commentId.value)
   }
 
-  implicit val jsonReads = new Reads[CommentId] {
+  implicit val jsonReads: Reads[CommentId] = new Reads[CommentId] {
     def reads(value: JsValue): JsResult[CommentId] = {
       value.validate[Int].map(CommentId.apply)
     }

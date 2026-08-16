@@ -1,6 +1,6 @@
 package controllers
 
-import javax.inject._
+import jakarta.inject._
 import model.{AlbumCrawlField, AlbumId}
 import model.api.{Album, AlbumSave}
 import model.db.dao.{AlbumDAO, ArtistDAO}
@@ -48,7 +48,7 @@ class AlbumController @Inject()(
   }
 
   def post() = {
-    (Action andThen authenticateAdmin).async(parse.json) { implicit request =>
+    Action.andThen(authenticateAdmin).async(parse.json) { implicit request =>
       val data = request.body.validate[AlbumSave]
       data.fold(
         errors => {
@@ -66,7 +66,7 @@ class AlbumController @Inject()(
   }
 
   def put(albumId: AlbumId) = {
-    (Action andThen authenticateAdmin).async(parse.json) { implicit request =>
+    Action.andThen(authenticateAdmin).async(parse.json) { implicit request =>
       val data = request.body.validate[AlbumSave]
       data.fold(
         errors => {
@@ -119,7 +119,7 @@ class AlbumController @Inject()(
   }
 
   def delete(albumId: AlbumId) = {
-    (Action andThen authenticateAdmin).async { implicit request =>
+    Action.andThen(authenticateAdmin).async { implicit request =>
       for {
         _ <- albumDAO.delete(albumId)
         _ <- dataCache.CoreDataCache.reload()

@@ -5,7 +5,7 @@ import model.db.dao.table.WikipediaContentTable
 import play.api.db.slick.DatabaseConfigProvider
 import slick.jdbc.JdbcProfile
 
-import javax.inject.{Inject, Singleton}
+import jakarta.inject.{Inject, Singleton}
 import scala.concurrent.Future
 
 @Singleton

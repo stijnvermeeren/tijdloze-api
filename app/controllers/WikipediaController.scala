@@ -8,7 +8,7 @@ import play.api.mvc._
 import util.FutureUtil
 import util.wikipedia.WikipediaAPI
 
-import javax.inject._
+import jakarta.inject._
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
@@ -32,13 +32,13 @@ class WikipediaController @Inject()(
   }
 
   def reload(url: String) = {
-    (Action andThen authenticateAdmin).async { implicit request =>
+    Action.andThen(authenticateAdmin).async { implicit request =>
       wikipediaAPI.reload(url) map (_ => Ok)
     }
   }
 
   def crawl() = {
-    (Action andThen authenticateAdmin).async { implicit request =>
+    Action.andThen(authenticateAdmin).async { implicit request =>
       for {
         _ <- albumDAO.getAll() flatMap { albums =>
           FutureUtil.traverseSequentially(albums) { album =>

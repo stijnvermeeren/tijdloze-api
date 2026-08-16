@@ -5,7 +5,7 @@ import model.api.SpotifyHit
 import play.api.libs.json.{JsArray, JsString}
 import play.api.libs.ws.{WSAuthScheme, WSClient, WSRequest, WSResponse}
 
-import javax.inject.Inject
+import jakarta.inject.Inject
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 

@@ -11,5 +11,5 @@ class CrawlSongTable(tag: Tag) extends CrawlTable[CrawlSongId, CrawlSong, SongCr
   val songId = column[SongId]("song_id")
 
   def * = (id, songId, crawlDate, field, value, comment, isAuto, isAccepted) <>
-    ((CrawlSong.apply _).tupled, CrawlSong.unapply)
+    (CrawlSong.apply.tupled, CrawlSong.unapply)
 }

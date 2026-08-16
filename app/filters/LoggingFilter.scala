@@ -1,6 +1,6 @@
 package filters
 
-import javax.inject.Inject
+import jakarta.inject.Inject
 import org.apache.pekko.stream.Materializer
 import play.api.Logger
 import play.api.mvc._

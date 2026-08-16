@@ -3,7 +3,7 @@ package controllers
 import model.ArtistCrawlField
 import model.db.{Artist, Song}
 
-import javax.inject._
+import jakarta.inject._
 import model.db.dao.{AlbumDAO, ArtistDAO, CrawlArtistDAO, SongDAO}
 import play.api.libs.json.Json
 import play.api.mvc._
@@ -88,7 +88,7 @@ class SpotifyController @Inject()(
   }
 
   def find(query: String) = {
-    (Action andThen authenticateAdmin).async { implicit request =>
+    Action.andThen(authenticateAdmin).async { implicit request =>
       spotifyAPI.getToken() flatMap { token =>
         spotifyAPI.findNewSong(token, query, limit=1) map { result =>
           Ok(Json.toJson(result))

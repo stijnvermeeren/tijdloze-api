@@ -1,6 +1,6 @@
 package model.api
 
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OWrites}
 import util.musicbrainz.{MusicbrainzArtist, MusicbrainzRecording, MusicbrainzRelease}
 
 
@@ -28,7 +28,7 @@ final case class MusicbrainzHit(
 )
 
 object MusicbrainzHit {
-  implicit val jsonWrites = Json.writes[MusicbrainzHit]
+  implicit val jsonWrites: OWrites[MusicbrainzHit] = Json.writes[MusicbrainzHit]
 }
 
 
@@ -37,7 +37,7 @@ final case class MusicbrainzResult(
 )
 
 object MusicbrainzResult {
-  implicit val jsonWrites = Json.writes[MusicbrainzResult]
+  implicit val jsonWrites: OWrites[MusicbrainzResult] = Json.writes[MusicbrainzResult]
 
   def empty: MusicbrainzResult = MusicbrainzResult(hit = None)
 

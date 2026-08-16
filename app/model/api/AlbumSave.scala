@@ -1,7 +1,7 @@
 package model.api
 
 import model.ArtistId
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, Reads}
 
 final case class AlbumSave(
   artistId: ArtistId,
@@ -19,5 +19,5 @@ final case class AlbumSave(
 )
 
 object AlbumSave {
-  implicit val jsonReads = Json.reads[AlbumSave]
+  implicit val jsonReads: Reads[AlbumSave] = Json.reads[AlbumSave]
 }

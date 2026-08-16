@@ -20,5 +20,5 @@ class CommentTable(tag: Tag) extends Table[Comment](tag, "comment") {
   val dateDeleted = column[Option[DateTime]]("date_deleted")
 
   def * = (id, parentId, lastReply1Id, lastReply2Id, lastReply3Id, name, userId, versionId, timestamp, sortDate, dateDeleted) <>
-    ((Comment.apply _).tupled, Comment.unapply)
+    (Comment.apply.tupled, Comment.unapply)
 }

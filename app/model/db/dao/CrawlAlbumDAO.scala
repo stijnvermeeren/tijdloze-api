@@ -8,7 +8,7 @@ import play.api.db.slick.DatabaseConfigProvider
 import slick.basic.DatabaseConfig
 import slick.jdbc.JdbcProfile
 
-import javax.inject.{Inject, Singleton}
+import jakarta.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -30,7 +30,7 @@ class CrawlAlbumDAO @Inject()(configProvider: DatabaseConfigProvider) {
     db run {
       crawlAlbumTable
         .filter(_.albumId === albumId)
-        .filter(_.field === field)
+        .filter(r => (r.field === field): Rep[Boolean])
         .filter(_.value === value)
         .result
         .headOption

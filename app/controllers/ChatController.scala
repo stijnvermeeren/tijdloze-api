@@ -2,7 +2,7 @@ package controllers
 
 import org.apache.pekko.stream.Materializer
 import util.Chat
-import javax.inject._
+import jakarta.inject._
 import model.api.ChatTicket
 import model.db.dao.ChatTicketDAO
 import play.api.libs.json._
@@ -17,7 +17,7 @@ class ChatController @Inject()(
   chatTicketDAO: ChatTicketDAO
 )(implicit mat: Materializer, ec: ExecutionContext) extends InjectedController {
 
-  def ticket() = (Action andThen authenticate).async { implicit request =>
+  def ticket() = Action.andThen(authenticate).async { implicit request =>
     chatTicketDAO.create(request.user.id) map { ticket =>
       Ok(Json.toJson(ChatTicket(ticket)))
     }

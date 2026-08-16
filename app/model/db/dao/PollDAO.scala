@@ -1,6 +1,6 @@
 package model.db.dao
 
-import javax.inject.{Inject, Singleton}
+import jakarta.inject.{Inject, Singleton}
 import model.{PollAnswerId, PollId}
 import model.api.{PollAnswerUpdate, PollCreate, PollUpdate}
 import model.db.{Poll, PollAnswer, PollVote}

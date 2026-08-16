@@ -6,7 +6,7 @@ import org.joda.time.DateTime
 import play.api.db.slick.DatabaseConfigProvider
 import slick.jdbc.JdbcProfile
 
-import javax.inject.{Inject, Singleton}
+import jakarta.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -28,7 +28,7 @@ class CrawlSongDAO @Inject()(configProvider: DatabaseConfigProvider) {
     db run {
       crawlSongTable
         .filter(_.songId === songId)
-        .filter(_.field === field)
+        .filter(r => (r.field === field): Rep[Boolean])
         .filter(_.value === value)
         .result
         .headOption

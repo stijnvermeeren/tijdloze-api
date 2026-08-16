@@ -1,6 +1,6 @@
 package model.api
 
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, Reads}
 
 final case class UserSave(
   name: Option[String],
@@ -12,7 +12,7 @@ final case class UserSave(
 )
 
 object UserSave {
-  implicit val jsonReads = Json.reads[UserSave]
+  implicit val jsonReads: Reads[UserSave] = Json.reads[UserSave]
 }
 
 

@@ -7,9 +7,10 @@ import model.db.dao.{AlbumDAO, ArtistDAO, CrawlAlbumDAO, CrawlArtistDAO, CrawlSo
 import play.api.mvc.Result
 import util.FutureUtil
 
-import javax.inject.Inject
+import jakarta.inject.Inject
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import scala.reflect.Selectable.reflectiveSelectable
 
 class CrawlHelper @Inject()(
                              crawlArtistDAO: CrawlArtistDAO,

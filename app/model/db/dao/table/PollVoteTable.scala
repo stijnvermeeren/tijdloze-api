@@ -14,5 +14,5 @@ class PollVoteTable(tag: Tag) extends Table[PollVote](tag, "poll_vote") {
   val created = column[DateTime]("timestamp")
 
   def * = (id, userId, pollId, answerId, created) <>
-    ((PollVote.apply _).tupled, PollVote.unapply)
+    (PollVote.apply.tupled, PollVote.unapply)
 }

@@ -3,7 +3,7 @@ package controllers
 import util.currentlist.CurrentListUtil
 import org.apache.pekko.stream.Materializer
 
-import javax.inject._
+import jakarta.inject._
 import play.api.libs.json._
 import play.api.mvc._
 

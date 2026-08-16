@@ -1,6 +1,6 @@
 package controllers
 
-import javax.inject._
+import jakarta.inject._
 import model.api.{SetDisplayName, UserInfo, UserInfoAdmin, UserSave}
 import model.db.dao.{LogUserDisplayNameDAO, UserDAO}
 import play.api.libs.json.{JsError, Json}
@@ -17,7 +17,7 @@ class UserController @Inject()(
   logUserDisplayNameDAO: LogUserDisplayNameDAO
 )(implicit ec: ExecutionContext) extends InjectedController {
 
-  def post() = (Action andThen optionallyAuthenticate).async(parse.json) { implicit request =>
+  def post() = Action.andThen(optionallyAuthenticate).async(parse.json) { implicit request =>
     val data = request.body.validate[UserSave]
     data.fold(
       errors => {
@@ -45,7 +45,7 @@ class UserController @Inject()(
     )
   }
 
-  def get() = (Action andThen authenticate).async { implicit request =>
+  def get() = Action.andThen(authenticate).async { implicit request =>
     userDAO.get(request.user.id) map {
       case Some(dbUser) =>
         Ok(Json.toJson(UserInfo.fromDb(dbUser)))
@@ -54,7 +54,7 @@ class UserController @Inject()(
     }
   }
 
-  def setDisplayName() = (Action andThen authenticate).async(parse.json)  { implicit request =>
+  def setDisplayName() = Action.andThen(authenticate).async(parse.json)  { implicit request =>
     val data = request.body.validate[SetDisplayName]
     data.fold(
       errors => {
@@ -81,7 +81,7 @@ class UserController @Inject()(
   }
 
   def list() = {
-    (Action andThen authenticateAdmin).async { implicit request =>
+    Action.andThen(authenticateAdmin).async { implicit request =>
       userDAO.listAll() map { users =>
         Ok(Json.toJson(users map UserInfoAdmin.fromDb))
       }
@@ -89,7 +89,7 @@ class UserController @Inject()(
   }
 
   def block(userId: String) = {
-    (Action andThen authenticateAdmin).async { implicit request =>
+    Action.andThen(authenticateAdmin).async { implicit request =>
       userDAO.setBlocked(userId, isBlocked = true) map { _ =>
         Ok("")
       }
@@ -97,7 +97,7 @@ class UserController @Inject()(
   }
 
   def unblock(userId: String) = {
-    (Action andThen authenticateAdmin).async { implicit request =>
+    Action.andThen(authenticateAdmin).async { implicit request =>
       userDAO.setBlocked(userId, isBlocked = false) map { _ =>
         Ok("")
       }

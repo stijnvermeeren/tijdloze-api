@@ -6,7 +6,7 @@ import slick.jdbc.H2Profile.api._
 final case class ChatMessageId(value: Int)
 
 object ChatMessageId {
-  implicit val jsonWrites = new Writes[ChatMessageId] {
+  implicit val jsonWrites: Writes[ChatMessageId] = new Writes[ChatMessageId] {
     def writes(artistId: ChatMessageId) = JsNumber(artistId.value)
   }
 

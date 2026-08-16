@@ -2,7 +2,7 @@ package model.db.dao
 
 import com.github.tototoshi.slick.MySQLJodaSupport._
 
-import javax.inject.{Inject, Singleton}
+import jakarta.inject.{Inject, Singleton}
 import model.db.dao.table.ChatTicketTable
 import model.db.ChatTicket
 import org.joda.time.DateTime

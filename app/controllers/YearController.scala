@@ -1,6 +1,6 @@
 package controllers
 
-import javax.inject._
+import jakarta.inject._
 import model.db.dao.{ListEntryDAO, YearDAO}
 import play.api.mvc._
 import util.currentlist.CurrentListUtil
@@ -17,7 +17,7 @@ class YearController @Inject()(
 )(implicit ec: ExecutionContext) extends InjectedController {
 
   def post(year: Int) = {
-    (Action andThen authenticateAdmin).async { request =>
+    Action.andThen(authenticateAdmin).async { request =>
       yearDAO.save(year) map { _ =>
         dataCache.CoreDataCache.reload()
         currentList.updateCurrentYear(year)
@@ -27,7 +27,7 @@ class YearController @Inject()(
   }
 
   def delete(year: Int) = {
-    (Action andThen authenticateAdmin).async { request =>
+    Action.andThen(authenticateAdmin).async { request =>
       // only allow deleting a year if there are no entries in that year
       listEntryDAO.getByYear(year) flatMap { entries =>
         if (entries.isEmpty) {

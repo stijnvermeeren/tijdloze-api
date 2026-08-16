@@ -1,6 +1,6 @@
 package model.api
 
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OWrites}
 
 case class MBDatasetHit(
   recordingMBId: String,
@@ -24,7 +24,7 @@ case class MBDatasetHit(
 )
 
 object MBDatasetHit {
-  implicit val jsonWrites = Json.writes[MBDatasetHit]
+  implicit val jsonWrites: OWrites[MBDatasetHit] = Json.writes[MBDatasetHit]
 }
 
 
@@ -33,7 +33,7 @@ final case class MBDatasetResponse(
 )
 
 object MBDatasetResponse {
-  implicit val jsonWrites = Json.writes[MBDatasetResponse]
+  implicit val jsonWrites: OWrites[MBDatasetResponse] = Json.writes[MBDatasetResponse]
 
   def empty: MBDatasetResponse = MBDatasetResponse(hit = None)
 }

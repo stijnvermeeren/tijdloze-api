@@ -12,11 +12,11 @@ object CrawlSongId {
     CrawlSongId.apply
   )
 
-  implicit val jsonWrites = new Writes[CrawlSongId] {
+  implicit val jsonWrites: Writes[CrawlSongId] = new Writes[CrawlSongId] {
     def writes(crawlSongId: CrawlSongId) = JsNumber(crawlSongId.value)
   }
 
-  implicit val jsonReads = new Reads[CrawlSongId] {
+  implicit val jsonReads: Reads[CrawlSongId] = new Reads[CrawlSongId] {
     def reads(value: JsValue): JsResult[CrawlSongId] = {
       value.validate[Int].map(CrawlSongId.apply)
     }

@@ -22,5 +22,5 @@ class UserTable(tag: Tag) extends Table[User](tag, "user") {
   val isBlocked = column[Boolean]("is_blocked")
 
   def * = (id, displayName, name, firstName, lastName, nickname, email, emailVerified, created, lastSeen, isAdmin, isBlocked) <>
-    ((User.apply _).tupled, User.unapply)
+    (User.apply.tupled, User.unapply)
 }

@@ -1,6 +1,6 @@
 package controllers
 
-import javax.inject._
+import jakarta.inject._
 import play.api.mvc._
 
 @Singleton
@@ -9,7 +9,7 @@ class CacheController @Inject()(
     dataCache: DataCache
 ) extends InjectedController {
   def invalidate() = {
-    (Action andThen authenticateAdmin) { implicit rs =>
+    Action.andThen(authenticateAdmin) { implicit rs: AuthenticatedRequest[AnyContent] =>
       dataCache.CoreDataCache.reload()
       dataCache.ArtistDataCache.removeAll()
       dataCache.AlbumDataCache.removeAll()

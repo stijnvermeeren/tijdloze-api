@@ -10,5 +10,5 @@ class ListExitTable(tag: Tag) extends Table[ListExit](tag, "list_exit") {
   val year = column[Int]("year")
 
   def * = (id, songId, year) <>
-    ((ListExit.apply _).tupled, ListExit.unapply)
+    (ListExit.apply.tupled, ListExit.unapply)
 }

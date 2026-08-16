@@ -1,7 +1,7 @@
 package model
 package api
 
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OWrites}
 
 final case class UserInfo(
   id: String,
@@ -24,5 +24,5 @@ object UserInfo {
     )
   }
 
-  implicit val jsonWrites = Json.writes[UserInfo]
+  implicit val jsonWrites: OWrites[UserInfo] = Json.writes[UserInfo]
 }
