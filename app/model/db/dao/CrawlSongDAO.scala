@@ -28,7 +28,7 @@ class CrawlSongDAO @Inject()(configProvider: DatabaseConfigProvider) {
     db run {
       crawlSongTable
         .filter(_.songId === songId)
-        .filter(r => (r.field === field): Rep[Boolean])
+        .filter(_.field === field)
         .filter(_.value === value)
         .result
         .headOption

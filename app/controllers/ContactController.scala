@@ -4,15 +4,14 @@ import com.typesafe.config.Config
 import util.Mailer
 import jakarta.inject._
 import model.api.ContactForm
-import play.api.libs.json.{JsError, JsSuccess, Json}
+import play.api.libs.json.{JsError, JsSuccess, Json, JsValue}
 import play.api.libs.ws._
 import play.api.mvc._
-import scala.concurrent.Future
 
 @Singleton
 class ContactController @Inject() (optionallyAuthenticate: OptionallyAuthenticate, ws: WSClient, config: Config) extends InjectedController {
-  def post() = Action.andThen(optionallyAuthenticate).async(parse.json) { request =>
-    Future.successful(Json.fromJson[ContactForm](request.body) match {
+  def post() = Action.andThen(optionallyAuthenticate)(parse.json: BodyParser[JsValue]) { (request: OptionallyAuthenticatedRequest[JsValue]) =>
+    Json.fromJson[ContactForm](request.body) match {
         case JsSuccess(form, _) =>
           val footer1 = request.user.map(_.id) match {
             case Some(userId) => s" --- Message from verified user with id $userId."
@@ -42,6 +41,6 @@ class ContactController @Inject() (optionallyAuthenticate: OptionallyAuthenticat
         case JsError(errors) =>
           println(errors)
           BadRequest
-      })
+      }
   }
 }

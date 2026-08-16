@@ -29,7 +29,7 @@ class CrawlArtistDAO @Inject()(configProvider: DatabaseConfigProvider) {
     db run {
       crawlArtistTable
         .filter(_.artistId === artistId)
-        .filter(r => (r.field === field): Rep[Boolean])
+        .filter(_.field === field)
         .filter(_.value === value)
         .result
         .headOption
