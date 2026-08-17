@@ -21,4 +21,4 @@ final case class Song(
   urlWikiNl: Option[String],
   spotifyId: Option[String],
   lastUpdate: DateTime = DateTime.now()
-)
+) extends HasId[SongId]

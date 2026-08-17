@@ -14,4 +14,4 @@ final case class Artist(
   spotifyId: Option[String],
   wikidataId: Option[String],
   musicbrainzId: Option[String]
-)
+) extends HasId[ArtistId]
