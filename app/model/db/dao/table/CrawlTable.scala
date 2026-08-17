@@ -9,7 +9,7 @@ import slick.jdbc.MySQLProfile.api._
 abstract class CrawlTable[
   Id : TypedType,
   Model,
-  CrawlFieldT <: CrawlField[_, _, _] : TypedType
+  CrawlFieldT <: CrawlField[?, ?, ?] : TypedType
 ](tag: Tag, name: String) extends Table[Model](tag, name) {
   val id = column[Id]("id", O.AutoInc, O.PrimaryKey)
   val crawlDate = column[DateTime]("crawl_date")

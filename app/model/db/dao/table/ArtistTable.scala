@@ -19,5 +19,5 @@ class ArtistTable(tag: Tag) extends Table[Artist](tag, "artist") {
   val musicbrainzId = column[Option[String]]("musicbrainz_id")
 
   def * = (id, name, aliases, countryId, notes, urlOfficial, urlWikiEn, urlWikiNl, urlAllMusic, spotifyId, wikidataId, musicbrainzId) <>
-    ((Artist.apply _).tupled, Artist.unapply)
+    (Artist.apply.tupled, Artist.unapply)
 }

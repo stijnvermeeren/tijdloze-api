@@ -12,5 +12,5 @@ class ChatTicketTable(tag: Tag) extends Table[ChatTicket](tag, "chat_ticket") {
   val used = column[Option[DateTime]]("used")
 
   def * = (ticket, userId, created, used) <>
-    ((ChatTicket.apply _).tupled, ChatTicket.unapply)
+    (ChatTicket.apply.tupled, ChatTicket.unapply)
 }

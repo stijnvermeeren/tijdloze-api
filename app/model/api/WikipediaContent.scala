@@ -2,7 +2,7 @@ package model.api
 
 import model.db
 import org.joda.time.DateTime
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OWrites}
 import play.api.libs.json.JodaWrites.JodaDateTimeWrites
 
 final case class WikipediaContent(
@@ -12,7 +12,7 @@ final case class WikipediaContent(
 )
 
 object WikipediaContent {
-  implicit val jsonWrites = Json.writes[WikipediaContent]
+  implicit val jsonWrites: OWrites[WikipediaContent] = Json.writes[WikipediaContent]
 
   def fromDb(dbContent: db.WikipediaContent): WikipediaContent = {
     WikipediaContent(

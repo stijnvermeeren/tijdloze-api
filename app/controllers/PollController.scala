@@ -1,6 +1,6 @@
 package controllers
 
-import javax.inject._
+import jakarta.inject._
 import model.{PollAnswerId, PollId}
 import model.api._
 import model.db.dao.PollDAO
@@ -19,7 +19,7 @@ class PollController @Inject()(
 )(implicit ec: ExecutionContext) extends InjectedController {
 
   def createPoll() = {
-    (Action andThen authenticateAdmin).async(parse.json) { request =>
+    Action.andThen(authenticateAdmin).async(parse.json) { request =>
       val data = request.body.validate[PollCreate]
       data.fold(
         errors => {
@@ -42,7 +42,7 @@ class PollController @Inject()(
   }
 
   def updatePoll(pollId: PollId) = {
-    (Action andThen authenticateAdmin).async(parse.json) { request =>
+    Action.andThen(authenticateAdmin).async(parse.json) { request =>
       val data = request.body.validate[PollUpdate]
       data.fold(
         errors => {
@@ -64,7 +64,7 @@ class PollController @Inject()(
   }
 
   def updatePollAnswer(pollId: PollId, pollAnswerId: PollAnswerId) = {
-    (Action andThen authenticateAdmin).async(parse.json) { request =>
+    Action.andThen(authenticateAdmin).async(parse.json) { request =>
       val data = request.body.validate[PollAnswerUpdate]
       data.fold(
         errors => {
@@ -86,7 +86,7 @@ class PollController @Inject()(
   }
 
   def hidePoll(pollId: PollId) = {
-    (Action andThen authenticateAdmin).async { request =>
+    Action.andThen(authenticateAdmin).async { request =>
       pollDAO.setDeleted(pollId, isDeleted = true) map { _ =>
         currentList.updateLatestPoll()
         Ok("")
@@ -95,7 +95,7 @@ class PollController @Inject()(
   }
 
   def showPoll(pollId: PollId) = {
-    (Action andThen authenticateAdmin).async { request =>
+    Action.andThen(authenticateAdmin).async { request =>
       pollDAO.setDeleted(pollId, isDeleted = false) map { _ =>
         currentList.updateLatestPoll()
         Ok("")
@@ -104,7 +104,7 @@ class PollController @Inject()(
   }
 
   def vote(pollId: PollId, pollAnswerId: PollAnswerId) = {
-    (Action andThen authenticate).async { request =>
+    Action.andThen(authenticate).async { request =>
       pollDAO.vote(request.user.id, pollId, pollAnswerId) map { _ =>
         Ok("")
       }
@@ -112,7 +112,7 @@ class PollController @Inject()(
   }
 
   def myVotes() = {
-    (Action andThen authenticate).async { request =>
+    Action.andThen(authenticate).async { request =>
       pollDAO.myVotes(request.user.id) map { votes =>
         Ok(Json.toJson(PollVoteList(votes map PollVote.fromDb)))
       }

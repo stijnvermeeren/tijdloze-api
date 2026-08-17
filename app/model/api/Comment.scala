@@ -2,7 +2,7 @@ package model
 package api
 
 import org.joda.time.DateTime
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OWrites}
 import play.api.libs.json.JodaWrites.JodaDateTimeWrites
 
 final case class Comment(
@@ -17,7 +17,7 @@ final case class Comment(
 )
 
 object Comment {
-  implicit val jsonWrites = Json.writes[Comment]
+  implicit val jsonWrites: OWrites[Comment] = Json.writes[Comment]
 
   def fromDb(dbComment: db.Comment, version: Option[db.CommentVersion], user: Option[db.User]): Comment = {
     Comment(

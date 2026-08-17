@@ -5,7 +5,7 @@ import model.db.dao.{ArtistDAO, CrawlArtistDAO}
 import play.api.libs.json.Json
 import play.api.mvc._
 
-import javax.inject._
+import jakarta.inject._
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
@@ -16,7 +16,7 @@ class CrawlArtistController @Inject()(
   dataCache: DataCache
 )(implicit ec: ExecutionContext) extends InjectedController {
   def getFirstPending() = {
-    (Action andThen authenticateAdmin).async { implicit rs =>
+    Action.andThen(authenticateAdmin).async { implicit rs =>
       for {
         crawls <- crawlArtistDAO.getFirstPending()
       } yield Ok(Json.toJson(crawls))
@@ -24,7 +24,7 @@ class CrawlArtistController @Inject()(
   }
 
   def accept(crawlArtistId: CrawlArtistId) = {
-    (Action andThen authenticateAdmin).async { implicit request =>
+    Action.andThen(authenticateAdmin).async { implicit request =>
       crawlArtistDAO.findById(crawlArtistId).flatMap{
         case Some(crawl) =>
           for {
@@ -40,7 +40,7 @@ class CrawlArtistController @Inject()(
   }
 
   def reject(crawlArtistId: CrawlArtistId) = {
-    (Action andThen authenticateAdmin).async { implicit request =>
+    Action.andThen(authenticateAdmin).async { implicit request =>
       crawlArtistDAO.reject(crawlArtistId).map(_ => Ok)
     }
   }

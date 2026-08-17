@@ -8,5 +8,5 @@ class TextTable(tag: Tag) extends Table[Text](tag, "text") {
   val value = column[String]("value")
 
   def * = (key, value) <>
-    ((Text.apply _).tupled, Text.unapply)
+    (Text.apply.tupled, Text.unapply)
 }

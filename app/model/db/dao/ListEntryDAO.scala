@@ -2,7 +2,7 @@ package model
 package db
 package dao
 
-import javax.inject.{Inject, Singleton}
+import jakarta.inject.{Inject, Singleton}
 import model.db.dao.table.ListEntryTable
 import play.api.db.slick.DatabaseConfigProvider
 import slick.jdbc.JdbcProfile

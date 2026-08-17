@@ -12,5 +12,5 @@ class WikipediaContentTable(tag: Tag) extends Table[WikipediaContent](tag, "wiki
   val lastUpdate = column[DateTime]("last_update")
 
   def * = (url, content, lastUpdate) <>
-    ((WikipediaContent.apply _).tupled, WikipediaContent.unapply)
+    (WikipediaContent.apply.tupled, WikipediaContent.unapply)
 }

@@ -2,7 +2,7 @@ package model
 package db
 package dao
 
-import javax.inject.{Inject, Singleton}
+import jakarta.inject.{Inject, Singleton}
 import model.api.AlbumSave
 import model.db.dao.table.AlbumTable
 import play.api.db.slick.DatabaseConfigProvider

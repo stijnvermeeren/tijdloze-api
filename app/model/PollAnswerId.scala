@@ -12,7 +12,7 @@ object PollAnswerId {
     PollAnswerId.apply
   )
 
-  implicit val jsonWrites = new Writes[PollAnswerId] {
+  implicit val jsonWrites: Writes[PollAnswerId] = new Writes[PollAnswerId] {
     def writes(pollAnswerId: PollAnswerId) = JsNumber(pollAnswerId.value)
   }
 

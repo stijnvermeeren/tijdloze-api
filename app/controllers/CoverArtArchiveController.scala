@@ -7,7 +7,7 @@ import util.FutureUtil
 import util.coverartarchive.CoverArtArchiveAPI
 import util.crawl.{AutoIfUnique, CrawlHelper}
 
-import javax.inject._
+import jakarta.inject._
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton

@@ -5,7 +5,7 @@ import play.api.db.slick.DatabaseConfigProvider
 import slick.jdbc.JdbcProfile
 
 import java.text.Normalizer
-import javax.inject.{Inject, Singleton}
+import jakarta.inject.{Inject, Singleton}
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -62,7 +62,7 @@ class MBDataDAO @Inject()(configProvider: DatabaseConfigProvider) {
 
         db run {
           query
-        } map {_.map((MBResult.apply _).tupled)}
+        } map {_.map(MBResult.apply.tupled)}
       } else {
         Future.successful(Seq.empty)
       }

@@ -1,6 +1,6 @@
 package controllers
 
-import javax.inject._
+import jakarta.inject._
 import model.SongId
 import model.db.dao.ListExitDAO
 import play.api.mvc._
@@ -17,7 +17,7 @@ class ListExitController @Inject()(
 )(implicit ec: ExecutionContext) extends InjectedController {
 
   def post(year: Int, songId: SongId) = {
-    (Action andThen authenticateAdmin).async { request =>
+    Action.andThen(authenticateAdmin).async { request =>
       listExitDAO.save(year, songId) map { _ =>
         dataCache.CoreDataCache.reload()
         currentList.updateCurrentYear(year)
@@ -27,7 +27,7 @@ class ListExitController @Inject()(
   }
 
   def delete(year: Int, songId: SongId) = {
-    (Action andThen authenticateAdmin).async { request =>
+    Action.andThen(authenticateAdmin).async { request =>
       listExitDAO.delete(year, songId) map { _ =>
         dataCache.CoreDataCache.reload()
         currentList.updateCurrentYear(year)
@@ -37,7 +37,7 @@ class ListExitController @Inject()(
   }
 
   def deleteAll(year: Int) = {
-    (Action andThen authenticateAdmin).async { request =>
+    Action.andThen(authenticateAdmin).async { request =>
       listExitDAO.deleteAll(year) map { _ =>
         dataCache.CoreDataCache.reload()
         currentList.updateCurrentYear(year)

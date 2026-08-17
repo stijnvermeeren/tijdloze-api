@@ -4,7 +4,7 @@ import model.db.{Album, Artist, Song}
 import model.db.dao.{AlbumDAO, ArtistDAO, SongDAO}
 import play.api.libs.json.{JsString, Writes}
 import slick.jdbc.H2Profile.MappedColumnType
-import slick.jdbc.H2Profile.api.stringColumnType
+import slick.jdbc.H2Profile.api.{stringColumnType, BaseColumnType}
 
 import scala.concurrent.Future
 
@@ -42,13 +42,13 @@ object ArtistCrawlField {
 
   val allValues = Seq(UrlAllMusic, CountryId, UrlWikiEn, UrlWikiNl, UrlOfficial, WikidataId, SpotifyId, MusicbrainzId)
 
-  implicit val crawlFieldColumnType = MappedColumnType.base[ArtistCrawlField, String](
+  implicit val crawlFieldColumnType: BaseColumnType[ArtistCrawlField] = MappedColumnType.base[ArtistCrawlField, String](
     _.name,
     dbValue => allValues.find(_.name == dbValue).getOrElse(throw new RuntimeException(s"Unknown ArtistCrawlField `$dbValue`"))
   )
 
 
-  implicit val jsonWrites = new Writes[ArtistCrawlField] {
+  implicit val jsonWrites: Writes[ArtistCrawlField] = new Writes[ArtistCrawlField] {
     def writes(crawlField: ArtistCrawlField) = JsString(crawlField.name)
   }
 }
@@ -76,12 +76,12 @@ object AlbumCrawlField {
 
   val allValues = Seq(UrlAllMusic, UrlWikiEn, UrlWikiNl, WikidataId, SpotifyId, MusicbrainzId, Cover)
 
-  implicit val crawlFieldColumnType = MappedColumnType.base[AlbumCrawlField, String](
+  implicit val crawlFieldColumnType: BaseColumnType[AlbumCrawlField] = MappedColumnType.base[AlbumCrawlField, String](
     _.name,
     dbValue => allValues.find(_.name == dbValue).getOrElse(throw new RuntimeException(s"Unknown AlbumCrawlField `$dbValue`"))
   )
 
-  implicit val jsonWrites = new Writes[AlbumCrawlField] {
+  implicit val jsonWrites: Writes[AlbumCrawlField] = new Writes[AlbumCrawlField] {
     def writes(crawlField: AlbumCrawlField) = JsString(crawlField.name)
   }
 }
@@ -106,12 +106,12 @@ object SongCrawlField {
 
   val allValues = Seq(LanguageId, UrlWikiEn, UrlWikiNl, WikidataId, SpotifyId, MusicbrainzRecordingId, MusicbrainzWorkId)
 
-  implicit val crawlFieldColumnType = MappedColumnType.base[SongCrawlField, String](
+  implicit val crawlFieldColumnType: BaseColumnType[SongCrawlField] = MappedColumnType.base[SongCrawlField, String](
     _.name,
     dbValue => allValues.find(_.name == dbValue).getOrElse(throw new RuntimeException(s"Unknown SongCrawlField `$dbValue`"))
   )
 
-  implicit val jsonWrites = new Writes[SongCrawlField] {
+  implicit val jsonWrites: Writes[SongCrawlField] = new Writes[SongCrawlField] {
     def writes(crawlField: SongCrawlField) = JsString(crawlField.name)
   }
 }

@@ -1,6 +1,6 @@
 package controllers
 
-import javax.inject._
+import jakarta.inject._
 import model.api.{Text, TextSave}
 import model.db.dao.TextDAO
 import play.api.libs.json.JsError
@@ -16,7 +16,7 @@ class TextController @Inject()(
 )(implicit ec: ExecutionContext) extends InjectedController {
 
   def save(key: String) = {
-    (Action andThen authenticateAdmin).async(parse.json) { implicit request =>
+    Action.andThen(authenticateAdmin).async(parse.json) { implicit request =>
       val data = request.body.validate[TextSave]
       data.fold(
         errors => {

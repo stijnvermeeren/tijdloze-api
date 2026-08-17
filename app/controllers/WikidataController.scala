@@ -7,7 +7,7 @@ import util.FutureUtil
 import util.crawl.{AutoIfUnique, CrawlHelper}
 import util.wikidata.{WikidataAPI, WikidataCrawler}
 
-import javax.inject._
+import jakarta.inject._
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
@@ -47,7 +47,7 @@ class WikidataController @Inject()(
   }
 
   def crawlArtistDetails() = {
-    (Action andThen authenticateAdmin).async { implicit request =>
+    Action.andThen(authenticateAdmin).async { implicit request =>
       artistDAO.getAll().flatMap{ artists =>
         FutureUtil.traverseSequentially(artists)(wikidataCrawler.crawlArtistDetails)
       } map { _ =>
@@ -57,7 +57,7 @@ class WikidataController @Inject()(
   }
 
   def crawlAlbumDetails() = {
-    (Action andThen authenticateAdmin).async { implicit request =>
+    Action.andThen(authenticateAdmin).async { implicit request =>
       albumDAO.getAll().flatMap{ albums =>
         FutureUtil.traverseSequentially(albums)(wikidataCrawler.crawlAlbumDetails)
       } map { _ =>
@@ -67,7 +67,7 @@ class WikidataController @Inject()(
   }
   
   def crawlSongDetails() = {
-    (Action andThen authenticateAdmin).async { implicit request =>
+    Action.andThen(authenticateAdmin).async { implicit request =>
       songDAO.getAll().flatMap{ songs =>
         FutureUtil.traverseSequentially(songs)(wikidataCrawler.crawlSongDetails)
       } map { _ =>

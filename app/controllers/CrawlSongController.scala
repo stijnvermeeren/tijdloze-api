@@ -7,7 +7,7 @@ import play.api.libs.json.Json
 import play.api.mvc._
 import util.currentlist.CurrentListUtil
 
-import javax.inject._
+import jakarta.inject._
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
@@ -19,7 +19,7 @@ class CrawlSongController @Inject()(
   currentList: CurrentListUtil
 )(implicit ec: ExecutionContext) extends InjectedController {
   def getFirstPending() = {
-    (Action andThen authenticateAdmin).async { implicit rs =>
+    Action.andThen(authenticateAdmin).async { implicit rs =>
       for {
         crawls <- crawlSongDAO.getFirstPending()
       } yield Ok(Json.toJson(crawls))
@@ -27,7 +27,7 @@ class CrawlSongController @Inject()(
   }
 
   def accept(crawlSongId: CrawlSongId) = {
-    (Action andThen authenticateAdmin).async { implicit request =>
+    Action.andThen(authenticateAdmin).async { implicit request =>
       crawlSongDAO.findById(crawlSongId).flatMap{
         case Some(crawl) =>
           for {
@@ -49,7 +49,7 @@ class CrawlSongController @Inject()(
   }
 
   def reject(crawlSongId: CrawlSongId) = {
-    (Action andThen authenticateAdmin).async { implicit request =>
+    Action.andThen(authenticateAdmin).async { implicit request =>
       crawlSongDAO.reject(crawlSongId).map(_ => Ok)
     }
   }

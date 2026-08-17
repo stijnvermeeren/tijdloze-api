@@ -12,5 +12,5 @@ class LogUserDisplayNameTable(tag: Tag) extends Table[LogUserDisplayName](tag, "
   val created = column[DateTime]("created")
 
   def * = (id, userId, displayName, created) <>
-    ((LogUserDisplayName.apply _).tupled, LogUserDisplayName.unapply)
+    (LogUserDisplayName.apply.tupled, LogUserDisplayName.unapply)
 }

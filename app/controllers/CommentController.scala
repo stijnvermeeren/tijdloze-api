@@ -2,7 +2,7 @@ package controllers
 
 import model.CommentId
 
-import javax.inject._
+import jakarta.inject._
 import model.api.{Comment, CommentSave}
 import model.db.dao.CommentDAO
 import play.api.libs.json._
@@ -16,7 +16,7 @@ class CommentController @Inject()(
   authenticateAdmin: AuthenticateAdmin,
   commentDAO: CommentDAO
 )(implicit ec: ExecutionContext) extends InjectedController {
-  def post() = (Action andThen authenticate).async(parse.json) { implicit request =>
+  def post() = Action.andThen(authenticate).async(parse.json) { implicit request =>
     val data = request.body.validate[CommentSave]
     data.fold(
       errors => {
@@ -30,7 +30,7 @@ class CommentController @Inject()(
     )
   }
 
-  def update(commentId: CommentId) = (Action andThen authenticate).async(parse.json) { implicit request =>
+  def update(commentId: CommentId) = Action.andThen(authenticate).async(parse.json) { implicit request =>
     val data = request.body.validate[CommentSave]
     data.fold(
       errors => {
@@ -48,7 +48,7 @@ class CommentController @Inject()(
     )
   }
 
-  def delete(commentId: CommentId) = (Action andThen authenticate).async { implicit request =>
+  def delete(commentId: CommentId) = Action.andThen(authenticate).async { implicit request =>
     commentDAO.get(commentId) flatMap { commentOption =>
       if (request.user.isAdmin || commentOption.exists(_.userId.contains(request.user.id))) {
         commentDAO.delete(commentId)
@@ -65,7 +65,7 @@ class CommentController @Inject()(
     }
   }
 
-  def restore(commentId: CommentId) = (Action andThen authenticate).async { implicit request =>
+  def restore(commentId: CommentId) = Action.andThen(authenticate).async { implicit request =>
     commentDAO.get(commentId) flatMap { commentOption =>
       if (request.user.isAdmin || commentOption.exists(_.userId.contains(request.user.id))) {
         commentDAO.restore(commentId)
@@ -98,12 +98,12 @@ class CommentController @Inject()(
     }
   }
 
-  def listDeleted() = (Action andThen authenticateAdmin).async { implicit rs =>
+  def listDeleted() = Action.andThen(authenticateAdmin).async { implicit rs =>
     for {
       commentsWithUser <- commentDAO.listDeleted()
     } yield {
       Ok(Json.toJson(
-        commentsWithUser map (Comment.fromDb _).tupled
+        commentsWithUser map Comment.fromDb.tupled
       ))
     }
   }

@@ -11,5 +11,5 @@ class PollAnswerTable(tag: Tag) extends Table[PollAnswer](tag, "poll_answer") {
   val voteCount = column[Int]("vote_count")
 
   def * = (id, pollId, answer, voteCount) <>
-    ((PollAnswer.apply _).tupled, PollAnswer.unapply)
+    (PollAnswer.apply.tupled, PollAnswer.unapply)
 }

@@ -7,7 +7,7 @@ import org.joda.time.DateTime
 import play.api.db.slick.DatabaseConfigProvider
 import slick.jdbc.JdbcProfile
 
-import javax.inject.{Inject, Singleton}
+import jakarta.inject.{Inject, Singleton}
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 

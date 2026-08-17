@@ -2,17 +2,16 @@ package controllers
 
 import com.typesafe.config.Config
 import util.Mailer
-import javax.inject._
+import jakarta.inject._
 import model.api.ContactForm
-import play.api.libs.json.{JsError, JsSuccess, Json}
+import play.api.libs.json.{JsError, JsSuccess, Json, JsValue}
 import play.api.libs.ws._
 import play.api.mvc._
 
 @Singleton
 class ContactController @Inject() (optionallyAuthenticate: OptionallyAuthenticate, ws: WSClient, config: Config) extends InjectedController {
-  def post() = {
-    (Action andThen optionallyAuthenticate)(parse.json) { request =>
-      Json.fromJson[ContactForm](request.body) match {
+  def post() = Action.andThen(optionallyAuthenticate)(parse.json: BodyParser[JsValue]) { (request: OptionallyAuthenticatedRequest[JsValue]) =>
+    Json.fromJson[ContactForm](request.body) match {
         case JsSuccess(form, _) =>
           val footer1 = request.user.map(_.id) match {
             case Some(userId) => s" --- Message from verified user with id $userId."
@@ -26,7 +25,7 @@ class ContactController @Inject() (optionallyAuthenticate: OptionallyAuthenticat
 
           val recipientsKey = if (form.debug) "recipientsDebug" else "recipients"
           val recipients: Seq[String] = config.getString(s"tijdloze.contact.${recipientsKey}")
-            .split(';')
+            .split(';').toIndexedSeq
             .map(_.trim)
             .filter(_.nonEmpty)
 
@@ -43,6 +42,5 @@ class ContactController @Inject() (optionallyAuthenticate: OptionallyAuthenticat
           println(errors)
           BadRequest
       }
-    }
   }
 }

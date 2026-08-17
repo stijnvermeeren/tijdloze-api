@@ -1,13 +1,13 @@
 package util.crawl
 
 import controllers.DataCache
-import model.db.{Album, Artist, Song}
+import model.db.{Album, Artist, HasId, Song}
 import model.{AlbumCrawlField, ArtistCrawlField, CrawlField, SongCrawlField}
 import model.db.dao.{AlbumDAO, ArtistDAO, CrawlAlbumDAO, CrawlArtistDAO, CrawlSongDAO, SongDAO}
 import play.api.mvc.Result
 import util.FutureUtil
 
-import javax.inject.Inject
+import jakarta.inject.Inject
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -110,7 +110,7 @@ class CrawlHelper @Inject()(
     )
   }
 
-  private def process[Model <: {val id: Id}, Id, DAO](
+  private def process[Model <: HasId[Id], Id, DAO](
                                                        model: Model,
                                                        field: CrawlField[Model, Id, DAO],
                                                        candidateValues: Seq[String],

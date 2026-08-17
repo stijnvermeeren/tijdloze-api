@@ -1,6 +1,6 @@
 package model.db.dao
 
-import javax.inject.{Inject, Singleton}
+import jakarta.inject.{Inject, Singleton}
 import model.db.LogUserDisplayName
 import model.db.dao.table.LogUserDisplayNameTable
 import play.api.db.slick.DatabaseConfigProvider

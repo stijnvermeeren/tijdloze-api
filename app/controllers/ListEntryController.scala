@@ -1,6 +1,6 @@
 package controllers
 
-import javax.inject._
+import jakarta.inject._
 import model.api.ListEntrySave
 import model.db.dao.ListEntryDAO
 import play.api.libs.json.JsError
@@ -17,7 +17,7 @@ class ListEntryController @Inject()(
   currentList: CurrentListUtil
 )(implicit ec: ExecutionContext) extends InjectedController {
   def post(year: Int, position: Int) = {
-    (Action andThen authenticateAdmin).async(parse.json) { implicit request =>
+    Action.andThen(authenticateAdmin).async(parse.json) { implicit request =>
       val data = request.body.validate[ListEntrySave]
       data.fold(
         errors => {
@@ -35,7 +35,7 @@ class ListEntryController @Inject()(
   }
 
   def delete(year: Int, position: Int) = {
-    (Action andThen authenticateAdmin).async { implicit request =>
+    Action.andThen(authenticateAdmin).async { implicit request =>
       listEntryDAO.delete(year = year, position = position) map { _ =>
         dataCache.CoreDataCache.reload()
         currentList.updateEntry(year, position, songId = None)

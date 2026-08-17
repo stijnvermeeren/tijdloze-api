@@ -1,6 +1,6 @@
 package controllers
 
-import javax.inject._
+import jakarta.inject._
 import model.SongId
 import model.api.{Song, SongSave}
 import model.db.dao.SongDAO
@@ -31,7 +31,7 @@ class SongController @Inject()(
   }
 
   def post() = {
-    (Action andThen authenticateAdmin).async(parse.json) { implicit request =>
+    Action.andThen(authenticateAdmin).async(parse.json) { implicit request =>
       val data = request.body.validate[SongSave]
       data.fold(
         errors => {
@@ -49,7 +49,7 @@ class SongController @Inject()(
   }
 
   def put(songId: SongId) = {
-    (Action andThen authenticateAdmin).async(parse.json) { implicit request =>
+    Action.andThen(authenticateAdmin).async(parse.json) { implicit request =>
       val data = request.body.validate[SongSave]
       data.fold(
         errors => {
@@ -82,7 +82,7 @@ class SongController @Inject()(
   }
 
   def delete(songId: SongId) = {
-    (Action andThen authenticateAdmin).async { implicit request =>
+    Action.andThen(authenticateAdmin).async { implicit request =>
       for {
         _ <- songDAO.delete(songId)
         _ <- dataCache.CoreDataCache.reload()

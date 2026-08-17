@@ -1,7 +1,7 @@
 package model.api
 
 import model.db
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OWrites}
 
 final case class PublicUserInfo(
   id: String,
@@ -11,7 +11,7 @@ final case class PublicUserInfo(
 )
 
 object PublicUserInfo {
-  implicit val jsonWrites = Json.writes[PublicUserInfo]
+  implicit val jsonWrites: OWrites[PublicUserInfo] = Json.writes[PublicUserInfo]
 
   def fromDb(dbUser: db.User): PublicUserInfo = {
     PublicUserInfo(

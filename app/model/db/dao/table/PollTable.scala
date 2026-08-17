@@ -15,5 +15,5 @@ class PollTable(tag: Tag) extends Table[Poll](tag, "poll") {
   val created = column[DateTime]("timestamp")
 
   def * = (id, year, question, isActive, isDeleted, created) <>
-    ((Poll.apply _).tupled, Poll.unapply)
+    (Poll.apply.tupled, Poll.unapply)
 }

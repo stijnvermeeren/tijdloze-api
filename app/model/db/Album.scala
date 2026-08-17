@@ -15,4 +15,4 @@ final case class Album(
   cover: Option[String],
   isSingle: Boolean = false,
   isSoundtrack: Boolean = false
-)
+) extends HasId[AlbumId]

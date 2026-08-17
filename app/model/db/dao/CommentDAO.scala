@@ -2,7 +2,7 @@ package model
 package db
 package dao
 
-import javax.inject.{Inject, Singleton}
+import jakarta.inject.{Inject, Singleton}
 import model.db.dao.table.{CommentTable, CommentVersionTable, UserTable}
 import org.joda.time.DateTime
 import com.github.tototoshi.slick.MySQLJodaSupport._
@@ -205,7 +205,7 @@ class CommentDAO @Inject()(configProvider: DatabaseConfigProvider) {
             }
           }
           CommentThreadSummary(
-            (api.Comment.fromDb _).tupled(mainComment),
+            api.Comment.fromDb.tupled(mainComment),
             lastReply1 = tupleToApiComment(reply1),
             lastReply2 = tupleToApiComment(reply2),
             lastReply3 = tupleToApiComment(reply3),

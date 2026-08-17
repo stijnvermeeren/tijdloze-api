@@ -5,7 +5,7 @@ import model.{AlbumCrawlField, ArtistCrawlField, SongCrawlField}
 import play.api.mvc._
 import util.crawl.{AutoIfUnique, AutoOnlyForExistingValue, CrawlHelper}
 
-import javax.inject._
+import jakarta.inject._
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton

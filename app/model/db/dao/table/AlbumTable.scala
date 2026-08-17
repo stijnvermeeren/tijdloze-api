@@ -20,5 +20,5 @@ class AlbumTable(tag: Tag) extends Table[Album](tag, "album") {
   val isSoundtrack = column[Boolean]("is_soundtrack")
 
   def * = (id, artistId, title, releaseYear, urlWikiEn, urlWikiNl, urlAllMusic, spotifyId, wikidataId, musicbrainzId, cover, isSingle, isSoundtrack) <>
-    ((Album.apply _).tupled, Album.unapply)
+    (Album.apply.tupled, Album.unapply)
 }

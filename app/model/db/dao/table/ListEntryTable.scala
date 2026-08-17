@@ -11,5 +11,5 @@ class ListEntryTable(tag: Tag) extends Table[ListEntry](tag, "list_entry") {
   val attribution = column[Option[String]]("attribution")
 
   def * = (id, songId, year, position, attribution) <>
-    ((ListEntry.apply _).tupled, ListEntry.unapply)
+    (ListEntry.apply.tupled, ListEntry.unapply)
 }

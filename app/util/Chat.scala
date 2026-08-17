@@ -2,7 +2,7 @@ package util
 
 import org.apache.pekko.stream.Materializer
 import org.apache.pekko.stream.scaladsl.{BroadcastHub, Flow, Keep, MergeHub, Sink, Source, Merge}
-import javax.inject.{Inject, Singleton}
+import jakarta.inject.{Inject, Singleton}
 import model.api.{ChatMessage, ChatSave, PublicUserInfo}
 import model.db.dao.{ChatMessageDAO, ChatOnlineDAO, UserDAO}
 import play.api.Logger
@@ -87,7 +87,7 @@ class Chat @Inject() (
     sourceForOnlineList.toMat(BroadcastHub.sink)(Keep.both).run()
   }
 
-  private val lastMessagesSource: Source[Seq[ChatMessage], _] = {
+  private val lastMessagesSource: Source[Seq[ChatMessage], ?] = {
     chatSource
       .scan(Seq.empty[ChatMessage]){
         case (previous, newMessage) => previous.takeRight(lastMessagesSize - 1) :+ newMessage
@@ -103,7 +103,7 @@ class Chat @Inject() (
   // Keep draining the lastMessagesSource so that it never backpressures.
   lastMessagesSource.runWith(Sink.ignore)
 
-  def chatFlow(userId: String): Flow[JsValue, JsValue, _] = {
+  def chatFlow(userId: String): Flow[JsValue, JsValue, ?] = {
     val userSink = Flow[JsValue]
       .mapAsync(2){ body =>
         Json.fromJson[ChatSave](body).fold(
@@ -117,14 +117,14 @@ class Chat @Inject() (
       }
       .to(chatSink)
 
-    val userOnlineSource: Source[JsValue, _] = onlineSource.mapAsync(1) { message =>
+    val userOnlineSource: Source[JsValue, ?] = onlineSource.mapAsync(1) { message =>
       saveOnlineStatus(userId) map { _ =>
         message
       }
     }
 
-    val chatJsonSource: Source[JsValue, _] = chatSource.map(Json.toJson[ChatMessage])
-    val userSource: Source[JsValue, _] = chatJsonSource merge userOnlineSource
+    val chatJsonSource: Source[JsValue, ?] = chatSource.map(Json.toJson[ChatMessage])
+    val userSource: Source[JsValue, ?] = chatJsonSource merge userOnlineSource
 
     val userLastMessagesJsonSource = lastMessagesSource
       .take(1)

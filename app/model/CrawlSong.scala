@@ -1,7 +1,7 @@
 package model
 
 import org.joda.time.DateTime
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OWrites}
 import play.api.libs.json.JodaWrites.JodaDateTimeWrites
 
 final case class CrawlSong(
@@ -16,5 +16,5 @@ final case class CrawlSong(
 )
 
 object CrawlSong {
-  implicit val jsonWrites = Json.writes[CrawlSong]
+  implicit val jsonWrites: OWrites[CrawlSong] = Json.writes[CrawlSong]
 }

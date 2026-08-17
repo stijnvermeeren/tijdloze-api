@@ -7,7 +7,7 @@ import util.FutureUtil
 import util.crawl.{AutoIfUnique, CrawlHelper}
 import util.musicbrainz.{MusicbrainzAPI, MusicbrainzCrawler}
 
-import javax.inject._
+import jakarta.inject._
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
@@ -22,7 +22,7 @@ class MusicbrainzController @Inject()(
   musicbrainzCrawler: MusicbrainzCrawler
 )(implicit ec: ExecutionContext) extends InjectedController {
   def crawlArtistDetails() = {
-    (Action andThen authenticateAdmin).async { implicit request =>
+    Action.andThen(authenticateAdmin).async { implicit request =>
       artistDAO.getAll().flatMap{ artists =>
         FutureUtil.traverseSequentially(artists)(musicbrainzCrawler.crawlArtistDetails)
       } map { _ =>
@@ -32,7 +32,7 @@ class MusicbrainzController @Inject()(
   }
 
   def crawlAlbumDetails() = {
-    (Action andThen authenticateAdmin).async { implicit request =>
+    Action.andThen(authenticateAdmin).async { implicit request =>
       albumDAO.getAll().flatMap{ albums =>
         FutureUtil.traverseSequentially(albums) { album =>
           artistDAO.get(album.artistId) flatMap { artist =>
@@ -46,7 +46,7 @@ class MusicbrainzController @Inject()(
   }
 
   def crawlSongDetails() = {
-    (Action andThen authenticateAdmin).async { implicit request =>
+    Action.andThen(authenticateAdmin).async { implicit request =>
       songDAO.getAll().flatMap{ songs =>
         FutureUtil.traverseSequentially(songs)(musicbrainzCrawler.crawlSongDetails)
       } map { _ =>
@@ -56,7 +56,7 @@ class MusicbrainzController @Inject()(
   }
 
   def crawlAlbums() = {
-    (Action andThen authenticateAdmin).async { implicit request =>
+    Action.andThen(authenticateAdmin).async { implicit request =>
       albumDAO.getAll().flatMap{ albums =>
         FutureUtil.traverseSequentially(albums) { album =>
           artistDAO.get(album.artistId) flatMap { artist =>

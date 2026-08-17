@@ -7,7 +7,7 @@ import play.api.mvc._
 import util.crawl.{AutoIfUnique, AutoOnlyForExistingValue, CrawlHelper}
 import util.wikipedia.WikipediaAPI
 
-import javax.inject._
+import jakarta.inject._
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
