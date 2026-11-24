@@ -78,6 +78,10 @@ class WikidataAPI @Inject()(ws: WSClient, config: Config) {
          |    ?id wdt:P1729 ?value
          |    BIND("allmusic_album_id" AS ?key)
          |  }
+         |  UNION {
+         |    ?id wdt:P1651 ?value
+         |    BIND("youtube_video_id" AS ?key)
+         |  }
          |}
          |""".stripMargin
 
@@ -100,7 +104,8 @@ class WikidataAPI @Inject()(ws: WSClient, config: Config) {
         musicbrainzId = valuesForKey("musicbrainz_id"),
         allMusicId = valuesForKey("allmusic_id"),
         musicbrainzReleaseGroupId = valuesForKey("musicbrainz_release_group_id"),
-        allMusicAlbumId = valuesForKey("allmusic_album_id")
+        allMusicAlbumId = valuesForKey("allmusic_album_id"),
+        youtubeVideoId = valuesForKey("youtube_video_id")
       )
     }
   }

@@ -101,10 +101,11 @@ object SongCrawlField {
   case object UrlWikiNl extends SongCrawlField("urlWikiNl", _.urlWikiNl, _.setUrlWikiNl)
   case object WikidataId extends SongCrawlField("wikidataId", _.wikidataId, _.setWikidataId)
   case object SpotifyId extends SongCrawlField("spotifyId", _.spotifyId, _.setSpotifyId)
+  case object YoutubeVideoId extends SongCrawlField("youtubeVideoId", _.youtubeVideoId, _.setYoutubeVideoId)
   case object MusicbrainzRecordingId extends SongCrawlField("musicbrainzRecordingId", _.musicbrainzRecordingId, _.setMusicbrainzRecordingId)
   case object MusicbrainzWorkId extends SongCrawlField("musicbrainzWorkId", _.musicbrainzWorkId, _.setMusicbrainzWorkId)
 
-  val allValues = Seq(LanguageId, UrlWikiEn, UrlWikiNl, WikidataId, SpotifyId, MusicbrainzRecordingId, MusicbrainzWorkId)
+  val allValues = Seq(LanguageId, UrlWikiEn, UrlWikiNl, WikidataId, SpotifyId, YoutubeVideoId, MusicbrainzRecordingId, MusicbrainzWorkId)
 
   implicit val crawlFieldColumnType: BaseColumnType[SongCrawlField] = MappedColumnType.base[SongCrawlField, String](
     _.name,

@@ -20,6 +20,7 @@ final case class Song(
   urlWikiEn: Option[String],
   urlWikiNl: Option[String],
   spotifyId: Option[String],
+  youtubeVideoId: Option[String],
 )
 
 object Song {
@@ -40,7 +41,8 @@ object Song {
       wikidataId = dbSong.wikidataId,
       urlWikiEn = dbSong.urlWikiEn,
       urlWikiNl = dbSong.urlWikiNl,
-      spotifyId = dbSong.spotifyId
+      spotifyId = dbSong.spotifyId,
+      youtubeVideoId = dbSong.youtubeVideoId
     )
   }
 

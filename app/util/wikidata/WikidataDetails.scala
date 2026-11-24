@@ -7,6 +7,7 @@ case class WikidataDetails(
                             urlWikiNl: Seq[String],
                             allMusicId: Seq[String],
                             allMusicAlbumId: Seq[String],
+                            youtubeVideoId: Seq[String],
                             musicbrainzId: Seq[String],
                             musicbrainzReleaseGroupId: Seq[String]
 )

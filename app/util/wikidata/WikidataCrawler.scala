@@ -148,6 +148,13 @@ class WikidataCrawler @Inject()(
               comment = comment,
               strategy = AutoIfUnique
             )
+            _ <- crawlHelper.processSong(
+              song = song,
+              field = SongCrawlField.YoutubeVideoId,
+              candidateValues = wikidataDetails.youtubeVideoId,
+              comment = comment,
+              strategy = AutoIfUnique
+            )
           } yield Thread.sleep(1000)
         }
       case None =>

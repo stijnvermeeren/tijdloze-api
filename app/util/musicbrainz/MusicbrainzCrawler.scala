@@ -97,19 +97,29 @@ class MusicbrainzCrawler @Inject()(
       case Some(musicbrainzId) =>
         musicbrainzAPI.getWork(musicbrainzId).flatMap {
           case Some(mbWork) =>
-            mbWork.wikidataId match {
-              case Some(wikidataId) =>
-                println(mbWork)
-                crawlHelper.processSong(
-                  song = song,
-                  field = SongCrawlField.WikidataId,
-                  candidateValues = Seq(wikidataId),
-                  comment = s"Musicbrainz details ($musicbrainzId)",
-                  strategy = AutoIfUnique
-                )
-              case None =>
-                Future.successful(())
-            }
+            val comment = s"Musicbrainz details ($musicbrainzId)"
+            println(mbWork)
+            for {
+              _ <- crawlHelper.processSong(
+                song = song,
+                field = SongCrawlField.YoutubeVideoId,
+                candidateValues = mbWork.youtubeVideoId.toSeq,
+                comment = comment,
+                strategy = AutoIfUnique
+              )
+              _ <- mbWork.wikidataId match {
+                case Some(wikidataId) =>
+                  crawlHelper.processSong(
+                    song = song,
+                    field = SongCrawlField.WikidataId,
+                    candidateValues = Seq(wikidataId),
+                    comment = comment,
+                    strategy = AutoIfUnique
+                  )
+                case None =>
+                  Future.successful(())
+              }
+            } yield ()
           case None =>
             Future.successful(())
         }

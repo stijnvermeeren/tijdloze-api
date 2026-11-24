@@ -268,8 +268,12 @@ class MusicbrainzAPI @Inject()(ws: WSClient, config: Config) {
         wikidataId = (urls.map(_.as[JsString].value) flatMap {
           case wikidataRegex(wikidataId) => Some(wikidataId)
           case _ => None
-        }).headOption
+        }).headOption,
+        youtubeVideoId = urls.flatMap(url => youtubeVideoIdRegex.findFirstMatchIn(url.as[JsString].value).map(_.group(1))).headOption
       )
     }
   }
+
+  private val youtubeVideoIdRegex =
+    """(?:youtube\.com/(?:watch\?(?:[^#]*&)?v=|embed/|v/)|youtu\.be/)([A-Za-z0-9_-]{11})(?:[?&#/]|$)""".r
 }
