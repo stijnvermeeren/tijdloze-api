@@ -269,7 +269,9 @@ class MusicbrainzAPI @Inject()(ws: WSClient, config: Config) {
           case wikidataRegex(wikidataId) => Some(wikidataId)
           case _ => None
         }).headOption,
-        youtubeVideoId = urls.flatMap(url => youtubeVideoIdRegex.findFirstMatchIn(url.as[JsString].value).map(_.group(1))).headOption
+        youtubeVideoIds = urls
+          .flatMap(url => youtubeVideoIdRegex.findFirstMatchIn(url.as[JsString].value).map(_.group(1)))
+          .distinct
       )
     }
   }

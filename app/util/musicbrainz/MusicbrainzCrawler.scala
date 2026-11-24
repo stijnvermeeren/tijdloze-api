@@ -103,7 +103,7 @@ class MusicbrainzCrawler @Inject()(
               _ <- crawlHelper.processSong(
                 song = song,
                 field = SongCrawlField.YoutubeVideoId,
-                candidateValues = mbWork.youtubeVideoId.toSeq,
+                candidateValues = mbWork.youtubeVideoIds,
                 comment = comment,
                 strategy = AutoIfUnique
               )
