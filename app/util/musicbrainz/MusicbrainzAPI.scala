@@ -184,18 +184,22 @@ class MusicbrainzAPI @Inject()(ws: WSClient, config: Config) {
   }
 
   def getRecording(id: String): Future[Option[MusicbrainzRecording]] = {
-    sendSearchRequest("recording", id = Some(id), query = Seq("inc" -> "artists")).get().map { response =>
+    sendSearchRequest("recording", id = Some(id), query = Seq("inc" -> "url-rels+artists")).get().map { response =>
       val value = response.json
       for {
         id <- (value \ "id").toOption
         title <- (value \ "title").toOption
         artistMusicbrainzId = (value \ "artist-credit" \ 0 \ "artist" \ "id").toOption
         artistName = (value \ "artist-credit" \ 0 \ "artist" \ "name").toOption
+        urls = (value \ "relations").toOption.toSeq.flatMap(
+          _.as[JsArray].value.flatMap(entry => (entry \ "url" \ "resource").toOption)
+        )
       } yield MusicbrainzRecording(
         id = id.as[JsString].value,
         title = title.as[JsString].value,
         artistName = artistName.map(_.as[JsString].value),
-        artistMusicbrainzId = artistMusicbrainzId.map(_.as[JsString].value)
+        artistMusicbrainzId = artistMusicbrainzId.map(_.as[JsString].value),
+        youtubeVideoIds = extractYoutubeVideoIds(urls)
       )
     }
   }
@@ -272,4 +276,17 @@ class MusicbrainzAPI @Inject()(ws: WSClient, config: Config) {
       )
     }
   }
+
+  private def extractYoutubeVideoIds(urls: Seq[JsValue]): Seq[String] =
+    urls
+      .map(_.as[JsString].value)
+      .filterNot(url => youtubeMusicUrlRegex.findFirstIn(url).isDefined)
+      .flatMap(url => youtubeVideoIdRegex.findFirstMatchIn(url).map(_.group(1)))
+      .distinct
+
+  private val youtubeMusicUrlRegex =
+    """(?i)^(?:[a-z][a-z0-9+.-]*:)?//(?:[^/?#@]*@)?music\.youtube\.com\.?(?::[0-9]+)?(?:[/?#]|$)""".r
+
+  private val youtubeVideoIdRegex =
+    """(?i)^(?:[a-z][a-z0-9+.-]*:)?//(?:(?:www\.)?youtube\.com/(?:watch\?(?:[^#]*&)?v=|embed/|v/)|youtu\.be/)([A-Za-z0-9_-]{11})(?:[?&#/]|$)""".r
 }

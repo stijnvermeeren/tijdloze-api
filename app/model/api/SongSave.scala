@@ -18,7 +18,8 @@ final case class SongSave(
   wikidataId: Option[String],
   urlWikiEn: Option[String],
   urlWikiNl: Option[String],
-  spotifyId: Option[String]
+  spotifyId: Option[String],
+  youtubeVideoId: Option[String]
 )
 
 object SongSave {

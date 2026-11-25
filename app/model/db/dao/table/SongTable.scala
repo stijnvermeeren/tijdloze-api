@@ -24,8 +24,9 @@ class SongTable(tag: Tag) extends Table[Song](tag, "song") {
   val urlWikiEn = column[Option[String]]("url_wikien")
   val urlWikiNl = column[Option[String]]("url_wikinl")
   val spotifyId = column[Option[String]]("spotify_id")
+  val youtubeVideoId = column[Option[String]]("youtube_video_id")
   val lastUpdate = column[DateTime]("last_update")
 
-  def * = (id, artistId, secondArtistId, albumId, title, aliases, lyrics, languageId, leadVocals, notes, musicbrainzRecordingId, musicbrainzWorkId, wikidataId, urlWikiEn, urlWikiNl, spotifyId, lastUpdate) <>
+  def * = (id, artistId, secondArtistId, albumId, title, aliases, lyrics, languageId, leadVocals, notes, musicbrainzRecordingId, musicbrainzWorkId, wikidataId, urlWikiEn, urlWikiNl, spotifyId, youtubeVideoId, lastUpdate) <>
     (Song.apply.tupled, Song.unapply)
 }

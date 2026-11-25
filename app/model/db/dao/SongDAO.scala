@@ -49,7 +49,8 @@ class SongDAO @Inject()(configProvider: DatabaseConfigProvider) {
       wikidataId = wikidataId.map(_.trim).filter(_.nonEmpty),
       urlWikiEn = urlWikiEn.map(_.trim).filter(_.nonEmpty),
       urlWikiNl = urlWikiNl.map(_.trim).filter(_.nonEmpty),
-      spotifyId = spotifyId.map(_.trim).filter(_.nonEmpty)
+      spotifyId = spotifyId.map(_.trim).filter(_.nonEmpty),
+      youtubeVideoId = youtubeVideoId.map(_.trim).filter(_.nonEmpty)
     )
 
     db run {
@@ -79,6 +80,7 @@ class SongDAO @Inject()(configProvider: DatabaseConfigProvider) {
           x.urlWikiEn,
           x.urlWikiNl,
           x.spotifyId,
+          x.youtubeVideoId,
           x.lastUpdate)
         )
         .update((
@@ -97,6 +99,7 @@ class SongDAO @Inject()(configProvider: DatabaseConfigProvider) {
           urlWikiEn.map(_.trim).filter(_.nonEmpty),
           urlWikiNl.map(_.trim).filter(_.nonEmpty),
           spotifyId.map(_.trim).filter(_.nonEmpty),
+          youtubeVideoId.map(_.trim).filter(_.nonEmpty),
           DateTime.now()
         ))
     }
@@ -147,6 +150,12 @@ class SongDAO @Inject()(configProvider: DatabaseConfigProvider) {
   def setMusicbrainzWorkId(songId: SongId, musicbrainzWorkId: Option[String]): Future[Int] = {
     db run {
       songTable.filter(_.id === songId).map(_.musicbrainzWorkId).update(musicbrainzWorkId)
+    }
+  }
+
+  def setYoutubeVideoId(songId: SongId, youtubeVideoId: Option[String]): Future[Int] = {
+    db run {
+      songTable.filter(_.id === songId).map(_.youtubeVideoId).update(youtubeVideoId)
     }
   }
 }
