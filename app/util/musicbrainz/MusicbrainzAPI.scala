@@ -288,5 +288,5 @@ class MusicbrainzAPI @Inject()(ws: WSClient, config: Config) {
     """(?i)^(?:[a-z][a-z0-9+.-]*:)?//(?:[^/?#@]*@)?music\.youtube\.com\.?(?::[0-9]+)?(?:[/?#]|$)""".r
 
   private val youtubeVideoIdRegex =
-    """(?:youtube\.com/(?:watch\?(?:[^#]*&)?v=|embed/|v/)|youtu\.be/)([A-Za-z0-9_-]{11})(?:[?&#/]|$)""".r
+    """(?i)^(?:[a-z][a-z0-9+.-]*:)?//(?:(?:www\.)?youtube\.com/(?:watch\?(?:[^#]*&)?v=|embed/|v/)|youtu\.be/)([A-Za-z0-9_-]{11})(?:[?&#/]|$)""".r
 }
