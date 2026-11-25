@@ -4,5 +4,6 @@ final case class MusicbrainzRecording(
   id: String,
   title: String,
   artistName: Option[String],
-  artistMusicbrainzId: Option[String]
+  artistMusicbrainzId: Option[String],
+  youtubeVideoIds: Seq[String]
 )

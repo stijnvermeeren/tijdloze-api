@@ -40,7 +40,8 @@ object ArtistCrawlField {
   case object SpotifyId extends ArtistCrawlField("spotifyId", _.spotifyId, _.setSpotifyId)
   case object MusicbrainzId extends ArtistCrawlField("musicbrainzId", _.musicbrainzId, _.setMusicbrainzId)
 
-  val allValues = Seq(UrlAllMusic, CountryId, UrlWikiEn, UrlWikiNl, UrlOfficial, WikidataId, SpotifyId, MusicbrainzId)
+  // Defer the lists until nested field singletons have finished initializing.
+  lazy val allValues = Seq(UrlAllMusic, CountryId, UrlWikiEn, UrlWikiNl, UrlOfficial, WikidataId, SpotifyId, MusicbrainzId)
 
   implicit val crawlFieldColumnType: BaseColumnType[ArtistCrawlField] = MappedColumnType.base[ArtistCrawlField, String](
     _.name,
@@ -74,7 +75,7 @@ object AlbumCrawlField {
   case object MusicbrainzId extends AlbumCrawlField("musicbrainzId", _.musicbrainzId, _.setMusicbrainzId)
   case object Cover extends AlbumCrawlField("cover", _.cover, _.setCover)
 
-  val allValues = Seq(UrlAllMusic, UrlWikiEn, UrlWikiNl, WikidataId, SpotifyId, MusicbrainzId, Cover)
+  lazy val allValues = Seq(UrlAllMusic, UrlWikiEn, UrlWikiNl, WikidataId, SpotifyId, MusicbrainzId, Cover)
 
   implicit val crawlFieldColumnType: BaseColumnType[AlbumCrawlField] = MappedColumnType.base[AlbumCrawlField, String](
     _.name,
@@ -105,7 +106,7 @@ object SongCrawlField {
   case object MusicbrainzRecordingId extends SongCrawlField("musicbrainzRecordingId", _.musicbrainzRecordingId, _.setMusicbrainzRecordingId)
   case object MusicbrainzWorkId extends SongCrawlField("musicbrainzWorkId", _.musicbrainzWorkId, _.setMusicbrainzWorkId)
 
-  val allValues = Seq(LanguageId, UrlWikiEn, UrlWikiNl, WikidataId, SpotifyId, YoutubeVideoId, MusicbrainzRecordingId, MusicbrainzWorkId)
+  lazy val allValues = Seq(LanguageId, UrlWikiEn, UrlWikiNl, WikidataId, SpotifyId, YoutubeVideoId, MusicbrainzRecordingId, MusicbrainzWorkId)
 
   implicit val crawlFieldColumnType: BaseColumnType[SongCrawlField] = MappedColumnType.base[SongCrawlField, String](
     _.name,

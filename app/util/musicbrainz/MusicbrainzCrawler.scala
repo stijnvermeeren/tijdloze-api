@@ -93,38 +93,50 @@ class MusicbrainzCrawler @Inject()(
   }
 
   def crawlSongDetails(song: Song) = {
-    song.musicbrainzWorkId match {
+    val recordingDetails = song.musicbrainzRecordingId match {
       case Some(musicbrainzId) =>
-        musicbrainzAPI.getWork(musicbrainzId).flatMap {
-          case Some(mbWork) =>
-            val comment = s"Musicbrainz details ($musicbrainzId)"
-            println(mbWork)
-            for {
-              _ <- crawlHelper.processSong(
-                song = song,
-                field = SongCrawlField.YoutubeVideoId,
-                candidateValues = mbWork.youtubeVideoIds,
-                comment = comment,
-                strategy = AutoIfUnique
-              )
-              _ <- mbWork.wikidataId match {
-                case Some(wikidataId) =>
-                  crawlHelper.processSong(
-                    song = song,
-                    field = SongCrawlField.WikidataId,
-                    candidateValues = Seq(wikidataId),
-                    comment = comment,
-                    strategy = AutoIfUnique
-                  )
-                case None =>
-                  Future.successful(())
-              }
-            } yield ()
+        musicbrainzAPI.getRecording(musicbrainzId).flatMap {
+          case Some(mbRecording) =>
+            crawlHelper.processSong(
+              song = song,
+              field = SongCrawlField.YoutubeVideoId,
+              candidateValues = mbRecording.youtubeVideoIds,
+              comment = s"Musicbrainz details ($musicbrainzId)",
+              strategy = AutoIfUnique
+            )
           case None =>
             Future.successful(())
         }
       case None =>
         Future.successful(())
     }
+
+    val workDetails = song.musicbrainzWorkId match {
+      case Some(musicbrainzId) =>
+        musicbrainzAPI.getWork(musicbrainzId).flatMap {
+          case Some(mbWork) =>
+            mbWork.wikidataId match {
+              case Some(wikidataId) =>
+                crawlHelper.processSong(
+                  song = song,
+                  field = SongCrawlField.WikidataId,
+                  candidateValues = Seq(wikidataId),
+                  comment = s"Musicbrainz details ($musicbrainzId)",
+                  strategy = AutoIfUnique
+                )
+              case None =>
+                Future.successful(())
+            }
+          case None =>
+            Future.successful(())
+        }
+      case None =>
+        Future.successful(())
+    }
+
+    for {
+      _ <- recordingDetails
+      _ <- workDetails
+    } yield ()
   }
 }
